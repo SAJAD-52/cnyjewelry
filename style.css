@@ -60,3 +60,11 @@ details.faq[open] summary::after{content:"−"}
 .ad-in{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;min-height:70px;padding:.4rem .6rem}
 #cb{position:fixed;left:1rem;right:1rem;bottom:1rem;z-index:80;max-width:44rem;margin:auto;display:flex;flex-wrap:wrap;align-items:center;gap:.8rem 1.2rem;justify-content:space-between;padding:1rem 1.3rem;border-radius:1rem;background:rgba(15,23,42,.92);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border:1px solid rgba(243,226,179,.25)}
 #cb p{margin:0}#cb div{display:flex;gap:.5rem}
+
+.nav details.more{position:relative}
+.nav details.more summary{list-style:none;cursor:pointer;color:#cbd5e1;padding:.4rem .8rem;border-radius:999px;font-size:.95rem}
+.nav details.more summary::-webkit-details-marker{display:none}
+.nav details.more summary:hover{color:#fff;background:rgba(255,255,255,.06)}
+.nav details.more summary::after{content:" ▾";font-size:.75rem}
+.more-menu{position:absolute;right:0;top:2.6rem;min-width:13rem;display:flex;flex-direction:column;padding:.5rem;border-radius:1rem;background:rgba(15,23,42,.98);border:1px solid rgba(243,226,179,.18);box-shadow:0 24px 50px -20px rgba(0,0,0,.9);z-index:60}
+select.chip option{color:#e2e8f0}
