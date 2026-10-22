@@ -54,3 +54,9 @@ details.faq summary::-webkit-details-marker{display:none}
 details.faq summary::after{content:"+";float:right;color:#e8b4b8}
 details.faq[open] summary::after{content:"−"}
 .sw{display:inline-block;width:2.6rem;height:2.6rem;border-radius:50%;border:1px solid rgba(255,255,255,.25)}
+.ad{display:block;position:relative;width:100%;max-width:970px;margin:3rem auto;min-height:110px;border-radius:1rem;border:1px solid rgba(243,226,179,.1);background:rgba(15,23,42,.4);padding:1.4rem .8rem .8rem;overflow:hidden}
+.ad-inline{min-height:250px}
+.ad::before{content:"Advertisement";position:absolute;top:.35rem;left:.9rem;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:#64748b}
+.ad-in{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;min-height:70px;padding:.4rem .6rem}
+#cb{position:fixed;left:1rem;right:1rem;bottom:1rem;z-index:80;max-width:44rem;margin:auto;display:flex;flex-wrap:wrap;align-items:center;gap:.8rem 1.2rem;justify-content:space-between;padding:1rem 1.3rem;border-radius:1rem;background:rgba(15,23,42,.92);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border:1px solid rgba(243,226,179,.25)}
+#cb p{margin:0}#cb div{display:flex;gap:.5rem}
