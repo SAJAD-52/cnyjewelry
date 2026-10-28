@@ -28,7 +28,7 @@
 (function(){
 var SB_URL = 'https://kbcruuirhkidkbmrthbc.supabase.co';
 var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiY3J1dWlyaGtpZGtibXJ0aGJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMzU5MTksImV4cCI6MjEwODcxMTkxOX0.NVhiP74USvG4GU7_pnsNqDPaZ8oQhTl145wmnD-Fp3Y';
-var STRIPE_LINK = 'https://buy.stripe.com/5kQ00kb7pgWc8p8c6Y0ZW00';
+var STRIPE_BASE = 'https://buy.stripe.com/5kQ00kb7pgWc8p8c6Y0ZW00';
 
 var TH=[['light','Blush','#fbf5f2'],['plum','Plum','#2a1426'],['midnight','Midnight','#020617']];
 try{var st=localStorage.getItem('koo_theme');if(st==='plum'||st==='midnight')document.documentElement.dataset.theme=st}catch(e){}
@@ -61,7 +61,7 @@ var mb=document.getElementById('mb');
 if(mb)mb.onclick=function(){var m=document.getElementById('mm'),o=m.classList.toggle('hidden');m.classList.toggle('flex',!o);mb.setAttribute('aria-expanded',!o)};
 
 var f=document.getElementById('foot');
-if(f)f.innerHTML='<footer class="mx-auto max-w-6xl px-5 py-12 border-t" style="border-color:rgba(243,226,179,.1)"><div class="flex flex-wrap justify-between gap-6"><div>'+brand('lg2')+'<p class="muted text-sm mt-2 max-w-sm">Free jewelry tools and guides. Upgrade to Pro for unlimited access.</p></div><nav class="flex flex-wrap gap-x-5 gap-y-1 text-sm muted" aria-label="Footer">'+pages.map(function(p){return '<a href="'+p[0]+'" class="hover:text-white">'+p[1]+'</a>'}).join('')+'<a href="privacy.html" class="hover:text-white">Privacy and ads</a></nav></div><nav class="flex flex-wrap gap-x-5 gap-y-1 text-sm muted mt-6" aria-label="Guides">'+guides.map(function(g){return '<a href="'+g[0]+'" class="hover:text-white">'+g[1]+'</a>'}).join('')+'</nav><p class="muted text-xs mt-8">© 2026 McGee Jewelry. Sizes and care advice are general guidance. For fine or antique pieces, check with a jeweler.</p></footer>';
+if(f)f.innerHTML='<footer class="mx-auto max-w-6xl px-5 py-12 border-t" style="border-color:rgba(243,226,179,.1)"><div class="flex flex-wrap justify-between gap-6"><div>'+brand('lg2')+'<p class="muted text-sm mt-2 max-w-sm">Fine jewelry tools and style guides. Upgrade to Pro for unlimited access.</p></div><nav class="flex flex-wrap gap-x-5 gap-y-1 text-sm muted" aria-label="Footer">'+pages.map(function(p){return '<a href="'+p[0]+'" class="hover:text-white">'+p[1]+'</a>'}).join('')+'<a href="privacy.html" class="hover:text-white">Privacy and ads</a></nav></div><nav class="flex flex-wrap gap-x-5 gap-y-1 text-sm muted mt-6" aria-label="Guides">'+guides.map(function(g){return '<a href="'+g[0]+'" class="hover:text-white">'+g[1]+'</a>'}).join('')+'</nav><p class="muted text-xs mt-8">© 2026 McGee Jewelry. Sizes and care advice are general guidance. For fine or antique pieces, check with a jeweler.</p></footer>';
 
 /* ---------- Theme switcher ---------- */
 function thNow(){return document.documentElement.dataset.theme||'light'}
@@ -71,18 +71,25 @@ if(thb)thb.onclick=function(){var i=0;TH.forEach(function(x,j){if(x[0]===thNow()
 thLab();
 KOO.sync();
 
-/* ---------- Pro Auth & Membership Module ---------- */
+/* ---------- Pro Auth & Membership ---------- */
 var TOOL_FILES = ['sizing.html','styling.html','care.html','gift.html','layering.html','anniversary.html','gold.html','diamond.html','earrings.html','wishlist.html'];
-var isTool = TOOL_FILES.indexOf(here) >= 0;
+var isToolPage = TOOL_FILES.indexOf(here) >= 0;
 
 var sb = null;
 var currentUser = null;
-var authMode = 'login'; // 'login' or 'signup'
+var authMode = 'login';
 
 function isProUser() {
   if (localStorage.getItem('koo_pro_active') === 'true') return true;
   if (currentUser && currentUser.user_metadata && currentUser.user_metadata.is_pro === true) return true;
   return false;
+}
+
+function getStripeUrl() {
+  if (currentUser && currentUser.email) {
+    return STRIPE_BASE + '?prefilled_email=' + encodeURIComponent(currentUser.email);
+  }
+  return STRIPE_BASE;
 }
 
 function updateNavAuth() {
@@ -95,20 +102,22 @@ function updateNavAuth() {
   if (currentUser) {
     var email = currentUser.email || 'Member';
     var shortEmail = email.length > 15 ? email.slice(0, 12) + '...' : email;
-    html = '<span class="text-xs px-2 py-1 rounded-full ' + (pro ? 'bg-amber-100 text-amber-900 font-semibold' : 'muted') + '">' + (pro ? '⭐ Pro' : shortEmail) + '</span>' +
-           (!pro ? '<a href="' + STRIPE_LINK + '" class="btn btn-gold text-xs" style="padding:.35rem .75rem">Upgrade ($6)</a>' : '') +
+    html = '<span class="text-xs px-2.5 py-1 rounded-full ' + (pro ? 'bg-amber-100 text-amber-900 font-semibold' : 'muted') + '">' + (pro ? '⭐ Pro' : shortEmail) + '</span>' +
+           (!pro ? '<button id="nav-btn-pro" class="btn btn-gold text-xs" style="padding:.35rem .75rem">Upgrade ($6)</button>' : '') +
            '<button id="btn-logout" class="btn btn-ghost text-xs" style="padding:.35rem .65rem">Exit</button>';
     mHtml = '<div class="flex items-center justify-between text-sm py-2"><span>' + email + (pro ? ' <b>(Pro)</b>' : '') + '</span><button id="m-btn-logout" class="text-red-400">Log out</button></div>' +
-            (!pro ? '<a href="' + STRIPE_LINK + '" class="btn btn-gold block text-center mt-2">Upgrade to Pro ($6/mo)</a>' : '');
+            (!pro ? '<button id="m-nav-btn-pro" class="btn btn-gold block w-full text-center mt-2">Upgrade to Pro ($6/mo)</button>' : '');
   } else {
-    html = '<a href="' + STRIPE_LINK + '" class="btn btn-gold text-xs hidden sm:inline-block" style="padding:.35rem .75rem">Pro $6/mo</a>' +
+    html = '<button id="nav-btn-pro" class="btn btn-gold text-xs hidden sm:inline-block" style="padding:.35rem .75rem">Pro $6/mo</button>' +
            '<button id="btn-login" class="btn btn-ghost text-xs" style="padding:.35rem .75rem">Log in</button>';
-    mHtml = '<div class="flex gap-2 mt-2"><button id="m-btn-login" class="btn btn-ghost flex-1">Log in</button><a href="' + STRIPE_LINK + '" class="btn btn-gold flex-1 text-center">Pro $6/mo</a></div>';
+    mHtml = '<div class="flex gap-2 mt-2"><button id="m-btn-login" class="btn btn-ghost flex-1">Log in</button><button id="m-nav-btn-pro" class="btn btn-gold flex-1 text-center">Pro $6/mo</button></div>';
   }
 
   if (as) as.innerHTML = html;
   if (mma) mma.innerHTML = mHtml;
 
+  var bPro = document.getElementById('nav-btn-pro'); if (bPro) bPro.onclick = function(){ openProModal(); };
+  var mbPro = document.getElementById('m-nav-btn-pro'); if (mbPro) mbPro.onclick = function(){ openProModal(); };
   var bLog = document.getElementById('btn-login'); if (bLog) bLog.onclick = function(){ authMode='login'; openAuthModal(); };
   var mbLog = document.getElementById('m-btn-login'); if (mbLog) mbLog.onclick = function(){ authMode='login'; openAuthModal(); };
   var bOut = document.getElementById('btn-logout'); if (bOut) bOut.onclick = logoutUser;
@@ -128,40 +137,102 @@ function handleStripeSuccess() {
       window.history.replaceState({}, document.title, url.pathname);
     } catch(e){}
     updateNavAuth();
-    removeToolPaywall();
   }
 }
 
-function checkToolPaywall() {
-  if (!isTool) return;
-  if (isProUser()) {
-    removeToolPaywall();
-    return;
+/* ---------- STYLISH PRO SUBSCRIPTION BANNER (BLUR / FLOU) ---------- */
+function openProModal() {
+  var old = document.getElementById('mcgee-pro-modal');
+  if (old) old.remove();
+
+  var features = [
+    { icon: '💍', t: 'Ring & Bracelet Sizer', d: 'US, UK, EU and Japan sizes with life-scale preview' },
+    { icon: '🪙', t: 'Gold Karat & Value Calculator', d: 'Real-time 10k–24k melt values and investment estimates' },
+    { icon: '💎', t: 'Diamond Carat Visualizer', d: 'Exact millimeter-to-carat finger scale on hand simulator' },
+    { icon: '✨', t: 'Photo & Undertone Analyzer', d: 'Browser-based metal detection & gem color matching' },
+    { icon: '📿', t: 'Necklace Layering Studio', d: 'Recommended chain lengths and spacing for 6 necklines' },
+    { icon: '🎨', t: 'Metal & Skin Undertone Match', d: 'Gold, silver and rose gold flattering guide' },
+    { icon: '🎁', t: '4-Question Smart Gift Finder', d: 'Custom jewelry gift recommendations by style and budget' },
+    { icon: '🫧', t: 'Complete Jewelry Care Vault', d: 'Cleaning and protection formulas for all stones & metals' },
+    { icon: '📅', t: 'Anniversary & Birthstones', d: 'Complete milestone gem vault from year 1 to 60' },
+    { icon: '♡', t: 'Synced Pro Wishlist', d: 'Save unlimited pieces and styling sets across devices' }
+  ];
+
+  var featHtml = features.map(function(f){
+    return '<div class="flex items-start gap-3 p-2.5 rounded-xl" style="background:rgba(255,255,255,0.03);border:1px solid rgba(243,226,179,0.1)">' +
+           '<span class="text-xl shrink-0">' + f.icon + '</span>' +
+           '<div class="text-left"><p class="text-sm font-medium gt leading-tight">' + f.t + '</p><p class="muted text-xs mt-0.5 leading-snug">' + f.d + '</p></div>' +
+           '</div>';
+  }).join('');
+
+  var m = document.createElement('div');
+  m.id = 'mcgee-pro-modal';
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(18,10,14,0.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1.25rem;overflow-y:auto;';
+  
+  m.innerHTML = '<div class="glass glow p-6 md:p-8 rounded-3xl max-w-2xl w-full relative my-auto" style="box-shadow:0 30px 60px rgba(0,0,0,0.5);border:1px solid rgba(243,226,179,0.25)">' +
+                '<button id="pro-close" style="position:absolute;top:1.2rem;right:1.2rem;width:2rem;height:2rem;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:1rem;cursor:pointer" class="muted hover:text-white" aria-label="Close">✕</button>' +
+                
+                '<div class="text-center">' +
+                '<span class="chip" style="font-size:0.75rem;padding:0.25rem 0.9rem;background:rgba(243,226,179,0.15);border-color:#b76e79;color:#f3e2b3">✨ MCGEE JEWELRY PRO</span>' +
+                '<h2 class="serif text-3xl md:text-5xl gt mt-3">Unlock All Jewelry Tools</h2>' +
+                '<p class="muted text-sm md:text-base mt-2 max-w-lg mx-auto">Get unlimited, instant access to all professional sizing, styling, diamond, and gold tools for <b class="gt" style="font-size:1.15rem">only $6 a month</b>.</p>' +
+                '</div>' +
+
+                '<div class="grid sm:grid-cols-2 gap-2.5 mt-5 max-h-[46vh] overflow-y-auto pr-1">' +
+                featHtml +
+                '</div>' +
+
+                '<div class="mt-6 flex flex-col gap-2.5 items-center">' +
+                '<a href="' + getStripeUrl() + '" class="btn btn-gold w-full text-center py-3.5 text-base md:text-lg font-medium shadow-lg" style="letter-spacing:0.02em">' +
+                'Unlock All Features Now &nbsp;&rarr;&nbsp; $6/month</a>' +
+                '<p class="muted text-xs mt-1 text-center">Instant access &middot; Secure checkout via Stripe &middot; Cancel anytime in 1 click</p>' +
+                '</div>' +
+
+                '<div class="text-center mt-3 pt-3 border-t border-rose-200/10">' +
+                '<button id="pro-modal-login" class="text-xs muted hover:underline">Already subscribed? <b class="gt">Log in to your account</b></button>' +
+                '</div>' +
+                '</div>';
+
+  document.body.appendChild(m);
+
+  var cl = document.getElementById('pro-close'); if (cl) cl.onclick = function(){ m.remove(); };
+  var pl = document.getElementById('pro-modal-login'); if (pl) pl.onclick = function(){ m.remove(); authMode='login'; openAuthModal(); };
+  m.onclick = function(e){ if (e.target === m) m.remove(); };
+}
+window.openProModal = openProModal;
+
+/* ---------- Global Click Interceptor for Tools ---------- */
+document.addEventListener('click', function(e) {
+  if (isProUser()) return; // Pro users have full access!
+
+  // Check if clicking a tool page link
+  var a = e.target.closest('a');
+  if (a && a.href) {
+    var href = a.getAttribute('href') || '';
+    for (var i = 0; i < TOOL_FILES.length; i++) {
+      if (href === TOOL_FILES[i] || href.indexOf('/' + TOOL_FILES[i]) >= 0) {
+        e.preventDefault();
+        openProModal();
+        return;
+      }
+    }
+    // Also intercept home page tool anchors
+    if (here === 'index.html' && (href === '#size' || href === '#photo' || href === '#layer' || href === '#birth')) {
+      e.preventDefault();
+      openProModal();
+      return;
+    }
   }
-  if (document.getElementById('pro-gate-modal')) return;
 
-  var gate = document.createElement('div');
-  gate.id = 'pro-gate-modal';
-  gate.style.cssText = 'position:fixed;bottom:1.5rem;right:1.5rem;max-width:380px;z-index:9999;padding:1.5rem;border-radius:1.25rem;box-shadow:0 20px 40px rgba(0,0,0,0.25);';
-  gate.className = 'glass glow';
-  gate.innerHTML = '<div class="flex items-start justify-between gap-2">' +
-                   '<h3 class="serif text-2xl gt">Unlock All 12 Tools</h3>' +
-                   '<button id="gate-close" class="text-xs muted hover:text-white" style="cursor:pointer">✕</button></div>' +
-                   '<p class="muted text-sm mt-2">McGee Pro gives you unlimited access to sizing, gold calculators, diamond simulators, and styling guides for just $6/month.</p>' +
-                   '<div class="flex flex-col gap-2 mt-4">' +
-                   '<a href="' + STRIPE_LINK + '" class="btn btn-gold text-center">Get Pro ($6/month)</a>' +
-                   '<button id="gate-login" class="btn btn-ghost text-xs text-center">Already a member? Log in</button>' +
-                   '</div>';
-  document.body.appendChild(gate);
-
-  var cl = document.getElementById('gate-close'); if (cl) cl.onclick = function(){ gate.remove(); };
-  var gl = document.getElementById('gate-login'); if (gl) gl.onclick = function(){ authMode='login'; openAuthModal(); };
-}
-
-function removeToolPaywall() {
-  var gate = document.getElementById('pro-gate-modal');
-  if (gate) gate.remove();
-}
+  // Intercept interaction with home page interactive tool widgets
+  if (here === 'index.html') {
+    var widget = e.target.closest('#ms, #dz, #nl button, #bm button, #file');
+    if (widget) {
+      e.preventDefault();
+      openProModal();
+    }
+  }
+}, true);
 
 /* ---------- Auth Modal (Email + Password + Switch) ---------- */
 function openAuthModal() {
@@ -171,12 +242,12 @@ function openAuthModal() {
   var isSignUp = authMode === 'signup';
   var dlg = document.createElement('div');
   dlg.id = 'mcgee-auth-dialog';
-  dlg.style.cssText = 'position:fixed;inset:0;background:rgba(20,10,15,0.7);backdrop-filter:blur(6px);z-index:10000;display:flex;align-items:center;justify-content:center;padding:1rem;';
+  dlg.style.cssText = 'position:fixed;inset:0;background:rgba(20,10,15,0.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:100000;display:flex;align-items:center;justify-content:center;padding:1rem;';
   
-  dlg.innerHTML = '<div class="glass p-6 md:p-8 rounded-2xl max-w-md w-full relative" style="box-shadow:0 25px 50px rgba(0,0,0,0.3)">' +
+  dlg.innerHTML = '<div class="glass p-6 md:p-8 rounded-2xl max-w-md w-full relative" style="box-shadow:0 25px 50px rgba(0,0,0,0.4)">' +
                   '<button id="auth-close" style="position:absolute;top:1rem;right:1rem;font-size:1.2rem;cursor:pointer" class="muted">✕</button>' +
                   '<h2 id="auth-heading" class="serif text-3xl gt text-center">' + (isSignUp ? 'Create your account' : 'Welcome back') + '</h2>' +
-                  '<p id="auth-sub" class="muted text-sm text-center mt-1">' + (isSignUp ? 'Sign up to save your wishlist and access Pro tools.' : 'Log in to access your McGee Jewelry tools.') + '</p>' +
+                  '<p id="auth-sub" class="muted text-sm text-center mt-1">' + (isSignUp ? 'Sign up to access Pro tools and save your wishlist.' : 'Log in to access your McGee Jewelry tools.') + '</p>' +
                   '<div class="mt-5 flex flex-col gap-3">' +
                   '<button id="btn-oauth-google" type="button" class="btn btn-ghost flex items-center justify-center gap-2 w-full" style="background:rgba(255,255,255,0.08)">' +
                   '<svg width="18" height="18" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.7-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/><path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.8s.2-2.1.4-2.8L1.9 6.3C.7 8.7 0 11.3 0 14s.7 5.3 1.9 7.7l3.7-2.9z"/><path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2-6.4-4.8L1.9 16.4C3.7 20.1 7.5 23 12 23z"/></svg>' +
@@ -251,9 +322,8 @@ function handleFormSubmit(e) {
         st.textContent = res.error.message;
         st.style.color = '#ef4444';
       } else {
-        // If email confirmation is enabled in Supabase, notify user
         if (res.data.user && (!res.data.session)) {
-          st.textContent = 'Account created! Please check your email to confirm your account.';
+          st.textContent = 'Account created! Please check your email to confirm.';
           st.style.color = '#10b981';
         } else {
           st.textContent = 'Account created successfully!';
@@ -322,20 +392,17 @@ window.initMcGeeAuth = function() {
     }
     updateNavAuth();
     handleStripeSuccess();
-    checkToolPaywall();
   });
 
   sb.auth.onAuthStateChange(function(evt, session){
     currentUser = session ? session.user : null;
     updateNavAuth();
     handleStripeSuccess();
-    checkToolPaywall();
   });
 };
 
 if (window.supabase) window.initMcGeeAuth();
 updateNavAuth();
 handleStripeSuccess();
-checkToolPaywall();
 
 })();
