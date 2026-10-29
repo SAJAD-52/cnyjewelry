@@ -1,6 +1,7 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin Panel | McGee Jewelry</title><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#fbf5f2"><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"><script src="https://cdn.tailwindcss.com"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><link rel="stylesheet" href="style.css">
 <style>
-.dash{display:grid;grid-template-columns:16rem 1fr;min-height:100vh}
+.dash.logged-in{display:grid;grid-template-columns:16rem 1fr;min-height:100vh}
+.dash.logged-out{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1.5rem}
 .side{padding:1.5rem 1rem;border-right:1px solid rgba(183,110,121,.25);position:sticky;top:0;height:100vh;background:rgba(255,255,255,.4);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);display:flex;flex-direction:column;justify-content:between}
 .side button.nv{display:flex;width:100%;gap:.7rem;align-items:center;text-align:left;padding:.75rem .95rem;border-radius:.85rem;border:1px solid transparent;background:none;color:inherit;font:inherit;cursor:pointer;margin-top:.35rem;transition:all .25s}
 .side button.nv:hover{background:rgba(183,110,121,.12)}
@@ -14,11 +15,11 @@
 .ck li{margin:.25rem 0;list-style:none}.ck .ok{color:#1d7a3a}.ck .bad{color:#b3262e}.ck .warn{color:#8a6a05}
 #log{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85rem;white-space:pre-wrap}
 .btn[disabled]{opacity:.45;cursor:not-allowed;transform:none!important}
-@media(max-width:850px){.dash{grid-template-columns:1fr}.side{position:static;height:auto;display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}.main{padding:1.25rem}}
+@media(max-width:850px){.dash.logged-in{grid-template-columns:1fr}.side{position:static;height:auto;display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}.main{padding:1.25rem}}
 html[data-theme="plum"] .fld input,html[data-theme="plum"] .fld select,html[data-theme="plum"] .fld textarea{background:#3a1b33;color:#f3e8ee}
 </style></head><body>
-<div class="dash">
-<aside class="side">
+<div class="dash logged-out" id="dash-container">
+<aside class="side" id="admin-side" style="display:none">
 <div>
 <a href="index.html" class="brand" style="text-decoration:none" aria-label="McGee Jewelry"><svg width="34" height="34" viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="dl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3e2b3"/><stop offset=".55" stop-color="#e8b4b8"/><stop offset="1" stop-color="#b76e79"/></linearGradient></defs><circle cx="20" cy="25" r="11" fill="none" stroke="url(#dl)" stroke-width="2.6"/><polygon points="14,5 26,5 31,10 20,19 9,10" fill="url(#dl)"/></svg><span><span class="serif gt brand-n" style="font-size:1.4rem">McGee</span><span class="brand-s" style="font-size:0.65rem;letter-spacing:0.2em">ADMIN</span></span></a>
 <nav id="admin-nav" aria-label="Dashboard Menu" style="margin-top:1.8rem">
