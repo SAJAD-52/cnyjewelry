@@ -29,7 +29,7 @@
 var SB_URL = 'https://kbcruuirhkidkbmrthbc.supabase.co';
 var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiY3J1dWlyaGtpZGtibXJ0aGJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMzU5MTksImV4cCI6MjEwODcxMTkxOX0.NVhiP74USvG4GU7_pnsNqDPaZ8oQhTl145wmnD-Fp3Y';
 var STRIPE_BASE = 'https://buy.stripe.com/5kQ00kb7pgWc8p8c6Y0ZW00';
-var STRIPE_PORTAL = 'https://billing.stripe.com/p/login/5kQ00kb7pgWc8p8c6Y0ZW00'; // Replace with your activated Stripe Portal link
+var STRIPE_PORTAL = 'https://billing.stripe.com/p/login/';
 
 var TH=[['light','Blush','#fbf5f2'],['plum','Plum','#2a1426'],['midnight','Midnight','#020617']];
 try{var st=localStorage.getItem('koo_theme');if(st==='plum'||st==='midnight')document.documentElement.dataset.theme=st}catch(e){}
@@ -40,7 +40,13 @@ function brand(id){return '<a href="index.html" class="brand" aria-label="McGee 
 var guides=[["/how-to-measure-ring-size-at-home","Measure Ring Size at Home"],["/how-to-untangle-a-necklace","Untangle Fine Gold Chains"],["/shop/necklaces/14k-yellow-gold-necklace-with-devil-emoji-symbol","Devil emoji necklace"],["/how-to-clean-sterling-silver-at-home","Clean Sterling Silver Guide"],["/why-does-gold-turn-skin-green","Gold Turning Skin Green"],["/product-category/rings","Rings guide"],["/what-earrings-are-trending-now","Earring trends"],["/shop/rings/14k-white-and-rose-gold-doulbe-diamond-infinity-design-band-3-8-cttw","Diamond infinity band"]];
 var pages=[['index.html','Home'],['vault.html','Jewelry Box'],['sizing.html','Size guide'],['styling.html','Metal match'],['care.html','Care'],['gift.html','Gift finder'],['blog.html','Blog'],['wishlist.html','Wishlist'],['layering.html','Layering'],['anniversary.html','Anniversary gifts'],['gold.html','Gold calculator'],['diamond.html','Diamond size'],['earrings.html','Earring finder']],MAIN=6;
 
-var here=location.pathname.replace(/\/+$/,'').split('/').pop()||'index.html';if(here.indexOf('.')<0)here+='.html';
+var rawPath = location.pathname.toLowerCase().replace(/^\/+|\/+$/g, '');
+var cleanSlug = rawPath.replace(/\.html$/, '');
+var here = (cleanSlug || 'index') + '.html';
+
+var TOOL_SLUGS = ['sizing', 'styling', 'care', 'gift', 'layering', 'anniversary', 'gold', 'diamond', 'earrings', 'wishlist', 'vault'];
+var isToolPage = TOOL_SLUGS.indexOf(cleanSlug) >= 0;
+
 var K='koo_wishlist';
 var KOO=window.KOO={
   get:function(){try{return JSON.parse(localStorage.getItem(K))||[]}catch(e){return[]}},
@@ -73,8 +79,6 @@ thLab();
 KOO.sync();
 
 /* ---------- Pro Auth & Membership ---------- */
-var TOOL_FILES = ['sizing.html','styling.html','care.html','gift.html','layering.html','anniversary.html','gold.html','diamond.html','earrings.html','wishlist.html','vault.html'];
-
 var sb = null;
 var currentUser = null;
 var authMode = 'login';
@@ -122,8 +126,8 @@ function updateNavAuth() {
 
   var bProf = document.getElementById('nav-btn-profile'); if (bProf) bProf.onclick = openProfileModal;
   var mbProf = document.getElementById('m-btn-profile'); if (mbProf) mbProf.onclick = openProfileModal;
-  var bPro = document.getElementById('nav-btn-pro'); if (bPro) bPro.onclick = openProModal;
-  var mbPro = document.getElementById('m-nav-btn-pro'); if (mbPro) mbPro.onclick = openProModal;
+  var bPro = document.getElementById('nav-btn-pro'); if (bPro) bPro.onclick = function(){ openProModal(false); };
+  var mbPro = document.getElementById('m-nav-btn-pro'); if (mbPro) mbPro.onclick = function(){ openProModal(false); };
   var bLog = document.getElementById('btn-login'); if (bLog) bLog.onclick = function(){ authMode='login'; openAuthModal(); };
   var mbLog = document.getElementById('m-btn-login'); if (mbLog) mbLog.onclick = function(){ authMode='login'; openAuthModal(); };
   var mbOut = document.getElementById('m-btn-logout'); if (mbOut) mbOut.onclick = logoutUser;
@@ -142,6 +146,8 @@ function handleStripeSuccess() {
       window.history.replaceState({}, document.title, url.pathname);
     } catch(e){}
     updateNavAuth();
+    var m = document.getElementById('mcgee-pro-modal');
+    if (m) m.remove();
   }
 }
 
@@ -162,7 +168,6 @@ function openProfileModal() {
 
   dlg.innerHTML = '<div class="glass glow p-6 md:p-8 rounded-3xl max-w-lg w-full relative my-auto" style="box-shadow:0 30px 60px rgba(0,0,0,0.5);border:1px solid rgba(243,226,179,0.25)">' +
                   '<button id="prof-close" style="position:absolute;top:1.2rem;right:1.2rem;width:2rem;height:2rem;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:1rem;cursor:pointer" class="muted hover:text-white">✕</button>' +
-                  
                   '<div class="flex items-center gap-3">' +
                   '<div style="width:3.2rem;height:3.2rem;border-radius:50%;background:linear-gradient(135deg,#f3e2b3,#b76e79);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:bold;color:#3b1a22">' +
                   email.charAt(0).toUpperCase() + '</div>' +
@@ -170,7 +175,6 @@ function openProfileModal() {
                   '<h2 class="serif text-2xl gt leading-tight">' + email + '</h2>' +
                   '<p class="muted text-xs">Member since ' + joinDate + '</p>' +
                   '</div></div>' +
-
                   '<div class="mt-6 p-4 rounded-2xl" style="background:rgba(255,255,255,0.04);border:1px solid rgba(243,226,179,0.15)">' +
                   '<div class="flex items-center justify-between">' +
                   '<div><span class="muted text-xs uppercase tracking-wider">Current Plan</span>' +
@@ -178,7 +182,6 @@ function openProfileModal() {
                   '<span class="chip" style="font-size:0.75rem;padding:0.25rem 0.75rem;' + (pro ? 'background:rgba(243,226,179,0.2);color:#f3e2b3;border-color:#b76e79' : '') + '">' +
                   (pro ? '$6 / month' : 'Free') + '</span>' +
                   '</div>' +
-
                   (pro ? 
                     '<p class="muted text-xs mt-2">Unlimited access to all 12 sizing, styling, and gold tools.</p>' +
                     '<div class="mt-4 pt-3 border-t border-rose-200/10 flex flex-col gap-2">' +
@@ -191,13 +194,11 @@ function openProfileModal() {
                     '<button id="prof-btn-upgrade" class="btn btn-gold w-full mt-3 text-sm">Upgrade to Pro ($6/month)</button>'
                   ) +
                   '</div>' +
-
                   '<div class="mt-4 p-4 rounded-2xl flex items-center justify-between" style="background:rgba(255,255,255,0.02);border:1px solid rgba(243,226,179,0.08)">' +
                   '<div><span class="muted text-xs">Saved in Wishlist</span>' +
                   '<p class="text-sm font-semibold">' + savedCount + ' jewelry items</p></div>' +
                   '<a href="wishlist.html" class="btn btn-ghost text-xs" style="padding:.35rem .75rem">View Wishlist</a>' +
                   '</div>' +
-
                   '<div class="mt-6 flex items-center justify-between pt-4 border-t border-rose-200/10">' +
                   '<button id="prof-btn-logout" class="text-xs text-red-400 hover:underline">Log out of this device</button>' +
                   '<button id="prof-btn-done" class="btn btn-ghost text-xs" style="padding:.35rem .9rem">Done</button>' +
@@ -209,12 +210,12 @@ function openProfileModal() {
   var cl = document.getElementById('prof-close'); if (cl) cl.onclick = function(){ dlg.remove(); };
   var dn = document.getElementById('prof-btn-done'); if (dn) dn.onclick = function(){ dlg.remove(); };
   var lo = document.getElementById('prof-btn-logout'); if (lo) lo.onclick = logoutUser;
-  var up = document.getElementById('prof-btn-upgrade'); if (up) up.onclick = function(){ dlg.remove(); openProModal(); };
+  var up = document.getElementById('prof-btn-upgrade'); if (up) up.onclick = function(){ dlg.remove(); openProModal(false); };
   dlg.onclick = function(e){ if (e.target === dlg) dlg.remove(); };
 }
 
 /* ---------- STYLISH PRO SUBSCRIPTION BANNER (BLUR / FLOU) ---------- */
-function openProModal() {
+function openProModal(isPageLock) {
   var old = document.getElementById('mcgee-pro-modal');
   if (old) old.remove();
 
@@ -240,7 +241,7 @@ function openProModal() {
 
   var m = document.createElement('div');
   m.id = 'mcgee-pro-modal';
-  m.style.cssText = 'position:fixed;inset:0;background:rgba(18,10,14,0.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1.25rem;overflow-y:auto;';
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(18,10,14,0.85);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1.25rem;overflow-y:auto;';
   
   m.innerHTML = '<div class="glass glow p-6 md:p-8 rounded-3xl max-w-2xl w-full relative my-auto" style="box-shadow:0 30px 60px rgba(0,0,0,0.5);border:1px solid rgba(243,226,179,0.25)">' +
                 '<button id="pro-close" style="position:absolute;top:1.2rem;right:1.2rem;width:2rem;height:2rem;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:1rem;cursor:pointer" class="muted hover:text-white" aria-label="Close">✕</button>' +
@@ -268,38 +269,64 @@ function openProModal() {
 
   document.body.appendChild(m);
 
-  var cl = document.getElementById('pro-close'); if (cl) cl.onclick = function(){ m.remove(); };
-  var pl = document.getElementById('pro-modal-login'); if (pl) pl.onclick = function(){ m.remove(); authMode='login'; openAuthModal(); };
-  m.onclick = function(e){ if (e.target === m) m.remove(); };
+  var cl = document.getElementById('pro-close');
+  if (cl) {
+    cl.onclick = function(){
+      m.remove();
+      if (isPageLock) { window.location.href = 'index.html'; }
+    };
+  }
+  var pl = document.getElementById('pro-modal-login');
+  if (pl) {
+    pl.onclick = function(){
+      m.remove();
+      authMode='login';
+      openAuthModal();
+    };
+  }
+  m.onclick = function(e){
+    if (e.target === m) {
+      m.remove();
+      if (isPageLock) { window.location.href = 'index.html'; }
+    }
+  };
 }
 window.openProModal = openProModal;
 
-/* ---------- Global Click Interceptor for Tools ---------- */
+/* ---------- DIRECT URL & GOOGLE PAGE-LOAD PAYWALL CHECK ---------- */
+function checkDirectPagePaywall() {
+  if (!isToolPage) return;
+  if (isProUser()) return;
+  openProModal(true);
+}
+
+/* ---------- Global Click Interceptor for Tool Links ---------- */
 document.addEventListener('click', function(e) {
   if (isProUser()) return;
 
   var a = e.target.closest('a');
   if (a && a.href) {
     var href = a.getAttribute('href') || '';
-    for (var i = 0; i < TOOL_FILES.length; i++) {
-      if (href === TOOL_FILES[i] || href.indexOf('/' + TOOL_FILES[i]) >= 0) {
+    for (var i = 0; i < TOOL_SLUGS.length; i++) {
+      var s = TOOL_SLUGS[i];
+      if (href === s || href === s + '.html' || href === '/' + s || href.indexOf('/' + s + '.html') >= 0) {
         e.preventDefault();
-        openProModal();
+        openProModal(false);
         return;
       }
     }
-    if (here === 'index.html' && (href === '#size' || href === '#photo' || href === '#layer' || href === '#birth')) {
+    if (cleanSlug === 'index' && (href === '#size' || href === '#photo' || href === '#layer' || href === '#birth')) {
       e.preventDefault();
-      openProModal();
+      openProModal(false);
       return;
     }
   }
 
-  if (here === 'index.html') {
+  if (cleanSlug === 'index') {
     var widget = e.target.closest('#ms, #dz, #nl button, #bm button, #file');
     if (widget) {
       e.preventDefault();
-      openProModal();
+      openProModal(false);
     }
   }
 }, true);
@@ -383,10 +410,7 @@ function handleFormSubmit(e) {
   st.style.color = '';
 
   if (authMode === 'signup') {
-    sb.auth.signUp({
-      email: email,
-      password: password
-    }).then(function(res){
+    sb.auth.signUp({ email: email, password: password }).then(function(res){
       btn.disabled = false;
       if (res.error) {
         st.textContent = res.error.message;
@@ -410,10 +434,7 @@ function handleFormSubmit(e) {
       st.style.color = '#ef4444';
     });
   } else {
-    sb.auth.signInWithPassword({
-      email: email,
-      password: password
-    }).then(function(res){
+    sb.auth.signInWithPassword({ email: email, password: password }).then(function(res){
       btn.disabled = false;
       if (res.error) {
         st.textContent = res.error.message;
@@ -424,6 +445,7 @@ function handleFormSubmit(e) {
         setTimeout(function(){
           var dlg = document.getElementById('mcgee-auth-dialog');
           if (dlg) dlg.remove();
+          location.reload();
         }, 800);
       }
     }).catch(function(err){
@@ -462,6 +484,7 @@ window.initMcGeeAuth = function() {
     }
     updateNavAuth();
     handleStripeSuccess();
+    checkDirectPagePaywall();
   });
 
   sb.auth.onAuthStateChange(function(evt, session){
@@ -474,5 +497,10 @@ window.initMcGeeAuth = function() {
 if (window.supabase) window.initMcGeeAuth();
 updateNavAuth();
 handleStripeSuccess();
+
+// Fallback check after 800ms
+setTimeout(function(){
+  checkDirectPagePaywall();
+}, 800);
 
 })();
