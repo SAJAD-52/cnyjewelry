@@ -38,13 +38,29 @@ function logo(id){return '<svg width="38" height="38" viewBox="0 0 40 40" aria-h
 function brand(id){return '<a href="index.html" class="brand" aria-label="McGee Jewelry home">'+logo(id)+'<span><span class="serif gt brand-n">McGee</span><span class="brand-s">JEWELRY</span></span></a>'}
 
 var guides=[["/how-to-measure-ring-size-at-home","Measure Ring Size at Home"],["/how-to-untangle-a-necklace","Untangle Fine Gold Chains"],["/shop/necklaces/14k-yellow-gold-necklace-with-devil-emoji-symbol","Devil emoji necklace"],["/how-to-clean-sterling-silver-at-home","Clean Sterling Silver Guide"],["/why-does-gold-turn-skin-green","Gold Turning Skin Green"],["/product-category/rings","Rings guide"],["/what-earrings-are-trending-now","Earring trends"],["/shop/rings/14k-white-and-rose-gold-doulbe-diamond-infinity-design-band-3-8-cttw","Diamond infinity band"]];
-var pages=[['index.html','Home'],['vault.html','Jewelry Box'],['sizing.html','Size guide'],['styling.html','Metal match'],['care.html','Care'],['gift.html','Gift finder'],['blog.html','Blog'],['wishlist.html','Wishlist'],['layering.html','Layering'],['anniversary.html','Anniversary gifts'],['gold.html','Gold calculator'],['diamond.html','Diamond size'],['earrings.html','Earring finder']],MAIN=6;
+
+var pages=[
+  ['index.html','Home'],
+  ['vault.html','Jewelry Box'],
+  ['planner.html','Look Planner'],
+  ['sizing.html','Size guide'],
+  ['styling.html','Metal match'],
+  ['care.html','Care'],
+  ['gift.html','Gift finder'],
+  ['blog.html','Blog'],
+  ['wishlist.html','Wishlist'],
+  ['layering.html','Layering'],
+  ['anniversary.html','Anniversary gifts'],
+  ['gold.html','Gold calculator'],
+  ['diamond.html','Diamond size'],
+  ['earrings.html','Earring finder']
+], MAIN=6;
 
 var rawPath = location.pathname.toLowerCase().replace(/^\/+|\/+$/g, '');
 var cleanSlug = rawPath.replace(/\.html$/, '');
 var here = (cleanSlug || 'index') + '.html';
 
-var TOOL_SLUGS = ['sizing', 'styling', 'care', 'gift', 'layering', 'anniversary', 'gold', 'diamond', 'earrings', 'wishlist', 'vault'];
+var TOOL_SLUGS = ['sizing', 'styling', 'care', 'gift', 'layering', 'anniversary', 'gold', 'diamond', 'earrings', 'wishlist', 'vault', 'planner'];
 var isToolPage = TOOL_SLUGS.indexOf(cleanSlug) >= 0;
 
 var K='koo_wishlist';
@@ -183,7 +199,7 @@ function openProfileModal() {
                   (pro ? '$6 / month' : 'Free') + '</span>' +
                   '</div>' +
                   (pro ? 
-                    '<p class="muted text-xs mt-2">Unlimited access to all 12 sizing, styling, and gold tools.</p>' +
+                    '<p class="muted text-xs mt-2">Unlimited access to all jewelry tools, lookbook planner, and gold tracker.</p>' +
                     '<div class="mt-4 pt-3 border-t border-rose-200/10 flex flex-col gap-2">' +
                     '<a href="' + STRIPE_PORTAL + '" target="_blank" rel="noopener" class="btn btn-ghost text-xs text-center w-full flex items-center justify-center gap-2">' +
                     '<span>Manage Billing & Invoices</span> &rarr;</a>' +
@@ -220,6 +236,8 @@ function openProModal(isPageLock) {
   if (old) old.remove();
 
   var features = [
+    { icon: '👑', t: 'My Jewelry Box & Value Vault', d: 'Track collection weight, gold melt value & insurance dossiers' },
+    { icon: '🗓️', t: 'Lookbook & Outfit Planner', d: 'Weekly 7-day look planning & 30-day Cost-Per-Wear analysis' },
     { icon: '💍', t: 'Ring & Bracelet Sizer', d: 'US, UK, EU and Japan sizes with life-scale preview' },
     { icon: '🪙', t: 'Gold Karat & Value Calculator', d: 'Real-time 10k–24k melt values and investment estimates' },
     { icon: '💎', t: 'Diamond Carat Visualizer', d: 'Exact millimeter-to-carat finger scale on hand simulator' },
@@ -227,8 +245,6 @@ function openProModal(isPageLock) {
     { icon: '📿', t: 'Necklace Layering Studio', d: 'Recommended chain lengths and spacing for 6 necklines' },
     { icon: '🎨', t: 'Metal & Skin Undertone Match', d: 'Gold, silver and rose gold flattering guide' },
     { icon: '🎁', t: '4-Question Smart Gift Finder', d: 'Custom jewelry gift recommendations by style and budget' },
-    { icon: '🫧', t: 'Complete Jewelry Care Vault', d: 'Cleaning and protection formulas for all stones & metals' },
-    { icon: '📅', t: 'Anniversary & Birthstones', d: 'Complete milestone gem vault from year 1 to 60' },
     { icon: '♡', t: 'Synced Pro Wishlist', d: 'Save unlimited pieces and styling sets across devices' }
   ];
 
@@ -245,23 +261,19 @@ function openProModal(isPageLock) {
   
   m.innerHTML = '<div class="glass glow p-6 md:p-8 rounded-3xl max-w-2xl w-full relative my-auto" style="box-shadow:0 30px 60px rgba(0,0,0,0.5);border:1px solid rgba(243,226,179,0.25)">' +
                 '<button id="pro-close" style="position:absolute;top:1.2rem;right:1.2rem;width:2rem;height:2rem;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:1rem;cursor:pointer" class="muted hover:text-white" aria-label="Close">✕</button>' +
-                
                 '<div class="text-center">' +
                 '<span class="chip" style="font-size:0.75rem;padding:0.25rem 0.9rem;background:rgba(243,226,179,0.15);border-color:#b76e79;color:#f3e2b3">✨ MCGEE JEWELRY PRO</span>' +
                 '<h2 class="serif text-3xl md:text-5xl gt mt-3">Unlock All Jewelry Tools</h2>' +
-                '<p class="muted text-sm md:text-base mt-2 max-w-lg mx-auto">Get unlimited, instant access to all professional sizing, styling, diamond, and gold tools for <b class="gt" style="font-size:1.15rem">only $6 a month</b>.</p>' +
+                '<p class="muted text-sm md:text-base mt-2 max-w-lg mx-auto">Get unlimited, instant access to all professional sizing, styling, lookbook, and gold tools for <b class="gt" style="font-size:1.15rem">only $6 a month</b>.</p>' +
                 '</div>' +
-
                 '<div class="grid sm:grid-cols-2 gap-2.5 mt-5 max-h-[46vh] overflow-y-auto pr-1">' +
                 featHtml +
                 '</div>' +
-
                 '<div class="mt-6 flex flex-col gap-2.5 items-center">' +
                 '<a href="' + getStripeUrl() + '" class="btn btn-gold w-full text-center py-3.5 text-base md:text-lg font-medium shadow-lg" style="letter-spacing:0.02em">' +
                 'Unlock All Features Now &nbsp;&rarr;&nbsp; $6/month</a>' +
                 '<p class="muted text-xs mt-1 text-center">Instant access &middot; Secure checkout via Stripe &middot; Cancel anytime in 1 click</p>' +
                 '</div>' +
-
                 '<div class="text-center mt-3 pt-3 border-t border-rose-200/10">' +
                 '<button id="pro-modal-login" class="text-xs muted hover:underline">Already subscribed? <b class="gt">Log in to your account</b></button>' +
                 '</div>' +
@@ -498,7 +510,6 @@ if (window.supabase) window.initMcGeeAuth();
 updateNavAuth();
 handleStripeSuccess();
 
-// Fallback check after 800ms
 setTimeout(function(){
   checkDirectPagePaywall();
 }, 800);
