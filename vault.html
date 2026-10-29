@@ -1,0 +1,263 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>My Jewelry Box & Live Gold Value Tracker | McGee Jewelry</title><meta name="description" content="Catalog your jewelry collection, track pure gold weight, and calculate real-time melt and insurance appraisal value."><meta name="theme-color" content="#fbf5f2"><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="canonical" href="https://mcgeejewelry.com/vault.html"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"><script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="style.css">
+<style>
+@media print {
+  #nav, #foot, .no-print, [data-ad], [data-aff] { display: none !important; }
+  main { padding: 0 !important; }
+  .glass { background: #fff !important; color: #000 !important; border: 1px solid #ccc !important; box-shadow: none !important; }
+}
+</style>
+</head><body><a class="skip" href="#main">Skip to content</a><div id="nav"></div><main id="main" class="mx-auto max-w-6xl px-5 pb-24 pt-10">
+
+<!-- HEADER -->
+<div class="max-w-3xl mb-10">
+<span class="chip text-xs mb-3">Portfolio & Value Studio</span>
+<h1 class="text-5xl md:text-6xl gt">My Jewelry Box & Value Tracker</h1>
+<p class="muted text-lg mt-3">Catalog your fine pieces, track fine gold grams, and monitor your collection's estimated melt and replacement value privately on your device.</p>
+</div>
+
+<!-- PORTFOLIO STATS SUMMARY -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+<div class="glass p-5 rounded-2xl"><span class="muted text-xs uppercase tracking-wider">Total Pieces</span><p id="stat-count" class="serif text-3xl gt mt-1">0</p></div>
+<div class="glass p-5 rounded-2xl"><span class="muted text-xs uppercase tracking-wider">Fine Gold Weight</span><p id="stat-gold-grams" class="serif text-3xl gt mt-1">0.0 g</p></div>
+<div class="glass p-5 rounded-2xl"><span class="muted text-xs uppercase tracking-wider">Est. Melt Value</span><p id="stat-melt-val" class="serif text-3xl text-emerald-600 dark:text-emerald-400 mt-1">$0</p></div>
+<div class="glass p-5 rounded-2xl"><span class="muted text-xs uppercase tracking-wider">Est. Retail / Replacement</span><p id="stat-retail-val" class="serif text-3xl gt mt-1">$0</p></div>
+</div>
+
+<div class="grid lg:grid-cols-3 gap-8">
+
+<!-- ADD ITEM FORM -->
+<div class="glass p-6 md:p-8 rounded-3xl h-fit no-print">
+<div class="flex items-center justify-between mb-4">
+<h2 class="serif text-2xl gt">Add to Jewelry Box</h2>
+<span id="tier-badge" class="chip text-xs">Free (2 items max)</span>
+</div>
+<form id="vault-form" class="flex flex-col gap-3">
+<label class="fld"><span>Piece Name</span><input id="v-name" required placeholder="e.g. 14k Herringbone Chain"></label>
+
+<div class="grid grid-cols-2 gap-3">
+<label class="fld"><span>Category</span>
+<select id="v-cat">
+<option>Ring</option><option>Necklace</option><option>Bracelet</option><option>Earrings</option><option>Pendant</option><option>Other</option>
+</select></label>
+
+<label class="fld"><span>Metal & Karat</span>
+<select id="v-karat">
+<option value="24k">24K Gold (99.9%)</option>
+<option value="22k">22K Gold (91.6%)</option>
+<option value="18k">18K Gold (75.0%)</option>
+<option value="14k" selected>14K Gold (58.3%)</option>
+<option value="10k">10K Gold (41.7%)</option>
+<option value="925">Sterling Silver 925</option>
+<option value="plat">Platinum 950</option>
+</select></label>
+</div>
+
+<div class="grid grid-cols-2 gap-3">
+<label class="fld"><span>Weight (Grams)</span><input id="v-weight" type="number" step="0.1" min="0.1" required placeholder="e.g. 8.5"></label>
+<label class="fld"><span>Retail / Paid ($)</span><input id="v-price" type="number" step="1" min="0" placeholder="e.g. 450"></label>
+</div>
+
+<label class="fld"><span>Notes or Gemstones</span><input id="v-notes" placeholder="e.g. Gift from 2024, 0.5ct diamond"></label>
+
+<button type="submit" class="btn btn-gold w-full mt-2 shadow-md">+ Add to My Box</button>
+<p id="v-msg" class="text-xs text-center mt-2 muted"></p>
+</form>
+
+<!-- SPOT PRICE REFERENCE -->
+<div class="mt-6 pt-5 border-t border-rose-200/10 text-xs muted flex items-center justify-between">
+<span>Gold Reference Rate:</span>
+<span class="font-mono gt font-semibold">$85.00 / gram (24k)</span>
+</div>
+</div>
+
+<!-- INVENTORY LIST -->
+<div class="lg:col-span-2">
+<div class="flex items-center justify-between mb-4">
+<h2 class="serif text-3xl gt">Your Collection Inventory</h2>
+<div class="flex gap-2 no-print">
+<button id="btn-print" class="btn btn-ghost text-xs">🖨️ Print Dossier</button>
+<button id="btn-clear" class="btn btn-ghost text-xs text-red-400">Clear All</button>
+</div>
+</div>
+
+<div id="vault-list" class="flex flex-col gap-3"></div>
+
+<div id="vault-empty" class="glass p-12 text-center rounded-3xl">
+<div class="text-4xl gt mb-2">💎</div>
+<h3 class="serif text-2xl gt">Your Jewelry Box is Empty</h3>
+<p class="muted text-sm mt-1 max-w-sm mx-auto">Add your first ring, chain or bracelet using the form on the left to see your collection's value.</p>
+</div>
+</div>
+
+</div>
+
+<!-- FREQUENTLY ASKED QUESTIONS -->
+<section class="mt-24 no-print">
+<h2 class="text-4xl gt mb-6">Frequently Asked Questions</h2>
+<div class="grid gap-3 max-w-3xl">
+<details class="faq"><summary>How is melt value calculated?</summary><p class="muted mt-3">Melt value is the pure weight of precious metal multiplied by the current spot market price. It represents the intrinsic scrap metal value without brand markups or gemstone value.</p></details>
+<details class="faq"><summary>Are my jewelry photos or prices saved to a public server?</summary><p class="muted mt-3">No. All data is saved inside your private browser storage. Nothing leaves your personal device.</p></details>
+<details class="faq"><summary>How do I unlock unlimited pieces?</summary><p class="muted mt-3">Upgrade to McGee Jewelry Pro for $6/month to store unlimited pieces and generate printable insurance dossiers.</p></details>
+</div></section>
+
+</main><div id="foot"></div>
+
+<script src="layout.js"></script>
+<script src="ads.js"></script>
+<script src="affiliates.js"></script>
+
+<script>
+(function(){
+var STORAGE_KEY = 'koo_jewelry_vault';
+var GOLD_24K_PER_GRAM = 85.00;
+var SILVER_PER_GRAM = 1.05;
+var PLATINUM_PER_GRAM = 32.00;
+
+var PURITY = {
+  '24k': { name: '24K Gold', factor: 1.000, metal: 'gold' },
+  '22k': { name: '22K Gold', factor: 0.916, metal: 'gold' },
+  '18k': { name: '18K Gold', factor: 0.750, metal: 'gold' },
+  '14k': { name: '14K Gold', factor: 0.583, metal: 'gold' },
+  '10k': { name: '10K Gold', factor: 0.417, metal: 'gold' },
+  '925': { name: 'Sterling Silver 925', factor: 0.925, metal: 'silver' },
+  'plat': { name: 'Platinum 950', factor: 0.950, metal: 'plat' }
+};
+
+function getVault() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch(e){ return []; }
+}
+function setVault(items) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch(e){}
+}
+
+function calcMelt(weight, karatKey) {
+  var p = PURITY[karatKey] || PURITY['14k'];
+  var pureWeight = weight * p.factor;
+  var rate = p.metal === 'gold' ? GOLD_24K_PER_GRAM : (p.metal === 'silver' ? SILVER_PER_GRAM : PLATINUM_PER_GRAM);
+  return { pureGrams: pureWeight, meltVal: pureWeight * rate };
+}
+
+function render() {
+  var items = getVault();
+  var isPro = (typeof isProUser === 'function') && isProUser();
+  var badge = document.getElementById('tier-badge');
+  if (badge) badge.textContent = isPro ? '⭐ Pro (Unlimited)' : 'Free (' + items.length + '/2 items)';
+
+  var totalPureGold = 0, totalMelt = 0, totalRetail = 0;
+  items.forEach(function(it){
+    var c = calcMelt(it.weight, it.karat);
+    if (it.karat.indexOf('k') >= 0) totalPureGold += c.pureGrams;
+    totalMelt += c.meltVal;
+    totalRetail += (parseFloat(it.price) || 0);
+  });
+
+  document.getElementById('stat-count').textContent = items.length;
+  document.getElementById('stat-gold-grams').textContent = totalPureGold.toFixed(1) + ' g';
+  document.getElementById('stat-melt-val').textContent = '$' + Math.round(totalMelt).toLocaleString();
+  document.getElementById('stat-retail-val').textContent = '$' + Math.round(totalRetail).toLocaleString();
+
+  var emptyBox = document.getElementById('vault-empty');
+  var list = document.getElementById('vault-list');
+  if (items.length === 0) {
+    if (emptyBox) emptyBox.style.display = 'block';
+    if (list) list.innerHTML = '';
+    return;
+  }
+  if (emptyBox) emptyBox.style.display = 'none';
+
+  list.innerHTML = items.map(function(it, idx){
+    var c = calcMelt(it.weight, it.karat);
+    var pInfo = PURITY[it.karat] || PURITY['14k'];
+    return '<div class="glass p-5 rounded-2xl flex flex-wrap items-center justify-between gap-4 tool-card">' +
+           '<div>' +
+           '<div class="flex items-center gap-2">' +
+           '<span class="chip text-xs">' + it.cat + '</span>' +
+           '<span class="chip text-xs" style="background:rgba(243,226,179,0.15)">' + pInfo.name + '</span>' +
+           '</div>' +
+           '<h3 class="serif text-2xl gt mt-1">' + it.name + '</h3>' +
+           '<p class="muted text-xs mt-0.5">' + it.weight + 'g gross &middot; ' + c.pureGrams.toFixed(1) + 'g pure &middot; ' + (it.notes || 'No notes') + '</p>' +
+           '</div>' +
+           '<div class="flex items-center gap-4">' +
+           '<div class="text-right">' +
+           '<span class="text-xs muted block">Raw Melt Value</span>' +
+           '<b class="text-xl text-emerald-600 dark:text-emerald-400">$' + Math.round(c.meltVal) + '</b>' +
+           (it.price ? '<span class="text-xs muted block">Retail: $' + it.price + '</span>' : '') +
+           '</div>' +
+           '<button class="btn btn-ghost text-xs text-red-400 no-print" data-del="' + idx + '" title="Remove">✕</button>' +
+           '</div>' +
+           '</div>';
+  }).join('');
+
+  document.querySelectorAll('[data-del]').forEach(function(b){
+    b.onclick = function(){
+      var id = +b.dataset.del;
+      var cur = getVault();
+      cur.splice(id, 1);
+      setVault(cur);
+      render();
+    };
+  });
+}
+
+// Handle Form Submission
+var form = document.getElementById('vault-form');
+if (form) {
+  form.onsubmit = function(e){
+    e.preventDefault();
+    var items = getVault();
+    var isPro = (typeof isProUser === 'function') && isProUser();
+
+    // Check free trial limit
+    if (items.length >= 2 && !isPro) {
+      if (typeof openProModal === 'function') openProModal();
+      var msg = document.getElementById('v-msg');
+      if (msg) {
+        msg.textContent = 'Free plan limit reached (2 items). Upgrade to Pro ($6/mo) for unlimited storage.';
+        msg.style.color = '#e8b4b8';
+      }
+      return;
+    }
+
+    var newItem = {
+      name: document.getElementById('v-name').value.trim(),
+      cat: document.getElementById('v-cat').value,
+      karat: document.getElementById('v-karat').value,
+      weight: parseFloat(document.getElementById('v-weight').value) || 0,
+      price: parseFloat(document.getElementById('v-price').value) || 0,
+      notes: document.getElementById('v-notes').value.trim()
+    };
+
+    items.push(newItem);
+    setVault(items);
+    form.reset();
+    render();
+  };
+}
+
+// Clear All
+var btnClear = document.getElementById('btn-clear');
+if (btnClear) {
+  btnClear.onclick = function(){
+    if (confirm('Clear all items from your Jewelry Box?')) {
+      setVault([]);
+      render();
+    }
+  };
+}
+
+// Print Dossier
+var btnPrint = document.getElementById('btn-print');
+if (btnPrint) {
+  btnPrint.onclick = function(){
+    var isPro = (typeof isProUser === 'function') && isProUser();
+    if (!isPro && getVault().length > 1) {
+      if (typeof openProModal === 'function') openProModal();
+      return;
+    }
+    window.print();
+  };
+}
+
+render();
+})();
+</script></body></html>
