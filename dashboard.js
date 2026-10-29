@@ -230,4 +230,250 @@ var ld=[{"@context":"https://schema.org","@type":"Article","headline":a.title,"d
 if(hasImg)ld[0].image=[ib+'-16x9.'+ie,ib+'-4x3.'+ie,ib+'-1x1.'+ie];
 if(p.faq.length)ld.push({"@context":"https://schema.org","@type":"FAQPage","mainEntity":p.faq.map(function(q){return {"@type":"Question","name":q[0],"acceptedAnswer":{"@type":"Answer","text":plain(md(q[1]))}}})});
 var hero=HERO[a.hero]?HERO[a.hero]():'',read=Math.max(3,Math.round(words/200))+' min read';
-return '<!DOCTYPE html><html lang="en"><head><meta
+return '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base href="/"><title>'+esc(a.title)+' | McGee Jewelry</title><meta name="description" content="'+escA(a.description)+'"><meta name="theme-color" content="#fbf5f2"><link rel="canonical" href="'+D+url+'"><meta property="og:title" content="'+escA(a.title)+'"><meta property="og:description" content="'+escA(a.description)+'"><meta property="og:type" content="article"><meta property="og:url" content="'+D+url+'"><meta property="og:image" content="'+(hasImg?ib+'-social.jpg':D+'/pins/'+a.slug+((a.pinPub||a.pinRaw)?'.jpg':'.png'))+'"><meta name="twitter:card" content="summary_large_image"><meta name="robots" content="index,follow,max-image-preview:large"><link rel="icon" href="favicon.svg" type="image/svg+xml">'+FONT+'<script type="application/ld+json">'+JSON.stringify(ld).replace(/<\//g,'<\\/')+'<\/script></head><body><a class="skip" href="'+url+'#main">Skip to content</a><div id="nav"></div><main id="main" class="mx-auto max-w-6xl px-5 pb-24 pt-10"><article><header class="mx-auto max-w-3xl"><p class="muted text-sm"><a href="blog.html" style="text-decoration:underline">Blog</a> &rsaquo; '+esc(a.category)+'</p><h1 class="text-5xl md:text-6xl gt mt-4">'+esc(a.title)+'</h1><p class="muted text-xl mt-5">'+inline(a.lead)+'</p><p class="muted text-sm mt-4">By McGee Jewelry &middot; Updated '+new Date().toISOString().slice(0,10)+' &middot; '+read+'</p>'+(hasImg?'<figure class="mt-8"><img src="/images/'+a.slug+'/'+a.slug+'-16x9.'+ie+'" width="1200" height="675" alt="'+escA(a.imgAlt||a.title)+'" fetchpriority="high" decoding="async" style="width:100%;height:auto;border-radius:1.25rem"><figcaption class="muted text-xs mt-2">Illustration generated with AI.</figcaption></figure>':(hero?'<div class="glass p-6 mt-8" style="color:#b76e79">'+hero+'</div>':''))+'</header>'+body+(faq?'<div class="pk mx-auto max-w-3xl"><h2 class="serif">Frequently asked questions</h2><div class="grid gap-3 mt-4">'+faq+'</div></div>':'')+'<div class="mx-auto max-w-5xl mt-16"><h2 class="serif text-4xl gt mb-5">Keep reading</h2><div class="grid md:grid-cols-3 gap-4">'+rel+'</div></div></article><div data-aff="'+escA(a.aff||'everyday')+'"></div><div data-ad="banner"></div></main><div id="foot"></div><script src="layout.js"><\/script><script src="ads.js"><\/script><script src="affiliates.js"><\/script><script src="showcase.js"><\/script></body></html>'}
+
+function blogHtml(reg){var cats=[];reg.forEach(function(r){if(cats.indexOf(r.cat)<0)cats.push(r.cat)});
+var P=reg.map(function(r){return [r.cat,r.title,r.blurb,r.read,r.url,r.grad]});
+var js='var P='+JSON.stringify(P).replace(/<\//g,'<\\/')+',CT=[[\'all\',\'All posts\']].concat('+JSON.stringify(cats)+'.map(function(c){return [c,c]})),cur=\'all\';'
++"function draw(){document.getElementById('bf').innerHTML=CT.map(function(c){return '<button class=\"chip\" style=\"padding:.35rem .95rem\" role=\"tab\" aria-selected=\"'+(c[0]===cur)+'\" data-c=\"'+c[0]+'\">'+c[1]+'</button>'}).join('');"
++"var l=P.filter(function(p){return cur==='all'||p[0]===cur});"
++"document.getElementById('bg').innerHTML=l.map(function(p,i){var big=i===0&&cur==='all';return '<a href=\"'+p[4]+'\" class=\"glass glow block no-underline text-inherit fade'+(big?' md:col-span-2':'')+'\" style=\"padding:0\"><div style=\"height:'+(big?'11rem':'7.5rem')+';background:'+p[5]+';display:flex;align-items:flex-end;padding:1rem\"><span class=\"chip\" style=\"padding:.2rem .8rem;font-size:.8rem;background:rgba(255,255,255,.85);color:#3b1a22;border-color:transparent\">'+p[0]+'</span></div><div style=\"padding:1.5rem\"><h2 class=\"serif\" style=\"font-size:'+(big?'2.4rem':'1.9rem')+'\">'+p[1]+'</h2><p class=\"muted mt-2\">'+p[2]+'</p><p class=\"mt-4 text-sm\"><span class=\"muted\">'+p[3]+'</span> &nbsp; <b class=\"gt\">Read the guide &rarr;</b></p></div></a>'}).join('');"
++"document.querySelectorAll('#bf [data-c]').forEach(function(b){b.onclick=function(){cur=b.dataset.c;draw()}})}draw();";
+var D=S.domain.replace(/\/+$/,'');
+return '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Blog: jewelry guides and style advice | McGee Jewelry</title><meta name="description" content="Guides from McGee Jewelry on chains, rings, earrings, plating, seasonal style and gifts."><meta name="theme-color" content="#fbf5f2"><link rel="canonical" href="'+D+'/blog"><link rel="icon" href="favicon.svg" type="image/svg+xml">'+FONT+'</head><body><a class="skip" href="#main">Skip to content</a><div id="nav"></div><main id="main" class="mx-auto max-w-6xl px-5 pb-24 pt-10"><div class="max-w-2xl mb-10"><h1 class="text-5xl md:text-6xl gt">The McGee Jewelry blog</h1><p class="muted text-lg mt-4">Practical guides on chains, rings, earrings, plating, seasonal style and gifts.</p></div><div id="bf" class="flex flex-wrap gap-2 mb-8" role="tablist" aria-label="Blog categories"></div><div id="bg" class="grid md:grid-cols-2 gap-5"></div><div data-showcase data-title="Try the tools behind the guides" data-sub="Every article links to free tools. Open one now." data-pick="sizing,care,styling"></div><div data-ad="banner"></div></main><div id="foot"></div><script src="layout.js"><\/script><script src="ads.js"><\/script><script src="showcase.js"><\/script><script>'+js+'<\/script></body></html>'}
+
+function pinPng(title){var c=document.createElement('canvas');c.width=1000;c.height=1500;var x=c.getContext('2d'),g=x.createLinearGradient(0,0,0,1500);g.addColorStop(0,'#fbebec');g.addColorStop(1,'#bd8ca6');x.fillStyle=g;x.fillRect(0,0,1000,1500);x.strokeStyle='#b76e79';x.lineWidth=4;x.strokeRect(40,40,920,1420);x.textAlign='center';
+var F='Georgia, "Times New Roman", serif';x.fillStyle='#8a4b57';x.font='34px '+F;x.fillText('McGee Jewelry',500,160);x.fillStyle='#3b1a22';x.font='76px '+F;
+var lines=[],cur='';title.split(' ').forEach(function(w){var t=(cur+' '+w).trim();if(x.measureText(t).width>840&&cur){lines.push(cur);cur=w}else cur=t});lines.push(cur);
+var y=750-lines.length*50;lines.forEach(function(l){x.fillText(l,500,y);y+=100});x.fillStyle='#b76e79';x.fillRect(410,y+10,180,4);x.fillStyle='#8a4b57';x.font='38px '+F;x.fillText('Read the guide at mcgeejewelry.com',500,1310);return c.toDataURL('image/png').split(',')[1]}
+
+function b64(s){var b=new TextEncoder().encode(s),bin='';b.forEach(function(x){bin+=String.fromCharCode(x)});return btoa(bin)}
+function unb64(s){var bin=atob(s.replace(/\n/g,'')),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return new TextDecoder().decode(u)}
+function gh(path,opt){opt=opt||{};var h={'Authorization':'Bearer '+S.token,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};if(opt.body)h['Content-Type']='application/json';
+return fetch('https://api.github.com/repos/'+encodeURIComponent(S.owner)+'/'+encodeURIComponent(S.repo)+path,{method:opt.method||'GET',headers:h,body:opt.body?JSON.stringify(opt.body):undefined}).then(function(r){
+if(!r.ok)return r.text().then(function(t){var e=new Error(r.status+' '+t.slice(0,180));e.status=r.status;throw e});return r.status===204?null:r.json()})}
+function readFile(p){return gh('/contents/'+encodeURI(p)+'?ref='+encodeURIComponent(S.branch)).then(function(j){return unb64(j.content)},function(e){if(e.status===404)return null;throw e})}
+function log(m){var el=$('#log');if(el){el.textContent+=m+'\n'}}
+function today(){return new Date().toISOString().slice(0,10)}
+
+function publish(id){var a=A.filter(function(x){return x.id===id})[0];if(!a||busy)return;
+if(!S.token){alert('Add your GitHub token in Settings first.');view='settings';render();return}
+var r=analyse(a);if(r.errs.length){alert('Fix these first:\n- '+r.errs.join('\n- '));return}
+busy=true;render();log('Publishing "'+a.title+'"...');var reg,files={},base,baseTree,newCommit;
+gh('/git/ref/heads/'+encodeURIComponent(S.branch)).then(function(ref){base=ref.object.sha;log('Connected to '+S.owner+'/'+S.repo);return gh('/git/commits/'+base)})
+.then(function(c){baseTree=c.tree.sha;return Promise.all([readFile('blog-data.json'),readFile('layout.js'),readFile('sitemap.xml')])})
+.then(function(f){return (a.img?(log('Preparing the image sizes...'),makeVariants(a)):Promise.resolve(null)).then(function(V){if(V)a.imgExt=V.ext;var data=f[0]?JSON.parse(f[0]):window.LEGACY.slice();reg=data.filter(function(x){return x.url!=='/'+a.slug});
+var entry={url:'/'+a.slug,title:a.title,blurb:a.description,cat:a.category||'Guides',short:a.short||a.title.slice(0,28),read:Math.max(3,Math.round(r.words/200))+' min read',date:today(),grad:GRADS[a.slug.length%GRADS.length]};
+var old=data.filter(function(x){return x.url==='/'+a.slug})[0];if(old)entry.grad=old.grad;reg.push(entry);reg.sort(function(x,y){return x.date<y.date?1:x.date>y.date?-1:0});
+files[a.slug+'/index.html']=articleHtml(a,reg,r.words,r.parsed);files['blog.html']=blogHtml(reg);files['blog-data.json']=JSON.stringify(reg,null,1);
+var lj=f[1];if(lj&&/var guides=\[[\s\S]*?\];/.test(lj)){files['layout.js']=lj.replace(/var guides=\[[\s\S]*?\];/,function(){return 'var guides=['+reg.slice(0,8).map(function(x){return '['+JSON.stringify(x.url)+','+JSON.stringify(x.short)+']'}).join(',')+'];'})}
+var sm=f[2],loc=D()+'/'+a.slug;if(sm&&sm.indexOf('<loc>'+loc+'</loc>')<0)files['sitemap.xml']=sm.replace('</urlset>','  <url><loc>'+loc+'</loc></url>\n</urlset>');
+var tree=[],chain=Promise.resolve();
+Object.keys(files).forEach(function(p){chain=chain.then(function(){return gh('/git/blobs',{method:'POST',body:{content:b64(files[p]),encoding:'base64'}})}).then(function(b){tree.push({path:p,mode:'100644',type:'blob',sha:b.sha})})});
+if(V)Object.keys(V.files).forEach(function(pp){chain=chain.then(function(){return gh('/git/blobs',{method:'POST',body:{content:V.files[pp],encoding:'base64'}})}).then(function(b){tree.push({path:pp,mode:'100644',type:'blob',sha:b.sha})})});
+if(a.pinRaw||!a.pinPub){chain=chain.then(function(){var pc=a.pinRaw?composePin(a.pinRaw,a.pinText).then(function(c){return toBlob(c,'image/jpeg',0.9)}).then(blobB64):Promise.resolve(pinPng(a.title));return pc.then(function(b64){return gh('/git/blobs',{method:'POST',body:{content:b64,encoding:'base64'}})})}).then(function(b){tree.push({path:'pins/'+a.slug+(a.pinRaw?'.jpg':'.png'),mode:'100644',type:'blob',sha:b.sha})})}
+return chain.then(function(){return tree})})})
+.then(function(tree){return gh('/git/trees',{method:'POST',body:{base_tree:baseTree,tree:tree}})})
+.then(function(t){return gh('/git/commits',{method:'POST',body:{message:'Publish article: '+a.title,tree:t.sha,parents:[base]}})})
+.then(function(c){newCommit=c.sha;return gh('/git/refs/heads/'+encodeURIComponent(S.branch),{method:'PATCH',body:{sha:newCommit}})})
+.then(function(){if(a.pinRaw){a.pinRaw=null;a.pinPub=true}if(a.img){a.img=null;a.imgPub=true}a.status='published';a.url='/'+a.slug;a.live=false;a.publishedAt=new Date().toISOString();save();busy=false;poll(a);render()})
+.catch(function(e){log('Failed: '+e.message);busy=false;render();alert('Publishing failed:\n'+e.message)})}
+function D(){return S.domain.replace(/\/+$/,'')}
+function poll(a){if(polls[a.id])return;var n=0;polls[a.id]=setInterval(function(){n++;fetch(D()+'/'+a.slug+'?t='+Date.now(),{method:'HEAD',cache:'no-store'}).then(function(r){if(r.ok){a.live=true;save();clearInterval(polls[a.id]);delete polls[a.id];if(view==='blog')render()}},function(){a.live='unknown';clearInterval(polls[a.id]);delete polls[a.id];if(view==='blog')render()});if(n>40){clearInterval(polls[a.id]);delete polls[a.id]}},8000)}
+function pinUrl(a){var link=D()+'/'+a.slug,media=D()+'/pins/'+a.slug+((a.pinPub||a.pinRaw)?'.jpg':'.png'),tags=(a.keywords||'').split(',').map(function(k){return k.trim().replace(/[^a-zA-Z0-9]+/g,'')}).filter(Boolean).slice(0,5).map(function(k){return '#'+k}).join(' ');
+return {href:'https://www.pinterest.com/pin/create/button/?url='+encodeURIComponent(link)+'&media='+encodeURIComponent(media)+'&description='+encodeURIComponent((a.title+'. '+a.description+' '+tags).slice(0,480)),text:a.title+'. '+a.description+' '+tags}}
+
+function chip(a){if(a.status!=='published')return '<span class="pill dr">Draft</span>';if(a.live===true)return '<span class="pill live">Live</span>';if(a.live==='unknown')return '<span class="pill dep">Published</span>';return '<span class="pill dep">Deploying...</span>'}
+
+function renderBlog(){var rows=A.slice().sort(function(x,y){return (y.updated||'')>(x.updated||'')?1:-1}).map(function(a){var w=analyse(a).words,pub=a.status==='published';
+return '<div class="glass p-5 rounded-2xl"><div class="flex flex-wrap items-start justify-between gap-3"><div><h3 class="serif text-2xl">'+esc(a.title||'Untitled')+'</h3><p class="muted text-sm">/'+esc(a.slug)+' &middot; '+w+' words &middot; '+chip(a)+'</p></div><div class="flex flex-wrap gap-2"><button class="btn btn-ghost" style="padding:.35rem 1rem" data-act="edit" data-id="'+a.id+'">Edit</button><button class="btn btn-gold" style="padding:.35rem 1rem" data-act="publish" data-id="'+a.id+'"'+(busy?' disabled':'')+'>'+(pub?'Update on site':'Publish to site')+'</button><button class="btn btn-ghost" style="padding:.35rem 1rem" data-act="pin" data-id="'+a.id+'"'+(pub?'':' disabled')+'>Pinterest</button>'+(pub?'':'<button class="btn btn-ghost" style="padding:.35rem 1rem" data-act="del" data-id="'+a.id+'">Delete</button>')+'</div></div></div>'}).join('');
+$('#app').innerHTML='<div class="flex flex-wrap items-center justify-between gap-3"><h1 class="text-4xl gt">Blog Manager</h1><button class="btn btn-gold" data-act="new">+ Add article</button></div><p class="muted mt-2">Write with Gemini AI, publish to your GitHub repository, and generate Pinterest pins.</p><div class="grid gap-4 mt-6">'+(rows||'<div class="glass p-8 text-center rounded-2xl"><h3 class="serif text-3xl gt">No articles yet</h3><p class="muted mt-2">Click <b>+ Add article</b> to write your first SEO guide.</p></div>')+'</div>'+'<div class="glass p-5 rounded-2xl mt-6"><h3 class="serif text-2xl">Publish Activity</h3><div id="log" class="muted mt-2">'+esc(LOG)+'</div></div>'}
+
+var LOG='';var _log=log;log=function(m){LOG+=m+'\n';_log(m)};
+
+function renderEditor(){var a=A.filter(function(x){return x.id===editId})[0]||{},f=function(k,d){return escA(a[k]!=null?a[k]:d)};IMG={master:a.img||null,pub:!!a.imgPub,ext:a.imgExt||'webp'};PIN={raw:a.pinRaw||null,pub:!!a.pinPub};
+var cats=['Guides','Trends','Buying advice','Seasonal','Spotlight','Care','Gifts'];
+$('#app').innerHTML='<div class="flex flex-wrap items-center justify-between gap-3"><h1 class="text-4xl gt">'+(a.id?'Edit article':'Add article')+'</h1><button class="btn btn-ghost" data-act="view" data-id="blog">&larr; Back to Articles</button></div>'
++aiPanel()+imgPanel(a)+pinPanel(a)+'<div class="glass p-5 mt-5 rounded-2xl"><p class="muted">Fastest way: click <b>Import .md file</b> and choose the article file. The fields fill automatically.</p><label class="btn btn-ghost mt-3" style="cursor:pointer">Import .md file<input type="file" id="imp" accept=".md,.txt" class="sr"></label></div>'
++'<div class="glass p-5 mt-5 rounded-2xl"><label class="fld"><span>Title</span><input id="f_title" value="'+f('title','')+'"></label><label class="fld"><span>Page slug</span><input id="f_slug" value="'+f('slug','')+'"></label><label class="fld"><span>Description (70 to 170 chars) <b id="dl"></b></span><input id="f_description" value="'+f('description','')+'"></label><label class="fld"><span>Lead intro line</span><input id="f_lead" value="'+f('lead','')+'"></label>'
++'<div class="grid sm:grid-cols-3 gap-3"><label class="fld"><span>Category</span><input id="f_category" list="cats" value="'+f('category','Guides')+'"><datalist id="cats">'+cats.map(function(c){return '<option value="'+c+'">'}).join('')+'</datalist></label><label class="fld"><span>Short title</span><input id="f_short" value="'+f('short','')+'"></label><label class="fld"><span>Keywords</span><input id="f_keywords" value="'+f('keywords','')+'"></label></div>'
++'<div class="grid sm:grid-cols-3 gap-3"><label class="fld"><span>Hero drawing</span><select id="f_hero">'+['gem','chain','rings','infinity','earrings','none'].map(function(h){return '<option'+((a.hero||'gem')===h?' selected':'')+'>'+h+'</option>'}).join('')+'</select></label><label class="fld"><span>Partner cards</span><select id="f_aff">'+['everyday','diamond','gift','care','sizing'].map(function(h){return '<option'+((a.aff||'everyday')===h?' selected':'')+'>'+h+'</option>'}).join('')+'</select></label><label class="fld"><span>Tools to highlight</span><input id="f_pick" value="'+f('pick','sizing,styling,care')+'"></label></div>'
++'<label class="fld"><span>Article Body (Markdown)</span><textarea id="f_body" spellcheck="true">'+esc(a.body||'')+'</textarea></label></div>'
++'<div class="glass p-5 mt-5 rounded-2xl"><h3 class="serif text-2xl">SEO Quality Checks</h3><ul class="ck mt-2" id="ck"></ul></div>'
++'<div class="flex flex-wrap gap-3 mt-5"><button class="btn btn-gold" data-act="savedraft">Save Draft</button><button class="btn btn-ghost" data-act="savepub"'+(busy?' disabled':'')+'>Save & Publish to GitHub</button></div>';
+
+['title','slug','description','lead','category','short','keywords','hero','aff','pick','body','imgAlt'].forEach(function(k){var el=$('#f_'+k);if(el)el.addEventListener('input',function(){if(k==='title'&&!el.dataset.touched&&!$('#f_slug').dataset.touched)$('#f_slug').value=slugify(el.value);if(k==='slug')el.dataset.touched=1;live()})});
+$('#f_slug').dataset.touched=a.slug?'1':'';renderSug();renderImg();renderPin();live()}
+
+/* ---------- GEMINI AI HELPER SUITE ---------- */
+var SUG=[],CH=null,aiBusy=false;
+var CATS='Guides, Trends, Buying advice, Seasonal, Spotlight, Care, Gifts';
+function aiMsg(m,bad){var e=$('#ai_msg');if(e){e.textContent=m;e.style.color=bad?'#b3262e':''}}
+function gem(prompt,search,maxTok){
+if(!S.gemKey)return Promise.reject(new Error('Add your Gemini API key in Settings first.'));
+var body={contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{temperature:0.8,maxOutputTokens:maxTok||8192}};
+if(search)body.tools=[{google_search:{}}];
+return fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(S.gemModel||'gemini-3.5-flash')+':generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':S.gemKey},body:JSON.stringify(body)})
+.then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error((j.error&&j.error.message)||('HTTP '+r.status));return j},function(){throw new Error('HTTP '+r.status)})})
+.then(function(j){var c=j.candidates&&j.candidates[0];if(!c||!c.content||!c.content.parts){throw new Error('Gemini returned no text. Try again.')}
+return {text:c.content.parts.map(function(p){return p.text||''}).join(''),finish:c.finishReason}})}
+
+function existingTitles(){return (window.LEGACY||[]).map(function(r){return r.title}).concat(A.map(function(a){return a.title})).filter(Boolean)}
+function titlePrompt(topic){var d=new Date().toISOString().slice(0,10);
+return 'You are an SEO strategist for McGee Jewelry (mcgeejewelry.com). Audience: women. Niche: '+(S.niche||'')+'\n'
++'Date: '+d+'. Find trending questions people ask Google. Topic: '+(topic||'fine jewelry')+'. Return JSON array of 8 objects: [{"title":"","keyword":"","question":"","why":"","type":"evergreen or trending"}]. Output ONLY JSON array.'}
+function parseArr(t){var i=t.indexOf('['),j=t.lastIndexOf(']');if(i<0||j<i)return [];try{var a=JSON.parse(t.slice(i,j+1));return Array.isArray(a)?a.filter(function(x){return x&&x.title}):[]}catch(e){return []}}
+
+function renderSug(){var el=$('#ai_titles');if(!el)return;
+el.innerHTML=SUG.length?'<p class="muted text-sm mt-4">Pick a title:</p><div class="grid gap-2 mt-2">'+SUG.map(function(s,i){return '<label class="stat" style="display:block;cursor:pointer;padding:.7rem 1rem"><input type="radio" name="ttl" value="'+i+'"'+(CH&&CH===s?' checked':'')+'> <b>'+esc(s.title)+'</b><span class="muted text-sm block ml-5">'+esc(s.type||'')+' &middot; '+esc(s.why||'')+'</span></label>'}).join('')+'</div>':'';
+var g=$('#ai_gen');if(g)g.hidden=!SUG.length&&!($('#f_title')&&$('#f_title').value.trim())}
+function pickTitle(i){CH=SUG[i]||null;if(!CH)return;$('#f_title').value=CH.title;var sl=$('#f_slug');if(!sl.dataset.touched)sl.value=slugify(CH.title);var g=$('#ai_gen');if(g)g.hidden=false;live();aiMsg('Title selected. Click Generate article.')}
+function suggest(){if(aiBusy)return;aiBusy=true;var topic=($('#ai_topic').value||'').trim();aiMsg('Querying Gemini...');
+gem(titlePrompt(topic),S.gemSearch!==false,8192).then(function(r){var a=parseArr(r.text);if(!a.length)throw new Error('No titles returned.');SUG=a.slice(0,8);renderSug();aiMsg('Titles ready.')},function(e){aiMsg(e.message,true)}).then(function(){aiBusy=false})}
+
+function articlePrompt(c){var pages=(window.LEGACY||[]).map(function(r){return r.url}).concat(A.filter(function(a){return a.status==='published'}).map(function(a){return '/'+a.slug}));
+return 'Write ONE complete jewelry guide for McGee Jewelry (mcgeejewelry.com).\nTITLE: '+c.title+'\nKEYWORD: '+(c.keyword||c.title)+'\n'
++'OUTPUT: finished markdown with front matter (title, slug, description, lead, category, short, keywords, hero, aff, pick) followed by ## headings and ## FAQ with ### questions. At least 850 words. Internal links: '+pages.join(', ')+'.'}
+
+function cleanMd(t){t=t.trim().replace(/^```[a-z]*\n/,'').replace(/\n```$/,'');var i=t.indexOf('---');return (i>0&&i<200?t.slice(i):t).trim()}
+function uniqueSlug(s){var base=s||'article',n=2,used=function(x){return A.some(function(a){return a.slug===x&&a.id!==editId})||(window.LEGACY||[]).some(function(r){return r.url==='/'+x})};while(used(s)){s=base+'-'+n;n++}return s}
+
+function applyMd(text,c){var p=parse(cleanMd(text)),m=p.fm;if(!m.title&&!p.secs.length)throw new Error('Invalid format returned.');
+return {title:c.title,slug:uniqueSlug(slugify(m.slug||c.title)),description:m.description||'',lead:m.lead||'',category:m.category||'Guides',short:m.short||c.title.slice(0,28),keywords:m.keywords||'',hero:m.hero||'gem',aff:m.aff||'everyday',pick:m.pick||'sizing,styling,care',body:p.body}}
+
+function fillForm(o){['title','slug','description','lead','category','short','keywords','hero','aff','pick','body'].forEach(function(k){if($('#f_'+k))$('#f_'+k).value=o[k]});$('#f_slug').dataset.touched='1';live()}
+function generate(){if(aiBusy)return;var title=($('#f_title').value||'').trim();if(!title){aiMsg('Enter a title first.',true);return}
+var c=CH&&CH.title===title?CH:{title:title,keyword:title};aiBusy=true;aiMsg('Writing article with Gemini (takes 30-45s)...');
+gem(articlePrompt(c),false,16384).then(function(r){var o=applyMd(r.text,c);fillForm(o);aiMsg('Article ready! Review and publish.')},function(e){aiMsg(e.message,true)}).then(function(){aiBusy=false})}
+
+function aiPanel(){return '<div class="glass p-5 mt-5 rounded-2xl"><h3 class="serif text-2xl">Gemini AI Article Writer</h3><p class="muted text-sm">Step 1: Suggest trending titles. Step 2: Generate the complete SEO article.</p>'
++'<label class="fld"><span>Topic focus (optional)</span><input id="ai_topic" placeholder="e.g. gold chains, ring stacks, anniversary gifts"></label>'
++'<div class="flex flex-wrap gap-3 mt-3"><button class="btn btn-gold" data-act="suggest">Suggest Titles</button><span id="ai_gen" hidden><button class="btn btn-gold" data-act="generate">Generate Article</button></span></div>'
++'<p id="ai_msg" class="mt-3" role="status"></p><div id="ai_titles"></div></div>'}
+
+/* ---------- AI IMAGES & PINS ---------- */
+var IMG={master:null,pub:false,ext:'webp'};
+function imgMsg(m,bad){var e=$('#img_msg');if(e){e.textContent=m;e.style.color=bad?'#b3262e':''}}
+function loadImg(src){return new Promise(function(res,rej){var i=new Image();i.onload=function(){res(i)};i.onerror=function(){rej(new Error('Image load failed'))};i.src=src})}
+function crop(img,tw,th){var c=document.createElement('canvas');c.width=tw;c.height=th;var x=c.getContext('2d');x.imageSmoothingQuality='high';var sr=img.width/img.height,tr=tw/th,sw,sh;if(sr>tr){sh=img.height;sw=sh*tr}else{sw=img.width;sh=sw/tr}x.drawImage(img,(img.width-sw)/2,(img.height-sh)/2,sw,sh,0,0,tw,th);return c}
+function toBlob(c,type,q){return new Promise(function(r){c.toBlob(r,type,q)})}
+function blobB64(b){return new Promise(function(r){var f=new FileReader();f.onload=function(){r(String(f.result).split(',')[1])};f.readAsDataURL(b)})}
+
+function gemImg(prompt,ratio){
+if(!S.gemKey)return Promise.reject(new Error('Add Gemini key in Settings.'));
+var body={contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{responseModalities:['IMAGE'],imageConfig:{aspectRatio:ratio||'16:9',imageSize:'1K'}}};
+return fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(S.imgModel||'gemini-3.1-flash-image')+':generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':S.gemKey},body:JSON.stringify(body)})
+.then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error((j.error&&j.error.message)||'HTTP '+r.status);return j})})
+.then(function(j){var c=j.candidates&&j.candidates[0],p=(c&&c.content&&c.content.parts||[]).filter(function(x){return x.inlineData||x.inline_data})[0];
+if(!p)throw new Error('Gemini did not return an image.');var d=p.inlineData||p.inline_data;return {mime:d.mimeType||d.mime_type||'image/png',data:d.data}})}
+
+function toMaster(r){return loadImg('data:'+r.mime+';base64,'+r.data).then(function(img){var w=Math.min(img.width,1600),c=crop(img,w,Math.round(w*9/16)),u=c.toDataURL('image/webp',0.85);return u})}
+function makeVariants(a){var base='images/'+a.slug+'/'+a.slug;return loadImg(a.img).then(async function(img){
+var specs=[['16x9',1200,675,'webp'],['4x3',1200,900,'webp'],['1x1',900,900,'webp'],['social',1200,630,'jpg']],out={},ext='webp';
+for(var i=0;i<specs.length;i++){var s=specs[i],c=crop(img,s[1],s[2]),b=await toBlob(c,s[3]==='webp'?'image/webp':'image/jpeg',0.86);out[base+'-'+s[0]+'.'+s[3]]=await blobB64(b)}
+return {ext:ext,files:out}})}
+
+function renderImg(){var el=$('#img_prev');if(!el)return;el.innerHTML=IMG.master?'<img src="'+IMG.master+'" style="max-width:100%;border-radius:1rem;margin-top:.8rem">':(IMG.pub?'<p class="muted mt-2 text-xs">Image published.</p>':'<p class="muted mt-2 text-xs">No image yet.</p>')}
+function genImage(){var t=($('#f_title').value||'').trim();if(!t)return;aiBusy=true;imgMsg('Generating 16:9 header image with Gemini...');
+gemImg('An elegant editorial still life photograph of fine jewelry related to "'+t+'", warm ivory champagne light, soft depth of field, no people, no text.','16:9')
+.then(toMaster).then(function(m){IMG.master=m;renderImg();live();imgMsg('Image ready!')},function(e){imgMsg(e.message,true)}).then(function(){aiBusy=false})}
+
+function imgPanel(a){return '<div class="glass p-5 mt-5 rounded-2xl"><h3 class="serif text-2xl">Header Image (Gemini)</h3><label class="fld"><span>Alt text</span><input id="f_imgAlt" value="'+escA(a.imgAlt||'')+'"></label>'
++'<div class="flex gap-2 mt-3"><button class="btn btn-gold" data-act="genimg">Generate AI Image</button><button class="btn btn-ghost" data-act="rmimg">Remove</button></div><p id="img_msg" class="mt-2 text-xs"></p><div id="img_prev"></div></div>'}
+
+var PIN={raw:null,pub:false};
+function composePin(raw,headline){return loadImg(raw).then(function(img){var c=crop(img,1000,1500),x=c.getContext('2d'),F='Georgia,serif';x.textAlign='center';
+x.fillStyle='rgba(251,245,242,.85)';x.fillRect(0,0,1000,450);x.fillStyle='#3b1a22';x.font='64px '+F;
+var lines=[];headline.split(' ').reduce(function(cur,w){var t=(cur+' '+w).trim();if(x.measureText(t).width>840){lines.push(cur);return w}return t},'');lines.push(headline.split(' ').pop());
+lines.slice(0,3).forEach(function(l,i){x.fillText(l,500,150+i*75)});x.fillStyle='#8a4b57';x.font='32px '+F;x.fillText('McGee Jewelry',500,1430);return c})}
+
+function renderPin(){var el=$('#pin_prev');if(!el)return;if(PIN.raw)composePin(PIN.raw,$('#f_pinText').value||'Jewelry Guide').then(function(c){el.innerHTML='<img src="'+c.toDataURL('image/jpeg',0.8)+'" style="max-width:14rem;border-radius:1rem;margin-top:.8rem">'})}
+function genPin(){var t=($('#f_title').value||'').trim();if(!t)return;aiBusy=true;
+gemImg('Tall 2:3 editorial still life of fine jewelry related to "'+t+'", calm ivory background, empty space on top, no text.','2:3')
+.then(function(r){return loadImg('data:'+r.mime+';base64,'+r.data)}).then(function(img){return crop(img,1000,1500).toDataURL('image/jpeg',0.86)})
+.then(function(m){PIN.raw=m;renderPin();live()},function(e){alert(e.message)}).then(function(){aiBusy=false})}
+
+function pinPanel(a){return '<div class="glass p-5 mt-5 rounded-2xl"><h3 class="serif text-2xl">Pinterest Pin (2:3)</h3><label class="fld"><span>Pin headline text</span><input id="f_pinText" value="'+escA(a.pinText||a.title||'')+'"></label>'
++'<div class="flex gap-2 mt-3"><button class="btn btn-gold" data-act="genpin">Generate AI Pin</button><button class="btn btn-ghost" data-act="rmpin">Remove</button></div><div id="pin_prev"></div></div>'}
+
+function form(){var g=function(k){return $('#f_'+k)?$('#f_'+k).value.trim():''};return {title:g('title'),slug:g('slug'),description:g('description'),lead:g('lead'),category:g('category')||'Guides',short:g('short'),keywords:g('keywords'),hero:g('hero'),aff:g('aff'),pick:g('pick'),body:$('#f_body')?$('#f_body').value.replace(/\s+$/,''):'',imgAlt:g('imgAlt'),img:IMG.master,imgPub:IMG.pub,imgExt:IMG.ext,pinText:g('pinText'),pinRaw:PIN.raw,pinPub:PIN.pub}}
+function live(){var a=form(),r=analyse(a);if($('#dl'))$('#dl').textContent='('+a.description.length+')';if($('#ck'))$('#ck').innerHTML=(r.errs.length?r.errs.map(function(e){return '<li class="bad">&#10007; '+esc(e)+'</li>'}):['<li class="ok">&#10003; Ready to publish</li>']).join('')+'<li class="muted">'+r.words+' words, '+r.parsed.secs.length+' sections</li>'}
+function saveForm(){var d=form(),a=A.filter(function(x){return x.id===editId})[0];if(!a){a={id:'a'+Date.now(),status:'draft'};A.push(a)}for(var k in d)a[k]=d[k];a.updated=new Date().toISOString();editId=a.id;save();return a}
+
+/* ---------- 4. SETTINGS VIEW ---------- */
+function renderSettings(){
+$('#app').innerHTML='<h1 class="text-4xl gt">System Settings</h1>' +
+'<div class="glass p-6 rounded-3xl mt-5"><h3 class="serif text-2xl">GitHub Auto-Deploy</h3><p class="muted text-xs">Saves files directly to your repo; Vercel builds the site automatically.</p>' +
+'<div class="grid sm:grid-cols-3 gap-3 mt-3"><label class="fld"><span>Owner</span><input id="s_owner" value="'+escA(S.owner)+'"></label><label class="fld"><span>Repo</span><input id="s_repo" value="'+escA(S.repo)+'"></label><label class="fld"><span>Branch</span><input id="s_branch" value="'+escA(S.branch)+'"></label></div>' +
+'<label class="fld"><span>Site Domain</span><input id="s_domain" value="'+escA(S.domain)+'"></label><label class="fld"><span>Personal Access Token</span><input id="s_token" type="password" value="'+escA(S.token)+'"></label>' +
+'<button class="btn btn-gold mt-4" data-act="savesettings">Save & Test GitHub</button><p id="sm" class="text-xs mt-2"></p></div>' +
+
+'<div class="glass p-6 rounded-3xl mt-6"><h3 class="serif text-2xl">Gemini API Key</h3>' +
+'<label class="fld"><span>API Key</span><input id="s_gemkey" type="password" value="'+escA(S.gemKey)+'"></label>' +
+'<div class="grid sm:grid-cols-2 gap-3"><label class="fld"><span>Writer Model</span><input id="s_gemmodel" value="'+escA(S.gemModel)+'"></label><label class="fld"><span>Image Model</span><input id="s_imgmodel" value="'+escA(S.imgModel)+'"></label></div>' +
+'<button class="btn btn-ghost mt-4" data-act="testgem">Test Gemini Connection</button><p id="sm2" class="text-xs mt-2"></p></div>';
+}
+
+/* ---------- DISPATCHER & ACTIONS ---------- */
+function render(){
+  document.querySelectorAll('#admin-nav button.nv').forEach(function(b){
+    b.setAttribute('aria-current', String(b.dataset.id === view || (view==='editor'&&b.dataset.id==='blog')));
+  });
+  if(view==='overview') renderOverview();
+  else if(view==='subscribers') renderSubscribers();
+  else if(view==='blog') renderBlog();
+  else if(view==='editor') renderEditor();
+  else if(view==='settings') renderSettings();
+}
+
+function act(k,id){
+  if(k==='view'){ view=id; render(); }
+  else if(k==='new'){ editId=null; view='editor'; render(); }
+  else if(k==='edit'){ editId=id; view='editor'; render(); }
+  else if(k==='del'){ if(confirm('Delete article?')){ A=A.filter(function(x){return x.id!==id}); save(); render(); } }
+  else if(k==='savedraft'){ saveForm(); view='blog'; render(); }
+  else if(k==='savepub'){ var b=saveForm(); view='blog'; render(); publish(b.id); }
+  else if(k==='publish'){ publish(id); }
+  else if(k==='pin'){ var a=A.filter(function(x){return x.id===id})[0]; window.open(pinUrl(a).href,'_blank'); }
+  else if(k==='suggest') suggest();
+  else if(k==='generate') generate();
+  else if(k==='genimg') genImage();
+  else if(k==='rmimg'){ IMG.master=null; IMG.pub=false; renderImg(); live(); }
+  else if(k==='genpin') genPin();
+  else if(k==='rmpin'){ PIN.raw=null; PIN.pub=false; renderPin(); live(); }
+  else if(k==='newsub'){
+    var em = prompt('Enter customer email:');
+    if(em && em.includes('@')){
+      SUBS.unshift({ email: em.trim(), plan: 'pro', date: today(), status: 'active', amount: 6.00 });
+      save(); renderSubscribers();
+    }
+  }
+  else if(k==='toggleplan'){
+    var s = SUBS[+id];
+    if(s){ s.plan = s.plan==='pro' ? 'free' : 'pro'; save(); renderSubscribers(); }
+  }
+  else if(k==='delsub'){
+    if(confirm('Remove this subscriber?')){ SUBS.splice(+id,1); save(); renderSubscribers(); }
+  }
+  else if(k==='savesettings'){
+    S.owner=$('#s_owner').value.trim(); S.repo=$('#s_repo').value.trim(); S.branch=$('#s_branch').value.trim()||'main';
+    S.domain=$('#s_domain').value.trim()||'https://mcgeejewelry.com'; S.token=$('#s_token').value.trim();
+    save(); $('#sm').textContent='Testing GitHub...';
+    gh('').then(function(r){ $('#sm').textContent='Connected to '+r.full_name; }, function(e){ $('#sm').textContent='Failed: '+e.message; });
+  }
+  else if(k==='testgem'){
+    S.gemKey=$('#s_gemkey').value.trim(); S.gemModel=$('#s_gemmodel').value.trim(); save();
+    $('#sm2').textContent='Testing Gemini...';
+    gem('Reply with OK',false,16).then(function(r){ $('#sm2').textContent='Gemini replied: '+r.text; }, function(e){ $('#sm2').textContent='Error: '+e.message; });
+  }
+}
+
+document.addEventListener('change',function(e){if(e.target&&e.target.name==='ttl')pickTitle(+e.target.value)});
+document.addEventListener('click',function(e){
+  if(e.target&&e.target.id==='admin-logout'){ if(sb)sb.auth.signOut(); location.reload(); return; }
+  var b=e.target.closest('[data-act]');
+  if(b&&!b.disabled)act(b.dataset.act,b.dataset.id);
+});
+
+checkAdminAuth();
+})();
