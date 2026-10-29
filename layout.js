@@ -73,7 +73,7 @@ thLab();
 KOO.sync();
 
 /* ---------- Pro Auth & Membership ---------- */
-var TOOL_FILES = ['sizing.html','styling.html','care.html','gift.html','layering.html','anniversary.html','gold.html','diamond.html','earrings.html','wishlist.html'];
+var TOOL_FILES = ['sizing.html','styling.html','care.html','gift.html','layering.html','anniversary.html','gold.html','diamond.html','earrings.html','wishlist.html','vault.html'];
 
 var sb = null;
 var currentUser = null;
