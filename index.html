@@ -1,44 +1,53 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Jewelry sizing, styling, valuation and planner tools | McGee Jewelry</title><meta name="description" content="All-in-one fine jewelry studio: ring size finder, jewelry box value tracker, weekly lookbook planner, photo analyzer, necklace layering, gold calculator and wishlist."><meta name="theme-color" content="#fbf5f2"><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="canonical" href="https://mcgeejewelry.com/"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"><script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="style.css">
+<!DOCTYPE html><html lang="en" class="overflow-x-hidden"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Jewelry sizing, styling, valuation and planner tools | McGee Jewelry</title><meta name="description" content="All-in-one fine jewelry studio: ring size finder, jewelry box value tracker, weekly lookbook planner, photo analyzer, necklace layering, gold calculator and wishlist."><meta name="theme-color" content="#fbf5f2"><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="canonical" href="https://mcgeejewelry.com/"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"><script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="style.css">
 <style>
-@keyframes floatGentle { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-8px) rotate(0.6deg); } }
-@keyframes pulseGlow { 0%, 100% { opacity: 0.5; filter: drop-shadow(0 0 12px rgba(243,226,179,0.3)); } 50% { opacity: 0.95; filter: drop-shadow(0 0 28px rgba(232,180,184,0.7)); } }
+@keyframes floatGentle { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-6px) rotate(0.5deg); } }
+@keyframes pulseGlow { 0%, 100% { opacity: 0.5; filter: drop-shadow(0 0 10px rgba(243,226,179,0.3)); } 50% { opacity: 0.95; filter: drop-shadow(0 0 24px rgba(232,180,184,0.7)); } }
 @keyframes sparkle { 0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.8; } 50% { transform: scale(1.3) rotate(45deg); opacity: 1; } }
 .hero-float { animation: floatGentle 6s ease-in-out infinite; }
 .hero-glow { animation: pulseGlow 4s ease-in-out infinite; }
 .sparkle-star { animation: sparkle 3s ease-in-out infinite; transform-origin: center; }
-.tool-card { transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1); position: relative; overflow: hidden; border: 1px solid rgba(243,226,179,0.18); }
-.tool-card:hover { transform: translateY(-5px); border-color: rgba(243,226,179,0.5) !important; box-shadow: 0 18px 40px -10px rgba(183,110,121,0.28); }
+
+/* Mobile-First Card & Tap Styling */
+.tool-card { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); position: relative; overflow: hidden; border: 1px solid rgba(243,226,179,0.18); -webkit-tap-highlight-color: transparent; }
+.tool-card:active { transform: scale(0.98); }
+@media(min-width: 768px) {
+  .tool-card:hover { transform: translateY(-4px); border-color: rgba(243,226,179,0.5) !important; box-shadow: 0 16px 36px -10px rgba(183,110,121,0.25); }
+}
 .ring-live-circle { transition: r 0.2s ease-out; }
+
+/* Prevent Mobile Nav Squish */
+@media(max-width: 480px) {
+  .nav .brand-s { display: none; }
+  .nav #th { padding: 0.35rem 0.55rem !important; font-size: 0.72rem !important; }
+}
 </style>
-</head><body><a class="skip" href="#main">Skip to content</a><div id="nav"></div><main id="main" class="mx-auto max-w-6xl px-5 pb-24 pt-10">
+</head><body class="overflow-x-hidden"><a class="skip" href="#main">Skip to content</a><div id="nav"></div><main id="main" class="mx-auto max-w-6xl px-4 sm:px-5 pb-20 pt-6 sm:pt-10 overflow-x-hidden">
 
 <!-- HERO SECTION -->
-<section class="grid md:grid-cols-2 gap-10 items-center pt-6 md:pt-14 pb-20 relative">
-<div class="relative z-10">
-<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs mb-5 glass border border-rose-300/30" style="color:#b76e79">
-<span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span> The All-In-One Fine Jewelry Suite
+<section class="grid md:grid-cols-2 gap-8 md:gap-10 items-center pt-2 sm:pt-6 md:pt-12 pb-12 md:pb-20 relative">
+<div class="relative z-10 text-left">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] sm:text-xs mb-4 glass border border-rose-300/30" style="color:#b76e79">
+<span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span> The Fine Jewelry Suite
 </div>
-<h1 class="text-6xl md:text-7xl gt leading-none">Every jewelry question, answered beautifully.</h1>
-<p class="muted text-lg mt-6 max-w-md">Twelve interactive tools to find your ring size, catalog and value your jewelry box, plan weekly looks, and match fine metals to your undertone.</p>
+<h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl gt leading-[1.08] tracking-tight">Every jewelry question, answered beautifully.</h1>
+<p class="muted text-base sm:text-lg mt-4 sm:mt-5 max-w-md">Twelve interactive tools to find your ring size, catalog and value your jewelry box, plan weekly looks, and match fine metals to your undertone.</p>
 
-<div class="flex flex-wrap gap-3 mt-9">
-<a class="btn btn-gold shadow-lg" href="#suite">Explore All Tools</a>
-<a class="btn btn-ghost" href="vault.html">👑 My Jewelry Box</a>
-<a class="btn btn-ghost" href="planner.html">🗓️ Look Planner</a>
+<div class="flex flex-col sm:flex-row gap-2.5 sm:gap-3 mt-7 sm:mt-8">
+<a class="btn btn-gold text-center py-3 sm:py-2.5 shadow-md text-sm" href="#suite">Explore All Tools</a>
+<a class="btn btn-ghost text-center py-3 sm:py-2.5 text-sm" href="vault.html">👑 My Jewelry Box</a>
+<a class="btn btn-ghost text-center py-3 sm:py-2.5 text-sm" href="planner.html">🗓️ Look Planner</a>
 </div>
 
-<div class="flex items-center gap-6 mt-8 pt-6 border-t border-rose-200/10 text-xs muted">
-<div><b class="gt text-lg block serif">12 Tools</b> Professional suite</div>
-<div class="w-px h-6 bg-rose-200/20"></div>
-<div><b class="gt text-lg block serif">100% Private</b> On-device security</div>
-<div class="w-px h-6 bg-rose-200/20"></div>
-<div><b class="gt text-lg block serif">Live Gold</b> Real-time valuation</div>
+<div class="grid grid-cols-3 gap-2 mt-7 pt-5 border-t border-rose-200/10 text-[11px] sm:text-xs muted text-center sm:text-left">
+<div><b class="gt text-base sm:text-lg block serif leading-tight">12 Tools</b> Built for jewelry</div>
+<div><b class="gt text-base sm:text-lg block serif leading-tight">100% Free</b> On-device privacy</div>
+<div><b class="gt text-base sm:text-lg block serif leading-tight">Live Gold</b> Real melt rates</div>
 </div>
 </div>
 
-<div class="flex justify-center relative">
-<div class="absolute inset-0 bg-gradient-to-tr from-rose-500/10 via-amber-200/10 to-transparent rounded-full filter blur-3xl pointer-events-none"></div>
-<svg viewBox="0 0 400 400" class="w-full max-w-md hero-float relative z-10" role="img" aria-label="A rose gold ring with a glowing diamond">
+<div class="flex justify-center relative mt-2 md:mt-0">
+<div class="absolute inset-0 bg-gradient-to-tr from-rose-500/10 via-amber-200/10 to-transparent rounded-full filter blur-2xl pointer-events-none"></div>
+<svg viewBox="0 0 400 400" class="w-full max-w-[260px] sm:max-w-sm md:max-w-md hero-float relative z-10" role="img" aria-label="A rose gold ring with a glowing diamond">
 <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3e2b3"/><stop offset=".5" stop-color="#e8b4b8"/><stop offset="1" stop-color="#b76e79"/></linearGradient>
 <linearGradient id="d" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".6" stop-color="#f8d9e0"/><stop offset="1" stop-color="#e8b4b8"/></linearGradient></defs>
 <circle cx="200" cy="240" r="115" fill="none" stroke="url(#g)" stroke-width="18" pathLength="1" class="draw hero-glow"/>
@@ -48,32 +57,32 @@
 <g fill="#f3e2b3"><path class="sparkle-star" d="M300 60l4 12 12 4-12 4-4 12-4-12-12-4 12-4z"/><path class="sparkle-star" style="animation-delay:1.5s" d="M96 130l3 8 8 3-8 3-3 8-3-8-8-3 8-3z"/></g></g></svg></div></section>
 
 <!-- FLAGSHIP SPOTLIGHT (NEW FEATURES) -->
-<section class="mb-16">
-<div class="grid md:grid-cols-2 gap-6">
+<section class="mb-12 sm:mb-16">
+<div class="grid md:grid-cols-2 gap-4 sm:gap-6">
 
-<a href="vault.html" class="glass glow p-8 rounded-3xl block no-underline text-inherit tool-card relative" style="border:1px solid rgba(243,226,179,0.3)">
+<a href="vault.html" class="glass glow p-5 sm:p-7 md:p-8 rounded-2xl sm:rounded-3xl block no-underline text-inherit tool-card relative">
 <div class="flex items-center justify-between">
-<span class="text-3xl">👑</span>
-<span class="chip text-xs" style="background:rgba(243,226,179,0.2);color:#b76e79">FLAGSHIP STUDIO</span>
+<span class="text-2xl sm:text-3xl">👑</span>
+<span class="chip text-[11px] sm:text-xs" style="background:rgba(243,226,179,0.2);color:#b76e79">PORTFOLIO STUDIO</span>
 </div>
-<h2 class="serif text-3xl md:text-4xl gt mt-4">My Jewelry Box & Value Vault</h2>
-<p class="muted mt-2 text-sm leading-relaxed">Catalog your rings, chains and bracelets. Automatically calculates raw gold melt values, tracks total collection grams, and creates printable insurance records.</p>
-<div class="mt-6 flex items-center justify-between pt-4 border-t border-rose-200/10 text-xs">
-<span class="muted">Live 10k&ndash;24k Scrap Calculation</span>
-<b class="gt text-sm font-semibold">Open Jewelry Box &rarr;</b>
+<h2 class="serif text-2xl sm:text-3xl md:text-4xl gt mt-3">My Jewelry Box & Value Vault</h2>
+<p class="muted mt-2 text-xs sm:text-sm leading-relaxed">Catalog your rings, chains and bracelets. Calculates raw gold melt values, tracks total collection grams, and creates printable insurance records.</p>
+<div class="mt-5 flex items-center justify-between pt-3.5 border-t border-rose-200/10 text-xs">
+<span class="muted text-[11px] sm:text-xs">10k&ndash;24k Melt Engine</span>
+<b class="gt text-xs sm:text-sm font-semibold">Open Box &rarr;</b>
 </div>
 </a>
 
-<a href="planner.html" class="glass glow p-8 rounded-3xl block no-underline text-inherit tool-card relative" style="border:1px solid rgba(243,226,179,0.3)">
+<a href="planner.html" class="glass glow p-5 sm:p-7 md:p-8 rounded-2xl sm:rounded-3xl block no-underline text-inherit tool-card relative">
 <div class="flex items-center justify-between">
-<span class="text-3xl">🗓️</span>
-<span class="chip text-xs" style="background:rgba(243,226,179,0.2);color:#b76e79">STYLING STUDIO</span>
+<span class="text-2xl sm:text-3xl">🗓️</span>
+<span class="chip text-[11px] sm:text-xs" style="background:rgba(243,226,179,0.2);color:#b76e79">STYLING STUDIO</span>
 </div>
-<h2 class="serif text-3xl md:text-4xl gt mt-4">Jewelry Lookbook & Outfit Planner</h2>
-<p class="muted mt-2 text-sm leading-relaxed">Plan what jewelry you will wear from Monday to Sunday. Log a 30-day wearing diary, calculate your true Cost-Per-Wear, and get reminders for forgotten pieces.</p>
-<div class="mt-6 flex items-center justify-between pt-4 border-t border-rose-200/10 text-xs">
-<span class="muted">7-Day Planner & Wear Diary</span>
-<b class="gt text-sm font-semibold">Start Planning &rarr;</b>
+<h2 class="serif text-2xl sm:text-3xl md:text-4xl gt mt-3">Jewelry Lookbook & Planner</h2>
+<p class="muted mt-2 text-xs sm:text-sm leading-relaxed">Plan jewelry outfits from Monday to Sunday. Log your 30-day wear diary, calculate your true Cost-Per-Wear, and get reminders for forgotten pieces.</p>
+<div class="mt-5 flex items-center justify-between pt-3.5 border-t border-rose-200/10 text-xs">
+<span class="muted text-[11px] sm:text-xs">7-Day Planner & Diary</span>
+<b class="gt text-xs sm:text-sm font-semibold">Start Planning &rarr;</b>
 </div>
 </a>
 
@@ -81,190 +90,190 @@
 </section>
 
 <!-- ALL 12 FEATURES IN ONE PLACE -->
-<section id="suite" class="mt-14" aria-labelledby="th">
-<div class="flex flex-wrap items-end justify-between mb-8 gap-4">
-<div><span class="chip text-xs mb-2">Complete Collection</span>
-<h2 id="th" class="text-4xl md:text-5xl gt">The McGee Jewelry Studio</h2>
-<p class="muted mt-2">Twelve specialized interactive tools and guides built exclusively for jewelry.</p></div>
-<span class="chip text-xs">12 Active Tools</span>
+<section id="suite" class="mt-10 sm:mt-14" aria-labelledby="th">
+<div class="flex flex-wrap items-end justify-between mb-6 sm:mb-8 gap-2">
+<div><span class="chip text-[11px] sm:text-xs mb-1.5">Complete Suite</span>
+<h2 id="th" class="text-3xl sm:text-4xl md:text-5xl gt">The McGee Jewelry Studio</h2>
+<p class="muted text-xs sm:text-sm mt-1">Twelve specialized interactive tools and guides built for jewelry.</p></div>
+<span class="chip text-[11px] sm:text-xs">12 Active Tools</span>
 </div>
 
-<div class="grid md:grid-cols-3 gap-5">
+<div class="grid sm:grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-5">
 
-<a href="sizing.html" class="glass glow p-7 block no-underline text-inherit md:col-span-2 tool-card" style="min-height:11rem">
-<div class="flex items-center justify-between"><div class="text-3xl gt">◌</div><span class="chip text-xs">Sizing Studio</span></div>
-<h3 class="text-3xl mt-4">Ring & bracelet size guide</h3><p class="muted mt-2">Slide to your size and see US, UK, EU and Japan sizes at once, with an interactive life-size ring.</p></a>
+<a href="sizing.html" class="glass glow p-5 sm:p-6 md:p-7 block no-underline text-inherit sm:col-span-2 tool-card rounded-2xl sm:rounded-3xl">
+<div class="flex items-center justify-between"><div class="text-2xl sm:text-3xl gt">◌</div><span class="chip text-[11px] sm:text-xs">Sizing Studio</span></div>
+<h3 class="text-2xl sm:text-3xl mt-3 sm:mt-4">Ring & bracelet size guide</h3><p class="muted text-xs sm:text-sm mt-1.5">Slide to your size and see US, UK, EU and Japan sizes at once, with an interactive life-size ring.</p></a>
 
-<a href="styling.html" class="glass glow p-7 block no-underline text-inherit tool-card" style="min-height:11rem">
-<div class="flex items-center justify-between"><div class="text-3xl gt">◈</div><span class="chip text-xs">Color Match</span></div>
-<h3 class="text-3xl mt-4">Metal & undertone match</h3><p class="muted mt-2">Discover whether yellow gold, silver, or rose gold brings out your natural glow.</p></a>
+<a href="styling.html" class="glass glow p-5 sm:p-6 md:p-7 block no-underline text-inherit tool-card rounded-2xl sm:rounded-3xl">
+<div class="flex items-center justify-between"><div class="text-2xl sm:text-3xl gt">◈</div><span class="chip text-[11px] sm:text-xs">Color Match</span></div>
+<h3 class="text-2xl sm:text-3xl mt-3 sm:mt-4">Metal & undertone match</h3><p class="muted text-xs sm:text-sm mt-1.5">Discover whether yellow gold, silver, or rose gold brings out your natural skin glow.</p></a>
 
-<a href="care.html" class="glass glow p-7 block no-underline text-inherit tool-card" style="min-height:11rem">
-<div class="flex items-center justify-between"><div class="text-3xl gt">✧</div><span class="chip text-xs">Care Vault</span></div>
-<h3 class="text-3xl mt-4">Jewelry care guide</h3><p class="muted mt-2">Gold, silver, pearls, and diamonds: what preserves their brilliance and what harms them.</p></a>
+<a href="care.html" class="glass glow p-5 sm:p-6 md:p-7 block no-underline text-inherit tool-card rounded-2xl sm:rounded-3xl">
+<div class="flex items-center justify-between"><div class="text-2xl sm:text-3xl gt">✧</div><span class="chip text-[11px] sm:text-xs">Care Vault</span></div>
+<h3 class="text-2xl sm:text-3xl mt-3 sm:mt-4">Jewelry care guide</h3><p class="muted text-xs sm:text-sm mt-1.5">Gold, silver, pearls, and diamonds: what preserves their brilliance and what harms them.</p></a>
 
-<a href="gift.html" class="glass glow p-7 block no-underline text-inherit md:col-span-2 tool-card" style="min-height:11rem">
-<div class="flex items-center justify-between"><div class="text-3xl gt">❖</div><span class="chip text-xs">Smart Quiz</span></div>
-<h3 class="text-3xl mt-4">Gift finder quiz</h3><p class="muted mt-2">Four thoughtful questions, three gift recommendations matched to her aesthetic and your budget.</p></a>
+<a href="gift.html" class="glass glow p-5 sm:p-6 md:p-7 block no-underline text-inherit sm:col-span-2 tool-card rounded-2xl sm:rounded-3xl">
+<div class="flex items-center justify-between"><div class="text-2xl sm:text-3xl gt">❖</div><span class="chip text-[11px] sm:text-xs">Smart Quiz</span></div>
+<h3 class="text-2xl sm:text-3xl mt-3 sm:mt-4">Gift finder quiz</h3><p class="muted text-xs sm:text-sm mt-1.5">Four thoughtful questions, three gift recommendations matched to her aesthetic and your budget.</p></a>
 
-<a href="layering.html" class="glass glow p-7 block no-underline text-inherit tool-card" style="min-height:11rem">
-<div class="flex items-center justify-between"><div class="text-3xl gt">⟡</div><span class="chip text-xs">Chains Studio</span></div>
-<h3 class="text-3xl mt-4">Necklace layering guide</h3><p class="muted mt-2">Simulate chain lengths and spacing that drape effortlessly over 6 neckline styles.</p></a>
+<a href="layering.html" class="glass glow p-5 sm:p-6 md:p-7 block no-underline text-inherit tool-card rounded-2xl sm:rounded-3xl">
+<div class="flex items-center justify-between"><div class="text-2xl sm:text-3xl gt">⟡</div><span class="chip text-[11px] sm:text-xs">Chains Studio</span></div>
+<h3 class="text-2xl sm:text-3xl mt-3 sm:mt-4">Necklace layering guide</h3><p class="muted text-xs sm:text-sm mt-1.5">Simulate chain lengths and spacing that drape effortlessly over 6 neckline styles.</p></a>
 
-<a href="wishlist.html" class="glass glow p-7 block no-underline text-inherit tool-card" style="min-height:11rem">
-<div class="flex items-center justify-between"><div class="text-3xl gt">♡</div><span class="chip text-xs">Wishlist Vault</span></div>
-<h3 class="text-3xl mt-4">Wishlist</h3><p class="muted mt-2">Bookmark pieces from any guide or tool. Kept securely and privately on this device.</p></a>
+<a href="wishlist.html" class="glass glow p-5 sm:p-6 md:p-7 block no-underline text-inherit tool-card rounded-2xl sm:rounded-3xl">
+<div class="flex items-center justify-between"><div class="text-2xl sm:text-3xl gt">♡</div><span class="chip text-[11px] sm:text-xs">Wishlist Vault</span></div>
+<h3 class="text-2xl sm:text-3xl mt-3 sm:mt-4">Wishlist</h3><p class="muted text-xs sm:text-sm mt-1.5">Bookmark pieces from any guide or tool. Kept securely and privately on this device.</p></a>
 
-<a href="anniversary.html" class="glass glow p-7 block no-underline text-inherit tool-card" style="min-height:11rem">
-<div class="flex items-center justify-between"><div class="text-3xl gt">✦</div><span class="chip text-xs">Milestones</span></div>
-<h3 class="text-3xl mt-4">Anniversary gifts by year</h3><p class="muted mt-2">Traditional gifts and gemstones curated for milestone anniversaries from years 1 to 60.</p></a>
+<a href="anniversary.html" class="glass glow p-5 sm:p-6 md:p-7 block no-underline text-inherit tool-card rounded-2xl sm:rounded-3xl">
+<div class="flex items-center justify-between"><div class="text-2xl sm:text-3xl gt">✦</div><span class="chip text-[11px] sm:text-xs">Milestones</span></div>
+<h3 class="text-2xl sm:text-3xl mt-3 sm:mt-4">Anniversary gifts by year</h3><p class="muted text-xs sm:text-sm mt-1.5">Traditional gifts and gemstones curated for milestone anniversaries from years 1 to 60.</p></a>
 
-<a href="gold.html" class="glass glow p-7 block no-underline text-inherit md:col-span-2 tool-card" style="min-height:11rem">
-<div class="flex items-center justify-between"><div class="text-3xl gt">◍</div><span class="chip text-xs">Melt Engine</span></div>
-<h3 class="text-3xl mt-4">Gold karat and value</h3><p class="muted mt-2">Compare purity levels across 10k, 14k, 18k and 24k and calculate intrinsic scrap melt value.</p></a>
+<a href="gold.html" class="glass glow p-5 sm:p-6 md:p-7 block no-underline text-inherit sm:col-span-2 tool-card rounded-2xl sm:rounded-3xl">
+<div class="flex items-center justify-between"><div class="text-2xl sm:text-3xl gt">◍</div><span class="chip text-[11px] sm:text-xs">Melt Engine</span></div>
+<h3 class="text-2xl sm:text-3xl mt-3 sm:mt-4">Gold karat and value</h3><p class="muted text-xs sm:text-sm mt-1.5">Compare purity levels across 10k, 14k, 18k and 24k and calculate scrap melt value.</p></a>
 
-<a href="diamond.html" class="glass glow p-7 block no-underline text-inherit tool-card" style="min-height:11rem">
-<div class="flex items-center justify-between"><div class="text-3xl gt">◇</div><span class="chip text-xs">Carat Scale</span></div>
-<h3 class="text-3xl mt-4">How big is a carat?</h3><p class="muted mt-2">Visualize diamond carat weights at scale directly on a life-size finger model.</p></a>
+<a href="diamond.html" class="glass glow p-5 sm:p-6 md:p-7 block no-underline text-inherit tool-card rounded-2xl sm:rounded-3xl">
+<div class="flex items-center justify-between"><div class="text-2xl sm:text-3xl gt">◇</div><span class="chip text-[11px] sm:text-xs">Carat Scale</span></div>
+<h3 class="text-2xl sm:text-3xl mt-3 sm:mt-4">How big is a carat?</h3><p class="muted text-xs sm:text-sm mt-1.5">Visualize diamond carat weights at scale directly on a life-size finger model.</p></a>
 
-<a href="earrings.html" class="glass glow p-7 block no-underline text-inherit md:col-span-2 tool-card" style="min-height:11rem">
-<div class="flex items-center justify-between"><div class="text-3xl gt">❋</div><span class="chip text-xs">Face Match</span></div>
-<h3 class="text-3xl mt-4">Earrings for your face shape</h3><p class="muted mt-2">Discover which studs, huggies, hoops, and chandelier drops harmonize with your facial structure.</p></a>
+<a href="earrings.html" class="glass glow p-5 sm:p-6 md:p-7 block no-underline text-inherit sm:col-span-2 tool-card rounded-2xl sm:rounded-3xl">
+<div class="flex items-center justify-between"><div class="text-2xl sm:text-3xl gt">❋</div><span class="chip text-[11px] sm:text-xs">Face Match</span></div>
+<h3 class="text-2xl sm:text-3xl mt-3 sm:mt-4">Earrings for your face shape</h3><p class="muted text-xs sm:text-sm mt-1.5">Discover which studs, huggies, hoops, and chandelier drops harmonize with your facial structure.</p></a>
 
 </div></section>
 
 <div data-ad="banner"></div>
 
 <!-- INTERACTIVE STUDIO 1: REAL-TIME RING SIZER -->
-<section id="size" class="mt-28 grid lg:grid-cols-2 gap-10 items-center scroll-mt-24">
-<div><span class="chip text-xs mb-3">Live Interactive Sizer</span>
-<h2 class="text-5xl gt">Find your size</h2>
-<p class="muted text-lg mt-4 max-w-md">Drag the slider to view your ring size in US, UK, EU and Japan at once. The glowing ring circle changes in real time to match the exact millimeter scale.</p>
-<div class="flex gap-3 mt-7"><a class="btn btn-gold" href="sizing.html">Open full size guide</a><a class="btn btn-ghost" href="#suite">All tools</a></div></div>
+<section id="size" class="mt-16 sm:mt-24 grid lg:grid-cols-2 gap-8 items-center scroll-mt-20">
+<div><span class="chip text-[11px] sm:text-xs mb-2">Live Sizer</span>
+<h2 class="text-3xl sm:text-4xl md:text-5xl gt">Find your size</h2>
+<p class="muted text-sm sm:text-base mt-3 max-w-md">Drag the slider to view your ring size in US, UK, EU and Japan at once. The ring circle changes in real time to match millimeter scale.</p>
+<div class="flex flex-wrap gap-2.5 mt-5"><a class="btn btn-gold text-xs py-2.5" href="sizing.html">Open full size guide</a><a class="btn btn-ghost text-xs py-2.5" href="#suite">All tools</a></div></div>
 
-<div class="glass p-6 md:p-8 rounded-3xl">
-<div class="flex items-center justify-between mb-4">
-<label for="ms" class="block font-medium">US Ring Size: <b id="mv" class="serif text-4xl gt ml-1">7</b></label>
+<div class="glass p-5 sm:p-7 rounded-2xl sm:rounded-3xl">
+<div class="flex flex-wrap items-center justify-between mb-3 gap-1">
+<label for="ms" class="block font-medium text-sm sm:text-base">US Ring Size: <b id="mv" class="serif text-3xl sm:text-4xl gt ml-1">7</b></label>
 <span id="ring-mm" class="text-xs muted font-mono">17.3 mm &middot; 54 mm circ.</span>
 </div>
-<input id="ms" type="range" min="3" max="13" step="0.5" value="7" class="w-full accent-rose-400 cursor-pointer" style="height:6px">
+<input id="ms" type="range" min="3" max="13" step="0.5" value="7" class="w-full accent-rose-400 cursor-pointer" style="height:8px">
 
-<div class="flex items-center justify-center my-6 p-6 rounded-2xl" style="background:rgba(255,255,255,0.02);border:1px dashed rgba(243,226,179,0.25)">
-<svg viewBox="0 0 200 200" width="160" height="160">
+<div class="flex items-center justify-center my-4 sm:my-5 p-4 rounded-xl" style="background:rgba(255,255,255,0.02);border:1px dashed rgba(243,226,179,0.25)">
+<svg viewBox="0 0 200 200" width="140" height="140" class="max-w-full">
 <circle cx="100" cy="100" r="85" fill="none" stroke="rgba(243,226,179,0.08)" stroke-width="1"/>
 <circle id="ring-visual" cx="100" cy="100" r="54" fill="none" stroke="url(#g)" stroke-width="7" class="ring-live-circle" style="filter:drop-shadow(0 0 8px rgba(183,110,121,0.5))"/>
 <text x="100" y="105" text-anchor="middle" fill="#f3e2b3" font-size="16" font-family="'Cormorant Garamond',serif" id="ring-scale-label">Size 7</text>
 </svg>
 </div>
-<div id="mo" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
+<div id="mo" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5"></div>
 </div></section>
 
 <!-- INTERACTIVE STUDIO 2: JEWELRY PHOTO ANALYZER -->
-<section id="photo" class="mt-28 scroll-mt-24"><div class="max-w-2xl"><span class="chip text-xs mb-3">Computer Vision Studio</span>
-<h2 class="text-5xl gt">Analyze your jewelry photo</h2>
-<p class="muted text-lg mt-4">Upload a photo of a ring, necklace or earrings. Our client-side algorithm reads color pigments to estimate the metal tone, detect colored gems, and suggest complementary skin undertones.</p></div>
+<section id="photo" class="mt-16 sm:mt-24 scroll-mt-20"><div class="max-w-2xl"><span class="chip text-[11px] sm:text-xs mb-2">Computer Vision</span>
+<h2 class="text-3xl sm:text-4xl md:text-5xl gt">Analyze your jewelry photo</h2>
+<p class="muted text-sm sm:text-base mt-2">Upload a photo to estimate metal tone, detect colored stones, and match skin undertones.</p></div>
 
-<div class="grid lg:grid-cols-2 gap-6 mt-8">
-<div class="glass p-6 md:p-8 rounded-3xl flex flex-col justify-between">
+<div class="grid lg:grid-cols-2 gap-4 sm:gap-6 mt-6">
+<div class="glass p-5 sm:p-7 rounded-2xl sm:rounded-3xl flex flex-col justify-between">
 <div>
-<label class="dz" id="dz" style="cursor:pointer"><input id="file" class="sr" type="file" accept="image/*">
-<span class="serif text-3xl gt">Choose a photo</span>
-<span class="muted">or drag one here. JPG, PNG or WebP</span>
-<span class="muted text-xs mt-1">One piece, clean background, daylight</span></label>
-<p id="pm" class="text-sm mt-3" style="color:#e8b4b8" role="alert"></p>
+<label class="dz p-6 sm:p-8" id="dz" style="cursor:pointer"><input id="file" class="sr" type="file" accept="image/*">
+<span class="serif text-2xl sm:text-3xl gt">Choose a photo</span>
+<span class="muted text-xs sm:text-sm mt-1">or drag one here. JPG, PNG or WebP</span>
+<span class="muted text-[11px] mt-1">One piece, clean background, daylight</span></label>
+<p id="pm" class="text-xs sm:text-sm mt-2" style="color:#e8b4b8" role="alert"></p>
 </div>
-<div class="mt-6 pt-5 border-t border-rose-200/10">
+<div class="mt-4 pt-4 border-t border-rose-200/10">
 <p class="muted text-xs mb-2">Or test with an instant demo sample:</p>
-<div class="flex flex-wrap gap-2">
-<button id="demo-gold" class="chip text-xs hover:border-amber-400" type="button">✨ 18k Yellow Gold</button>
-<button id="demo-emerald" class="chip text-xs hover:border-emerald-400" type="button">💎 Emerald Platinum</button>
-<button id="demo-rose" class="chip text-xs hover:border-rose-400" type="button">🌸 Rose Gold Band</button>
+<div class="flex flex-wrap gap-1.5">
+<button id="demo-gold" class="chip text-[11px]" type="button">✨ 18k Yellow Gold</button>
+<button id="demo-emerald" class="chip text-[11px]" type="button">💎 Emerald Platinum</button>
+<button id="demo-rose" class="chip text-[11px]" type="button">🌸 Rose Gold Band</button>
 </div>
 </div>
 </div>
 
-<div id="pr" class="glass p-6 md:p-8 rounded-3xl" aria-live="polite">
-<div class="flex flex-col items-center justify-center text-center py-10">
-<div class="text-4xl gt mb-3">✧</div>
-<h3 class="text-2xl gt">Awaiting your jewelry photo</h3>
-<p class="muted text-sm mt-2 max-w-sm">Upload a photo or click any demo preset on the left to reveal the estimated metal tone, extracted color palette, and matching styles.</p>
+<div id="pr" class="glass p-5 sm:p-7 rounded-2xl sm:rounded-3xl" aria-live="polite">
+<div class="flex flex-col items-center justify-center text-center py-8">
+<div class="text-3xl gt mb-2">✧</div>
+<h3 class="text-xl sm:text-2xl gt">Awaiting your photo</h3>
+<p class="muted text-xs mt-1.5 max-w-xs">Upload a photo or tap any demo button above to extract color palettes and estimated metals.</p>
 </div>
 </div>
 </div></section>
 
 <!-- INTERACTIVE STUDIO 3: NECKLACE LAYERING SIMULATOR -->
-<section id="layer" class="mt-28 grid lg:grid-cols-2 gap-10 items-center scroll-mt-24">
-<div class="glass p-6 md:p-8 rounded-3xl order-2 lg:order-1">
-<div id="nl" class="grid grid-cols-2 sm:grid-cols-3 gap-2" role="group" aria-label="Neckline picker"></div>
-<div class="flex flex-col items-center mt-6">
-<svg viewBox="0 0 300 330" class="w-full max-w-xs" role="img" aria-label="Neck diagram with chains at the suggested lengths">
+<section id="layer" class="mt-16 sm:mt-24 grid lg:grid-cols-2 gap-8 items-center scroll-mt-20">
+<div class="glass p-5 sm:p-7 rounded-2xl sm:rounded-3xl order-2 lg:order-1">
+<div id="nl" class="grid grid-cols-2 sm:grid-cols-3 gap-1.5" role="group" aria-label="Neckline picker"></div>
+<div class="flex flex-col items-center mt-5">
+<svg viewBox="0 0 300 330" class="w-full max-w-[220px] sm:max-w-xs" role="img" aria-label="Neck diagram with chains at suggested lengths">
 <path d="M120 10v70c0 18-8 30-30 40-40 14-70 30-72 80v130h264V200c-2-50-32-66-72-80-22-10-30-22-30-40V10z" fill="rgba(255,255,255,.03)" stroke="rgba(243,226,179,.2)"/>
 <path id="nk" fill="none" stroke="rgba(243,226,179,.7)" stroke-width="2.5"/>
 <g id="ch"></g>
 </svg>
 </div>
-<p id="ln" class="muted text-center text-sm mt-4 p-3 rounded-xl" style="background:rgba(255,255,255,0.02)"></p>
+<p id="ln" class="muted text-center text-xs mt-3 p-2.5 rounded-xl" style="background:rgba(255,255,255,0.02)"></p>
 </div>
 
 <div class="order-1 lg:order-2">
-<span class="chip text-xs mb-3">Styling Studio</span>
-<h2 class="text-5xl gt">Layer your necklaces</h2>
-<p class="muted text-lg mt-4 max-w-md">Click any neckline to preview the chain lengths that drape naturally. Keep chains 4 to 6 cm apart, vary link weights, and let one statement piece lead.</p>
-<a class="btn btn-gold mt-7" href="layering.html">Open full layering guide</a></div></section>
+<span class="chip text-[11px] sm:text-xs mb-2">Styling Studio</span>
+<h2 class="text-3xl sm:text-4xl md:text-5xl gt">Layer your necklaces</h2>
+<p class="muted text-sm sm:text-base mt-2 max-w-md">Tap any neckline to preview how chains drape naturally. Keep chains 4 to 6 cm apart and let one statement piece lead.</p>
+<a class="btn btn-gold mt-5 inline-block text-xs py-2.5" href="layering.html">Open layering guide</a></div></section>
 
 <!-- INTERACTIVE STUDIO 4: BIRTHSTONES -->
-<section id="birth" class="mt-28 scroll-mt-24">
-<div class="flex flex-wrap items-end justify-between mb-8 gap-4">
-<div><span class="chip text-xs mb-2">Milestone Vault</span>
-<h2 class="text-5xl gt">Birthstone by month</h2>
-<p class="muted text-lg mt-2 max-w-2xl">Discover the heritage, symbolism, and depth of color behind every calendar gemstone.</p></div>
-<span class="chip text-xs">Select your month below</span>
+<section id="birth" class="mt-16 sm:mt-24 scroll-mt-20">
+<div class="flex flex-wrap items-end justify-between mb-5 gap-2">
+<div><span class="chip text-[11px] sm:text-xs mb-1.5">Milestone Vault</span>
+<h2 class="text-3xl sm:text-4xl md:text-5xl gt">Birthstone by month</h2>
+<p class="muted text-xs sm:text-sm mt-1 max-w-xl">Discover the heritage and depth of color behind every calendar gemstone.</p></div>
+<span class="chip text-[11px] sm:text-xs">Tap a month</span>
 </div>
-<div class="glass p-6 md:p-8 rounded-3xl mt-4">
-<div id="bm" class="grid grid-cols-3 sm:grid-cols-6 md:grid-cols-12 gap-2" role="group" aria-label="Birth month"></div>
-<div id="bo" class="mt-8 pt-6 border-t border-rose-200/10"></div>
+<div class="glass p-4 sm:p-7 rounded-2xl sm:rounded-3xl">
+<div id="bm" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-12 gap-1.5" role="group" aria-label="Birth month"></div>
+<div id="bo" class="mt-5 pt-4 border-t border-rose-200/10"></div>
 </div></section>
 
 <!-- EDITORIAL GUIDES -->
-<section id="journal" class="mt-28">
-<div class="flex items-end justify-between mb-8">
-<div><span class="chip text-xs mb-2">Editorial</span>
-<h2 class="text-5xl gt">Guides from McGee Jewelry</h2></div>
-<a href="blog.html" class="muted hover:text-white text-sm">View all guides &rarr;</a>
+<section id="journal" class="mt-16 sm:mt-24">
+<div class="flex items-end justify-between mb-6">
+<div><span class="chip text-[11px] sm:text-xs mb-1.5">Editorial</span>
+<h2 class="text-3xl sm:text-4xl md:text-5xl gt">Guides from McGee</h2></div>
+<a href="blog.html" class="muted hover:text-white text-xs sm:text-sm">View all &rarr;</a>
 </div>
-<div class="grid md:grid-cols-2 gap-5">
-<a href="/herringbone-chain-necklace-an-ultimate-guide" class="glass glow p-6 block no-underline text-inherit tool-card">
-<h3 class="serif text-3xl">Herringbone chain guide</h3><p class="muted mt-2">Width, length, metal and everyday care.</p></a>
-<a href="/is-it-worth-buying-gold-plated-jewelry" class="glass glow p-6 block no-underline text-inherit tool-card">
-<h3 class="serif text-3xl">Is gold-plated jewelry worth it?</h3><p class="muted mt-2">When it pays off, and when solid gold is the better investment.</p></a>
-<a href="/jewelry-to-wear-this-upcoming-fall" class="glass glow p-6 block no-underline text-inherit tool-card">
-<h3 class="serif text-3xl">Jewelry to wear this fall</h3><p class="muted mt-2">Warm metals, earth tones and knitwear layering.</p></a>
-<a href="/shop/rings/14k-white-and-rose-gold-doulbe-diamond-infinity-design-band-3-8-cttw" class="glass glow p-6 block no-underline text-inherit tool-card">
-<h3 class="serif text-3xl">Diamond infinity band spotlight</h3><p class="muted mt-2">What to know about 14k two-tone diamond bands.</p></a>
+<div class="grid sm:grid-cols-2 gap-4 sm:gap-5">
+<a href="/herringbone-chain-necklace-an-ultimate-guide" class="glass glow p-5 sm:p-6 block no-underline text-inherit tool-card rounded-2xl sm:rounded-3xl">
+<h3 class="serif text-2xl sm:text-3xl">Herringbone chain guide</h3><p class="muted text-xs sm:text-sm mt-1.5">Width, length, metal and everyday care.</p></a>
+<a href="/is-it-worth-buying-gold-plated-jewelry" class="glass glow p-5 sm:p-6 block no-underline text-inherit tool-card rounded-2xl sm:rounded-3xl">
+<h3 class="serif text-2xl sm:text-3xl">Is gold-plated jewelry worth it?</h3><p class="muted text-xs sm:text-sm mt-1.5">When it pays off, and when solid gold is the better investment.</p></a>
+<a href="/jewelry-to-wear-this-upcoming-fall" class="glass glow p-5 sm:p-6 block no-underline text-inherit tool-card rounded-2xl sm:rounded-3xl">
+<h3 class="serif text-2xl sm:text-3xl">Jewelry to wear this fall</h3><p class="muted text-xs sm:text-sm mt-1.5">Warm metals, earth tones and knitwear layering.</p></a>
+<a href="/shop/rings/14k-white-and-rose-gold-doulbe-diamond-infinity-design-band-3-8-cttw" class="glass glow p-5 sm:p-6 block no-underline text-inherit tool-card rounded-2xl sm:rounded-3xl">
+<h3 class="serif text-2xl sm:text-3xl">Diamond infinity band spotlight</h3><p class="muted text-xs sm:text-sm mt-1.5">What to know about 14k two-tone diamond bands.</p></a>
 </div></section>
 
 <div data-aff="gift"></div>
 <div data-ad="inline"></div>
 
 <!-- FAQS -->
-<section class="mt-28">
-<span class="chip text-xs mb-3">Knowledge Base</span>
-<h2 class="text-5xl gt mb-8">Questions, answered</h2>
-<div class="grid gap-3 max-w-3xl">
-<details class="faq"><summary>How do I know my ring size at home?</summary><p class="muted mt-3">Wrap a strip of non-stretching paper around the base of your finger, mark where it overlaps, and measure the distance in millimeters. Match that number to the circumference in our size tool. For the best fit, measure at the end of the day when hands are warmest.</p></details>
-<details class="faq"><summary>Which metal suits me best?</summary><p class="muted mt-3">It depends on your undertone. Cool skin undertones glow in silver and white gold; warm undertones look rich in yellow gold; neutral skin flatters both equally well.</p></details>
-<details class="faq"><summary>How is my jewelry box melt value calculated?</summary><p class="muted mt-3">Melt value calculates the pure weight of precious metal (grams &times; karat purity) multiplied by current spot market rates. It represents raw scrap metal value without retail markups.</p></details>
-<details class="faq"><summary>Can I wear my jewelry in the shower?</summary><p class="muted mt-3">It is best not to. Soap film dulls diamonds, and chlorinated water erodes gold plating and weakens silk pearl strands. Solid gold and platinum tolerate moisture better than silver or vermeil.</p></details>
-<details class="faq"><summary>Is my data saved or shared?</summary><p class="muted mt-3">No. Photos you analyze and pieces in your jewelry box are stored privately on your device. Nothing leaves your browser.</p></details>
+<section class="mt-16 sm:mt-24">
+<span class="chip text-[11px] sm:text-xs mb-2">Knowledge Base</span>
+<h2 class="text-3xl sm:text-4xl md:text-5xl gt mb-6 sm:mb-8">Questions, answered</h2>
+<div class="grid gap-2.5 max-w-3xl">
+<details class="faq"><summary>How do I know my ring size at home?</summary><p class="muted mt-2.5 text-xs sm:text-sm leading-relaxed">Wrap a strip of non-stretching paper around the base of your finger, mark where it overlaps, and measure the distance in millimeters. Match that number to the circumference in our size tool. For the best fit, measure at the end of the day when hands are warmest.</p></details>
+<details class="faq"><summary>Which metal suits me best?</summary><p class="muted mt-2.5 text-xs sm:text-sm leading-relaxed">It depends on your undertone. Cool skin undertones glow in silver and white gold; warm undertones look rich in yellow gold; neutral skin flatters both equally well.</p></details>
+<details class="faq"><summary>How is my jewelry box melt value calculated?</summary><p class="muted mt-2.5 text-xs sm:text-sm leading-relaxed">Melt value calculates the pure weight of precious metal (grams &times; karat purity) multiplied by current spot market rates. It represents raw scrap metal value without retail markups.</p></details>
+<details class="faq"><summary>Can I wear my jewelry in the shower?</summary><p class="muted mt-2.5 text-xs sm:text-sm leading-relaxed">It is best not to. Soap film dulls diamonds, and chlorinated water erodes gold plating and weakens silk pearl strands. Solid gold and platinum tolerate moisture better than silver or vermeil.</p></details>
+<details class="faq"><summary>Is my data saved or shared?</summary><p class="muted mt-2.5 text-xs sm:text-sm leading-relaxed">No. Photos you analyze and pieces in your jewelry box are stored privately on your device. Nothing leaves your browser.</p></details>
 </div></section>
 
 <!-- BOTTOM CTA -->
-<section class="glass p-10 md:p-14 mt-28 text-center rounded-3xl relative overflow-hidden" style="border:1px solid rgba(243,226,179,0.3)">
+<section class="glass p-6 sm:p-10 md:p-14 mt-16 sm:mt-24 text-center rounded-2xl sm:rounded-3xl relative overflow-hidden" style="border:1px solid rgba(243,226,179,0.3)">
 <div class="relative z-10 max-w-xl mx-auto">
-<span class="chip text-xs mb-4">Gifting Assistant</span>
-<h2 class="text-4xl md:text-5xl gt">Buying for someone else?</h2>
-<p class="muted mt-3">Answer four simple questions and receive three personalized gift ideas tailored to her aesthetic and your budget.</p>
-<a class="btn btn-gold mt-7 inline-block shadow-lg" href="gift.html">Start the gift quiz &rarr;</a>
+<span class="chip text-[11px] sm:text-xs mb-3">Gifting Assistant</span>
+<h2 class="text-3xl sm:text-4xl md:text-5xl gt">Buying for someone else?</h2>
+<p class="muted mt-2 text-xs sm:text-sm">Answer four simple questions and receive three personalized gift ideas tailored to her aesthetic and your budget.</p>
+<a class="btn btn-gold mt-6 inline-block shadow-md text-xs sm:text-sm py-3 px-6" href="gift.html">Start the gift quiz &rarr;</a>
 </div></section>
 
 </main><div id="foot"></div>
@@ -281,15 +290,15 @@ var ms=document.getElementById('ms');
 function sz(){
   var s=+ms.value,o=ring(s);
   document.getElementById('mv').textContent=s;
-  document.getElementById('ring-mm').textContent=o.d+' mm inside &middot; '+o.c+' mm circumference';
+  document.getElementById('ring-mm').textContent=o.d+' mm &middot; '+o.c+' mm circ.';
   document.getElementById('ring-scale-label').textContent='US '+s;
   var circle=document.getElementById('ring-visual');
   if(circle){
     var radius=38+(s-3)*3.4;
     circle.setAttribute('r',radius.toFixed(1));
   }
-  document.getElementById('mo').innerHTML=[['US',s],['UK / AU',o.uk],['EU',o.eu],['Japan',o.jp]].map(function(x){
-    return '<div class="stat"><span class="muted text-xs">'+x[0]+'</span><b class="gt text-xl">'+x[1]+'</b></div>'
+  document.getElementById('mo').innerHTML=[['US',s],['UK/AU',o.uk],['EU',o.eu],['Japan',o.jp]].map(function(x){
+    return '<div class="stat p-2 sm:p-3"><span class="muted text-[10px] sm:text-xs">'+x[0]+'</span><b class="gt text-lg sm:text-xl block">'+x[1]+'</b></div>'
   }).join('');
 }
 if(ms){ ms.oninput=sz; sz(); }
@@ -305,7 +314,7 @@ var col=['#f3e2b3','#e8b4b8','#b76e79'];
 function lay(k){
   var d=N[k]; if(!d)return;
   document.getElementById('nl').innerHTML=Object.keys(N).map(function(x){
-    return '<button class="chip text-xs" style="padding:.35rem .75rem" aria-pressed="'+(x===k)+'" data-k="'+x+'">'+x+'</button>'
+    return '<button class="chip text-[11px]" style="padding:.3rem .55rem" aria-pressed="'+(x===k)+'" data-k="'+x+'">'+x+'</button>'
   }).join('');
   document.querySelectorAll('#nl button').forEach(function(b){b.onclick=function(){lay(b.dataset.k)}});
   document.getElementById('nk').setAttribute('d',d.p);
@@ -313,34 +322,34 @@ function lay(k){
     var Y=112+(L-35)*2.6;
     return '<path d="M118 70Q150 '+(Y*1.15)+' 182 70" fill="none" stroke="'+col[i]+'" stroke-width="'+(2.2+i*0.4)+'" style="filter:drop-shadow(0 0 5px '+col[i]+')"/>'
   }).join('');
-  document.getElementById('ln').innerHTML='<b class="gt">'+k+':</b> '+d.t+' <span class="muted">(Lengths: '+d.L.join(' cm, ')+' cm)</span>';
+  document.getElementById('ln').innerHTML='<b class="gt">'+k+':</b> '+d.t+' <span class="muted text-[11px] block mt-0.5">(Lengths: '+d.L.join(' cm, ')+' cm)</span>';
 }
 lay('Crew neck');
 
 /* ---------- Interactive Birthstone Vault ---------- */
-var M=[['Jan','January','Garnet','Deep pomegranate red. Symbolizes strength and devotion.','#9a2a2a'],
-       ['Feb','February','Amethyst','Luminous royal purple quartz. Connected with serenity and clarity.','#7b3f9e'],
-       ['Mar','March','Aquamarine','Crystalline sea-blue beryl. Inspires calmness and truth.','#5ab3b3'],
-       ['Apr','April','Diamond','Timeless clear brilliance. The universal token of everlasting love.','#eef2f7'],
-       ['May','May','Emerald','Lush botanical green. Emblem of renewal and romantic devotion.','#1d7d4f'],
-       ['Jun','June','Pearl','Silken iridescence. Represents organic elegance and purity.','#eae5db'],
-       ['Jul','July','Ruby','Vibrant scarlet corundum. Represents passion, courage, and vitality.','#b81436'],
-       ['Aug','August','Peridot','Crisp lime olive gemstone. Brought to light for good fortune.','#87a922'],
-       ['Sep','September','Sapphire','Rich twilight velvet blue. Linked to wisdom and nobility.','#1e40af'],
-       ['Oct','October','Opal','Prismatic kaleidoscopic fire. Celebrates individuality and creativity.','#dfbfb2'],
-       ['Nov','November','Topaz','Honey champagne and golden amber. Evokes warmth and endurance.','#c68a35'],
-       ['Dec','December','Turquoise','Vivid robin-egg sky blue. A talisman of harmony and protection.','#2aa6a6']];
+var M=[['Jan','January','Garnet','Deep pomegranate red. Symbolizes devotion.','#9a2a2a'],
+       ['Feb','February','Amethyst','Royal purple quartz. Inspires serenity.','#7b3f9e'],
+       ['Mar','March','Aquamarine','Sea-blue beryl. Inspires calmness.','#5ab3b3'],
+       ['Apr','April','Diamond','Clear brilliance. Token of lasting love.','#eef2f7'],
+       ['May','May','Emerald','Lush botanical green. Symbol of renewal.','#1d7d4f'],
+       ['Jun','June','Pearl','Silken iridescence. Represents elegance.','#eae5db'],
+       ['Jul','July','Ruby','Vibrant scarlet corundum. Passion and vitality.','#b81436'],
+       ['Aug','August','Peridot','Crisp olive gemstone for good fortune.','#87a922'],
+       ['Sep','September','Sapphire','Twilight velvet blue. Linked to wisdom.','#1e40af'],
+       ['Oct','October','Opal','Prismatic play of color. Creativity emblem.','#dfbfb2'],
+       ['Nov','November','Topaz','Honey champagne. Warmth and endurance.','#c68a35'],
+       ['Dec','December','Turquoise','Sky blue talisman of harmony.','#2aa6a6']];
 
 function bs(i){
   var m=M[i];
   document.getElementById('bm').innerHTML=M.map(function(x,j){
-    return '<button class="chip text-xs" style="text-align:center;padding:.35rem .45rem" aria-pressed="'+(j===i)+'" data-i="'+j+'">'+x[0]+'</button>'
+    return '<button class="chip text-[11px]" style="text-align:center;padding:.3rem .25rem" aria-pressed="'+(j===i)+'" data-i="'+j+'">'+x[0]+'</button>'
   }).join('');
   document.querySelectorAll('#bm button').forEach(function(b){b.onclick=function(){bs(+b.dataset.i)}});
-  document.getElementById('bo').innerHTML='<div class="fade flex flex-wrap items-center justify-between gap-4">' +
-    '<div class="flex items-center gap-4">' +
-    '<div style="width:2.8rem;height:2.8rem;border-radius:50%;background:'+m[4]+';box-shadow:0 0 16px '+m[4]+'66;border:2px solid rgba(255,255,255,0.4)"></div>' +
-    '<div><h3 class="text-3xl gt">'+m[2]+'</h3><p class="muted text-sm">'+m[1]+' &middot; '+m[3]+'</p></div>' +
+  document.getElementById('bo').innerHTML='<div class="fade flex flex-wrap items-center justify-between gap-3">' +
+    '<div class="flex items-center gap-3">' +
+    '<div style="width:2.4rem;height:2.4rem;border-radius:50%;background:'+m[4]+';box-shadow:0 0 12px '+m[4]+'66;border:2px solid rgba(255,255,255,0.4)"></div>' +
+    '<div><h3 class="text-2xl sm:text-3xl gt leading-none">'+m[2]+'</h3><p class="muted text-xs mt-1">'+m[1]+' &middot; '+m[3]+'</p></div>' +
     '</div>' +
     (window.KOO?window.KOO.btn('birth-'+m[0],m[2]+' ('+m[1]+' birthstone)','Birthstone'):'') +
     '</div>';
@@ -363,11 +372,11 @@ function stoneName(h){if(h<15||h>=345)return 'red, like ruby or garnet';if(h<45)
 
 function go(f){
   if(pm)pm.textContent='';
-  if(!/^image\//.test(f.type)){if(pm)pm.textContent='Choose an image file: JPG, PNG or WebP.';return}
-  if(f.size>10485760){if(pm)pm.textContent='Image is over 10 MB. Choose a smaller photo.';return}
+  if(!/^image\//.test(f.type)){if(pm)pm.textContent='Choose an image: JPG, PNG or WebP.';return}
+  if(f.size>10485760){if(pm)pm.textContent='File over 10 MB. Choose smaller image.';return}
   if(last)URL.revokeObjectURL(last);
   var url=last=URL.createObjectURL(f),img=new Image();
-  img.onerror=function(){if(pm)pm.textContent='Could not read file. Try a clear JPG or PNG.'};
+  img.onerror=function(){if(pm)pm.textContent='Could not read file. Try a JPG or PNG.'};
   img.onload=function(){try{show(img,url)}catch(e){if(pm)pm.textContent='Analysis failed. Try a different photo.'}};
   img.src=url;
 }
@@ -387,29 +396,29 @@ function show(img,url){
   var vx=0,vy=0,sS=0,mc=0,gem=[],gv=0,gy=0;
   S.forEach(function(p){var q=hsl(p[0],p[1],p[2]);if(q[2]<.15||q[2]>.92)return;if(q[1]>.5){gem.push(q);gv+=Math.cos(q[0]*Math.PI/180);gy+=Math.sin(q[0]*Math.PI/180)}else{mc++;sS+=q[1];if(q[1]>.12){vx+=Math.cos(q[0]*Math.PI/180);vy+=Math.sin(q[0]*Math.PI/180)}}});
   var metal,tone,key;
-  if(mc<S.length*.05&&gem.length>S.length*.3){metal='Colored gemstone focus';tone='Metal surface not prominent enough to certify karat. Best suited for gem-centric styling.';key='stone'}
+  if(mc<S.length*.05&&gem.length>S.length*.3){metal='Colored gemstone focus';tone='Metal surface minimal. Best suited for gem-centric styling.';key='stone'}
   else{
     var sa=mc?sS/mc:0,hu=(Math.atan2(vy,vx)*180/Math.PI+360)%360;
-    if(sa<.13){metal='Silver, white gold or platinum';tone='Flattering against cool and neutral skin tones. Combines elegantly with clear diamonds, sapphires and emeralds.';key='silver'}
-    else if(hu>=28&&hu<62){metal='14k - 18k Yellow Gold';tone='Radiates warmth on olive, tan, and warm undertones. Beautiful with emeralds and rubies.';key='yellow-gold'}
+    if(sa<.13){metal='Silver, white gold or platinum';tone='Flattering against cool and neutral skin tones. Combines with clear diamonds and sapphires.';key='silver'}
+    else if(hu>=28&&hu<62){metal='14k - 18k Yellow Gold';tone='Radiates warmth on olive, tan, and warm undertones. Pairs with emeralds and rubies.';key='yellow-gold'}
     else if(hu<28||hu>=330){metal='Rose Gold or Copper';tone='Soft blush tones that harmonize with neutral and peach undertones.';key='rose-gold'}
-    else{metal='Mixed Fine Metal';tone='Balanced warm-cool spectrum. Harmonizes across multiple wardrobe styles.';key='mixed'}
+    else{metal='Mixed Fine Metal';tone='Balanced warm-cool spectrum across multiple wardrobe styles.';key='mixed'}
   }
   var st='';if(gem.length>S.length*.015){var ang=(Math.atan2(gy,gv)*180/Math.PI+360)%360;st=stoneName(ang)}
   var lbl='Photo match: '+metal+(st?' with a '+st.split(',')[0]+' stone':'');
   
   document.getElementById('pr').innerHTML='<div class="fade">' +
-    '<div class="flex gap-4 items-start">' +
-    '<img src="'+url+'" alt="Your analyzed jewelry piece" class="rounded-2xl object-cover" style="width:7.5rem;height:7.5rem;border:1px solid rgba(243,226,179,.3);box-shadow:0 8px 20px rgba(0,0,0,0.25)">' +
-    '<div><span class="chip text-xs">Identified Tone</span><h3 class="text-3xl gt mt-1">'+metal+'</h3><p class="muted text-sm mt-1 leading-snug">'+tone+'</p></div>' +
+    '<div class="flex gap-3 sm:gap-4 items-start">' +
+    '<img src="'+url+'" alt="Your analyzed jewelry piece" class="rounded-xl object-cover shrink-0" style="width:5.5rem;height:5.5rem;border:1px solid rgba(243,226,179,.3)">' +
+    '<div><span class="chip text-[10px]">Identified Tone</span><h3 class="text-xl sm:text-2xl gt mt-1">'+metal+'</h3><p class="muted text-xs mt-0.5 leading-snug">'+tone+'</p></div>' +
     '</div>' +
-    (st?'<div class="mt-4 p-3 rounded-xl" style="background:rgba(255,255,255,0.02);border:1px solid rgba(243,226,179,0.1)"><b class="serif text-lg gt">Detected Gem Hue:</b> <span class="muted text-sm">Consistent with '+st+'.</span></div>':'') +
-    '<div class="mt-5"><b class="serif text-xl gt">Extracted Color Palette</b><div class="flex flex-wrap gap-2.5 mt-2">' +
-    pal.map(function(p){var hx=hex(p[0],p[1],p[2]);return '<div class="text-center"><span class="sw shadow-md" style="background:'+hx+';width:2.2rem;height:2.2rem;border-radius:0.5rem;display:inline-block"></span><div class="muted font-mono text-xs mt-1">'+hx+'</div></div>'}).join('') +
+    (st?'<div class="mt-3 p-2.5 rounded-xl" style="background:rgba(255,255,255,0.02);border:1px solid rgba(243,226,179,0.1)"><b class="serif text-sm gt">Detected Gem Hue:</b> <span class="muted text-xs">Consistent with '+st+'.</span></div>':'') +
+    '<div class="mt-4"><b class="serif text-base sm:text-lg gt">Extracted Color Palette</b><div class="flex flex-wrap gap-2 mt-1.5">' +
+    pal.map(function(p){var hx=hex(p[0],p[1],p[2]);return '<div class="text-center"><span class="sw shadow-sm" style="background:'+hx+';width:1.8rem;height:1.8rem;border-radius:0.4rem;display:inline-block"></span><div class="muted font-mono text-[10px] mt-0.5">'+hx+'</div></div>'}).join('') +
     '</div></div>' +
-    '<div class="flex flex-wrap items-center gap-3 mt-6">' +
+    '<div class="flex flex-wrap items-center gap-2 mt-5">' +
     (window.KOO?window.KOO.btn('photo-'+key+(st?'-'+st.split(',')[0]:''),lbl,'Photo analyzer'):'') +
-    '<a class="btn btn-ghost text-xs" style="padding:.4rem 1rem" href="care.html">Care tips</a><a class="btn btn-ghost text-xs" style="padding:.4rem 1rem" href="styling.html">Match my skin</a></div>' +
+    '<a class="btn btn-ghost text-xs py-1.5 px-3" href="care.html">Care tips</a><a class="btn btn-ghost text-xs py-1.5 px-3" href="styling.html">Match skin</a></div>' +
     '</div>';
   if(window.KOO)window.KOO.sync();
 }
