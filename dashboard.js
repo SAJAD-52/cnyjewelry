@@ -1,4 +1,4 @@
-/* McGee Jewelry Private Admin Panel
+/* McGee Jewelry Private Admin Panel & Blog Engine
    Restricted to said.cpge24@gmail.com */
 (function(){
 var ADMIN_EMAIL = 'said.cpge24@gmail.com';
@@ -17,7 +17,7 @@ var LS={get:function(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v
 var S=Object.assign({owner:'SAJAD-52',repo:'cnyjewelry',branch:'main',token:'',domain:'https://mcgeejewelry.com',gemKey:'',gemModel:'gemini-3.5-flash',imgModel:'gemini-3.1-flash-image',gemSearch:true,gemSearchArticle:false,niche:"women's jewelry: rings, necklaces, earrings, bracelets, gold and silver, diamonds, gemstones, care, sizing, gifts and styling"},LS.get('md_settings',{}));
 var A=LS.get('md_articles',[]);
 
-// Default sample subscribers
+// Default Subscribers Dataset
 var DEFAULT_SUBS = [
   { email: 'sarah.k@gmail.com', plan: 'pro', date: '2026-10-28', status: 'active', amount: 6.00 },
   { email: 'elena.b@outlook.com', plan: 'pro', date: '2026-10-27', status: 'active', amount: 6.00 },
@@ -34,30 +34,45 @@ function escA(s){return esc(s).replace(/"/g,'&quot;')}
 function save(){LS.set('md_articles',A);LS.set('md_settings',S);LS.set('koo_subscribers',SUBS)}
 function slugify(t){return t.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')}
 function plain(h){return h.replace(/<[^>]+>/g,' ').replace(/&[a-z]+;/g,' ').replace(/\s+/g,' ').trim()}
+function today(){return new Date().toISOString().slice(0,10)}
+function D(){return S.domain.replace(/\/+$/,'')}
 
-/* ---------- ADMIN AUTH GATE ---------- */
+/* ---------- ADMIN AUTH GATE (HIDES SIDEBAR UNTIL LOGGED IN) ---------- */
+function showSidebar(visible) {
+  var side = document.getElementById('admin-side');
+  var cont = document.getElementById('dash-container');
+  if (side) side.style.display = visible ? 'flex' : 'none';
+  if (cont) cont.className = visible ? 'dash logged-in' : 'dash logged-out';
+}
+
 function checkAdminAuth() {
-  if (!sb) { renderAdminLogin('Connecting to authentication service...'); return; }
+  if (!sb) { renderAdminLogin('Connecting to Supabase...'); return; }
   sb.auth.getSession().then(function(res){
     authChecked = true;
     if (res.data && res.data.session && res.data.session.user) {
       currentUser = res.data.session.user;
       if ((currentUser.email || '').toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-        $('#admin-user-pill').textContent = currentUser.email;
+        var pill = $('#admin-user-pill');
+        if (pill) pill.textContent = currentUser.email;
+        showSidebar(true);
         render();
       } else {
+        showSidebar(false);
         renderAdminLogin('Access denied. Log in with ' + ADMIN_EMAIL);
       }
     } else {
+      showSidebar(false);
       renderAdminLogin();
     }
   }).catch(function(){
+    showSidebar(false);
     renderAdminLogin();
   });
 }
 
 function renderAdminLogin(msg) {
-  $('#app').innerHTML = '<div class="glass p-8 md:p-10 rounded-3xl max-w-md mx-auto mt-12 text-center" style="box-shadow:0 25px 50px rgba(0,0,0,0.15)">' +
+  showSidebar(false);
+  $('#app').innerHTML = '<div class="glass p-8 md:p-10 rounded-3xl max-w-md w-full mx-auto text-center" style="box-shadow:0 25px 50px rgba(0,0,0,0.15)">' +
     '<span class="chip text-xs">Restricted Access</span>' +
     '<h1 class="serif text-4xl gt mt-3">Admin Login</h1>' +
     '<p class="muted text-sm mt-1">This panel is strictly reserved for <b>' + ADMIN_EMAIL + '</b>.</p>' +
@@ -88,6 +103,7 @@ function renderAdminLogin(msg) {
   if (forceBtn) {
     forceBtn.onclick = function(){
       currentUser = { email: ADMIN_EMAIL };
+      showSidebar(true);
       render();
     };
   }
@@ -170,7 +186,7 @@ function renderSubscribers() {
     '</div>';
 }
 
-/* ---------- 3. BLOG MANAGER (ORIGINAL GEMINI / GITHUB SUITE) ---------- */
+/* ---------- 3. BLOG MANAGER (ORIGINAL GEMINI / GITHUB ENGINE) ---------- */
 function inline(s){s=esc(s);s=s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,function(m,t,u){return '<a href="'+u+'">'+t+'</a>'});s=s.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');return s.replace(/(^|[^*])\*(?!\s)(.+?)(?<!\s)\*(?!\*)/g,'$1<i>$2</i>')}
 var LI=/^(-|\*|\d+\.)\s+/;
 function md(body){var L=body.replace(/^\n+|\n+$/g,'').split('\n'),i=0,out=[];
@@ -254,7 +270,6 @@ return fetch('https://api.github.com/repos/'+encodeURIComponent(S.owner)+'/'+enc
 if(!r.ok)return r.text().then(function(t){var e=new Error(r.status+' '+t.slice(0,180));e.status=r.status;throw e});return r.status===204?null:r.json()})}
 function readFile(p){return gh('/contents/'+encodeURI(p)+'?ref='+encodeURIComponent(S.branch)).then(function(j){return unb64(j.content)},function(e){if(e.status===404)return null;throw e})}
 function log(m){var el=$('#log');if(el){el.textContent+=m+'\n'}}
-function today(){return new Date().toISOString().slice(0,10)}
 
 function publish(id){var a=A.filter(function(x){return x.id===id})[0];if(!a||busy)return;
 if(!S.token){alert('Add your GitHub token in Settings first.');view='settings';render();return}
@@ -278,7 +293,7 @@ return chain.then(function(){return tree})})})
 .then(function(c){newCommit=c.sha;return gh('/git/refs/heads/'+encodeURIComponent(S.branch),{method:'PATCH',body:{sha:newCommit}})})
 .then(function(){if(a.pinRaw){a.pinRaw=null;a.pinPub=true}if(a.img){a.img=null;a.imgPub=true}a.status='published';a.url='/'+a.slug;a.live=false;a.publishedAt=new Date().toISOString();save();busy=false;poll(a);render()})
 .catch(function(e){log('Failed: '+e.message);busy=false;render();alert('Publishing failed:\n'+e.message)})}
-function D(){return S.domain.replace(/\/+$/,'')}
+
 function poll(a){if(polls[a.id])return;var n=0;polls[a.id]=setInterval(function(){n++;fetch(D()+'/'+a.slug+'?t='+Date.now(),{method:'HEAD',cache:'no-store'}).then(function(r){if(r.ok){a.live=true;save();clearInterval(polls[a.id]);delete polls[a.id];if(view==='blog')render()}},function(){a.live='unknown';clearInterval(polls[a.id]);delete polls[a.id];if(view==='blog')render()});if(n>40){clearInterval(polls[a.id]);delete polls[a.id]}},8000)}
 function pinUrl(a){var link=D()+'/'+a.slug,media=D()+'/pins/'+a.slug+((a.pinPub||a.pinRaw)?'.jpg':'.png'),tags=(a.keywords||'').split(',').map(function(k){return k.trim().replace(/[^a-zA-Z0-9]+/g,'')}).filter(Boolean).slice(0,5).map(function(k){return '#'+k}).join(' ');
 return {href:'https://www.pinterest.com/pin/create/button/?url='+encodeURIComponent(link)+'&media='+encodeURIComponent(media)+'&description='+encodeURIComponent((a.title+'. '+a.description+' '+tags).slice(0,480)),text:a.title+'. '+a.description+' '+tags}}
