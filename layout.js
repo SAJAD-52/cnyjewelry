@@ -29,6 +29,7 @@
 var SB_URL = 'https://kbcruuirhkidkbmrthbc.supabase.co';
 var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiY3J1dWlyaGtpZGtibXJ0aGJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMzU5MTksImV4cCI6MjEwODcxMTkxOX0.NVhiP74USvG4GU7_pnsNqDPaZ8oQhTl145wmnD-Fp3Y';
 var STRIPE_BASE = 'https://buy.stripe.com/5kQ00kb7pgWc8p8c6Y0ZW00';
+var STRIPE_PORTAL = 'https://billing.stripe.com/p/login/5kQ00kb7pgWc8p8c6Y0ZW00'; // Replace with your activated Stripe Portal link
 
 var TH=[['light','Blush','#fbf5f2'],['plum','Plum','#2a1426'],['midnight','Midnight','#020617']];
 try{var st=localStorage.getItem('koo_theme');if(st==='plum'||st==='midnight')document.documentElement.dataset.theme=st}catch(e){}
@@ -73,7 +74,6 @@ KOO.sync();
 
 /* ---------- Pro Auth & Membership ---------- */
 var TOOL_FILES = ['sizing.html','styling.html','care.html','gift.html','layering.html','anniversary.html','gold.html','diamond.html','earrings.html','wishlist.html'];
-var isToolPage = TOOL_FILES.indexOf(here) >= 0;
 
 var sb = null;
 var currentUser = null;
@@ -101,11 +101,15 @@ function updateNavAuth() {
 
   if (currentUser) {
     var email = currentUser.email || 'Member';
-    var shortEmail = email.length > 15 ? email.slice(0, 12) + '...' : email;
-    html = '<span class="text-xs px-2.5 py-1 rounded-full ' + (pro ? 'bg-amber-100 text-amber-900 font-semibold' : 'muted') + '">' + (pro ? '⭐ Pro' : shortEmail) + '</span>' +
-           (!pro ? '<button id="nav-btn-pro" class="btn btn-gold text-xs" style="padding:.35rem .75rem">Upgrade ($6)</button>' : '') +
-           '<button id="btn-logout" class="btn btn-ghost text-xs" style="padding:.35rem .65rem">Exit</button>';
-    mHtml = '<div class="flex items-center justify-between text-sm py-2"><span>' + email + (pro ? ' <b>(Pro)</b>' : '') + '</span><button id="m-btn-logout" class="text-red-400">Log out</button></div>' +
+    var shortEmail = email.length > 14 ? email.slice(0, 11) + '...' : email;
+    html = '<button id="nav-btn-profile" class="btn btn-ghost text-xs flex items-center gap-1.5" style="padding:.35rem .75rem" title="View Profile">' +
+           (pro ? '<span class="bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded-full font-bold">⭐ Pro</span>' : '') +
+           '<span>' + shortEmail + '</span></button>' +
+           (!pro ? '<button id="nav-btn-pro" class="btn btn-gold text-xs" style="padding:.35rem .75rem">Upgrade ($6)</button>' : '');
+    
+    mHtml = '<div class="flex items-center justify-between text-sm py-2">' +
+            '<button id="m-btn-profile" class="text-left font-medium gt">' + email + (pro ? ' ⭐ Pro' : '') + '</button>' +
+            '<button id="m-btn-logout" class="text-red-400 text-xs">Log out</button></div>' +
             (!pro ? '<button id="m-nav-btn-pro" class="btn btn-gold block w-full text-center mt-2">Upgrade to Pro ($6/mo)</button>' : '');
   } else {
     html = '<button id="nav-btn-pro" class="btn btn-gold text-xs hidden sm:inline-block" style="padding:.35rem .75rem">Pro $6/mo</button>' +
@@ -116,11 +120,12 @@ function updateNavAuth() {
   if (as) as.innerHTML = html;
   if (mma) mma.innerHTML = mHtml;
 
-  var bPro = document.getElementById('nav-btn-pro'); if (bPro) bPro.onclick = function(){ openProModal(); };
-  var mbPro = document.getElementById('m-nav-btn-pro'); if (mbPro) mbPro.onclick = function(){ openProModal(); };
+  var bProf = document.getElementById('nav-btn-profile'); if (bProf) bProf.onclick = openProfileModal;
+  var mbProf = document.getElementById('m-btn-profile'); if (mbProf) mbProf.onclick = openProfileModal;
+  var bPro = document.getElementById('nav-btn-pro'); if (bPro) bPro.onclick = openProModal;
+  var mbPro = document.getElementById('m-nav-btn-pro'); if (mbPro) mbPro.onclick = openProModal;
   var bLog = document.getElementById('btn-login'); if (bLog) bLog.onclick = function(){ authMode='login'; openAuthModal(); };
   var mbLog = document.getElementById('m-btn-login'); if (mbLog) mbLog.onclick = function(){ authMode='login'; openAuthModal(); };
-  var bOut = document.getElementById('btn-logout'); if (bOut) bOut.onclick = logoutUser;
   var mbOut = document.getElementById('m-btn-logout'); if (mbOut) mbOut.onclick = logoutUser;
 }
 
@@ -138,6 +143,74 @@ function handleStripeSuccess() {
     } catch(e){}
     updateNavAuth();
   }
+}
+
+/* ---------- USER PROFILE & BILLING MODAL ---------- */
+function openProfileModal() {
+  if (!currentUser) return;
+  var old = document.getElementById('mcgee-profile-dialog');
+  if (old) old.remove();
+
+  var pro = isProUser();
+  var email = currentUser.email || 'Member';
+  var joinDate = currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Active';
+  var savedCount = KOO.get().length;
+
+  var dlg = document.createElement('div');
+  dlg.id = 'mcgee-profile-dialog';
+  dlg.style.cssText = 'position:fixed;inset:0;background:rgba(18,10,14,0.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);z-index:100000;display:flex;align-items:center;justify-content:center;padding:1.25rem;overflow-y:auto;';
+
+  dlg.innerHTML = '<div class="glass glow p-6 md:p-8 rounded-3xl max-w-lg w-full relative my-auto" style="box-shadow:0 30px 60px rgba(0,0,0,0.5);border:1px solid rgba(243,226,179,0.25)">' +
+                  '<button id="prof-close" style="position:absolute;top:1.2rem;right:1.2rem;width:2rem;height:2rem;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:1rem;cursor:pointer" class="muted hover:text-white">✕</button>' +
+                  
+                  '<div class="flex items-center gap-3">' +
+                  '<div style="width:3.2rem;height:3.2rem;border-radius:50%;background:linear-gradient(135deg,#f3e2b3,#b76e79);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:bold;color:#3b1a22">' +
+                  email.charAt(0).toUpperCase() + '</div>' +
+                  '<div>' +
+                  '<h2 class="serif text-2xl gt leading-tight">' + email + '</h2>' +
+                  '<p class="muted text-xs">Member since ' + joinDate + '</p>' +
+                  '</div></div>' +
+
+                  '<div class="mt-6 p-4 rounded-2xl" style="background:rgba(255,255,255,0.04);border:1px solid rgba(243,226,179,0.15)">' +
+                  '<div class="flex items-center justify-between">' +
+                  '<div><span class="muted text-xs uppercase tracking-wider">Current Plan</span>' +
+                  '<h3 class="serif text-2xl ' + (pro ? 'gt' : '') + '">' + (pro ? 'Pro Member ⭐' : 'Free Account') + '</h3></div>' +
+                  '<span class="chip" style="font-size:0.75rem;padding:0.25rem 0.75rem;' + (pro ? 'background:rgba(243,226,179,0.2);color:#f3e2b3;border-color:#b76e79' : '') + '">' +
+                  (pro ? '$6 / month' : 'Free') + '</span>' +
+                  '</div>' +
+
+                  (pro ? 
+                    '<p class="muted text-xs mt-2">Unlimited access to all 12 sizing, styling, and gold tools.</p>' +
+                    '<div class="mt-4 pt-3 border-t border-rose-200/10 flex flex-col gap-2">' +
+                    '<a href="' + STRIPE_PORTAL + '" target="_blank" rel="noopener" class="btn btn-ghost text-xs text-center w-full flex items-center justify-center gap-2">' +
+                    '<span>Manage Billing & Invoices</span> &rarr;</a>' +
+                    '<a href="' + STRIPE_PORTAL + '" target="_blank" rel="noopener" class="text-xs text-red-300 hover:text-red-400 text-center mt-1 underline">Cancel subscription in Stripe Portal</a>' +
+                    '</div>'
+                    :
+                    '<p class="muted text-xs mt-2">You are currently using free preview tools. Upgrade to unlock all features.</p>' +
+                    '<button id="prof-btn-upgrade" class="btn btn-gold w-full mt-3 text-sm">Upgrade to Pro ($6/month)</button>'
+                  ) +
+                  '</div>' +
+
+                  '<div class="mt-4 p-4 rounded-2xl flex items-center justify-between" style="background:rgba(255,255,255,0.02);border:1px solid rgba(243,226,179,0.08)">' +
+                  '<div><span class="muted text-xs">Saved in Wishlist</span>' +
+                  '<p class="text-sm font-semibold">' + savedCount + ' jewelry items</p></div>' +
+                  '<a href="wishlist.html" class="btn btn-ghost text-xs" style="padding:.35rem .75rem">View Wishlist</a>' +
+                  '</div>' +
+
+                  '<div class="mt-6 flex items-center justify-between pt-4 border-t border-rose-200/10">' +
+                  '<button id="prof-btn-logout" class="text-xs text-red-400 hover:underline">Log out of this device</button>' +
+                  '<button id="prof-btn-done" class="btn btn-ghost text-xs" style="padding:.35rem .9rem">Done</button>' +
+                  '</div>' +
+                  '</div>';
+
+  document.body.appendChild(dlg);
+
+  var cl = document.getElementById('prof-close'); if (cl) cl.onclick = function(){ dlg.remove(); };
+  var dn = document.getElementById('prof-btn-done'); if (dn) dn.onclick = function(){ dlg.remove(); };
+  var lo = document.getElementById('prof-btn-logout'); if (lo) lo.onclick = logoutUser;
+  var up = document.getElementById('prof-btn-upgrade'); if (up) up.onclick = function(){ dlg.remove(); openProModal(); };
+  dlg.onclick = function(e){ if (e.target === dlg) dlg.remove(); };
 }
 
 /* ---------- STYLISH PRO SUBSCRIPTION BANNER (BLUR / FLOU) ---------- */
@@ -203,9 +276,8 @@ window.openProModal = openProModal;
 
 /* ---------- Global Click Interceptor for Tools ---------- */
 document.addEventListener('click', function(e) {
-  if (isProUser()) return; // Pro users have full access!
+  if (isProUser()) return;
 
-  // Check if clicking a tool page link
   var a = e.target.closest('a');
   if (a && a.href) {
     var href = a.getAttribute('href') || '';
@@ -216,7 +288,6 @@ document.addEventListener('click', function(e) {
         return;
       }
     }
-    // Also intercept home page tool anchors
     if (here === 'index.html' && (href === '#size' || href === '#photo' || href === '#layer' || href === '#birth')) {
       e.preventDefault();
       openProModal();
@@ -224,7 +295,6 @@ document.addEventListener('click', function(e) {
     }
   }
 
-  // Intercept interaction with home page interactive tool widgets
   if (here === 'index.html') {
     var widget = e.target.closest('#ms, #dz, #nl button, #bm button, #file');
     if (widget) {
