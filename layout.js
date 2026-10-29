@@ -31,6 +31,12 @@ var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 var STRIPE_BASE = 'https://buy.stripe.com/5kQ00kb7pgWc8p8c6Y0ZW00';
 var STRIPE_PORTAL = 'https://billing.stripe.com/p/login/';
 
+// VERIFIED PRO SUBSCRIBERS LIST (Cross-device permanent sync)
+var PRO_EMAILS = [
+  'ibrahimihamid77@gmail.com',
+  'said.cpge24@gmail.com'
+];
+
 var TH=[['light','Blush','#fbf5f2'],['plum','Plum','#2a1426'],['midnight','Midnight','#020617']];
 try{var st=localStorage.getItem('koo_theme');if(st==='plum'||st==='midnight')document.documentElement.dataset.theme=st}catch(e){}
 
@@ -94,14 +100,18 @@ if(thb)thb.onclick=function(){var i=0;TH.forEach(function(x,j){if(x[0]===thNow()
 thLab();
 KOO.sync();
 
-/* ---------- Pro Auth & Membership ---------- */
+/* ---------- Pro Auth & Membership Engine ---------- */
 var sb = null;
 var currentUser = null;
 var authMode = 'login';
 
 function isProUser() {
+  if (currentUser && currentUser.email) {
+    var em = currentUser.email.toLowerCase().trim();
+    if (PRO_EMAILS.indexOf(em) >= 0) return true;
+    if (currentUser.user_metadata && currentUser.user_metadata.is_pro === true) return true;
+  }
   if (localStorage.getItem('koo_pro_active') === 'true') return true;
-  if (currentUser && currentUser.user_metadata && currentUser.user_metadata.is_pro === true) return true;
   return false;
 }
 
@@ -152,10 +162,11 @@ function updateNavAuth() {
 function handleStripeSuccess() {
   if (location.search.indexOf('payment=success') >= 0) {
     localStorage.setItem('koo_pro_active', 'true');
+    localStorage.setItem('koo_pending_pro', 'true');
     if (sb && currentUser) {
       sb.auth.updateUser({ data: { is_pro: true } }).catch(function(){});
     }
-    alert('🎉 Welcome to McGee Jewelry Pro! All tools are now fully unlocked.');
+    alert('🎉 Payment confirmed! Your account is now upgraded to McGee Jewelry Pro.');
     try {
       var url = new URL(window.location);
       url.searchParams.delete('payment');
@@ -232,6 +243,7 @@ function openProfileModal() {
 
 /* ---------- STYLISH PRO SUBSCRIPTION BANNER (BLUR / FLOU) ---------- */
 function openProModal(isPageLock) {
+  if (isProUser()) return; // Never show to active Pro members
   var old = document.getElementById('mcgee-pro-modal');
   if (old) old.remove();
 
@@ -421,24 +433,23 @@ function handleFormSubmit(e) {
   st.textContent = authMode === 'signup' ? 'Creating your account...' : 'Logging in...';
   st.style.color = '';
 
+  var hadPendingPro = localStorage.getItem('koo_pending_pro') === 'true';
+
   if (authMode === 'signup') {
-    sb.auth.signUp({ email: email, password: password }).then(function(res){
+    sb.auth.signUp({
+      email: email,
+      password: password,
+      options: { data: { is_pro: hadPendingPro || (PRO_EMAILS.indexOf(email.toLowerCase()) >= 0) } }
+    }).then(function(res){
       btn.disabled = false;
       if (res.error) {
         st.textContent = res.error.message;
         st.style.color = '#ef4444';
       } else {
-        if (res.data.user && (!res.data.session)) {
-          st.textContent = 'Account created! Please check your email to confirm.';
-          st.style.color = '#10b981';
-        } else {
-          st.textContent = 'Account created successfully!';
-          st.style.color = '#10b981';
-          setTimeout(function(){
-            var dlg = document.getElementById('mcgee-auth-dialog');
-            if (dlg) dlg.remove();
-          }, 1000);
-        }
+        localStorage.removeItem('koo_pending_pro');
+        st.textContent = 'Account created successfully!';
+        st.style.color = '#10b981';
+        setTimeout(function(){ location.reload(); }, 800);
       }
     }).catch(function(err){
       btn.disabled = false;
@@ -452,13 +463,13 @@ function handleFormSubmit(e) {
         st.textContent = res.error.message;
         st.style.color = '#ef4444';
       } else {
+        if (hadPendingPro && sb) {
+          sb.auth.updateUser({ data: { is_pro: true } }).catch(function(){});
+          localStorage.removeItem('koo_pending_pro');
+        }
         st.textContent = 'Logged in successfully!';
         st.style.color = '#10b981';
-        setTimeout(function(){
-          var dlg = document.getElementById('mcgee-auth-dialog');
-          if (dlg) dlg.remove();
-          location.reload();
-        }, 800);
+        setTimeout(function(){ location.reload(); }, 800);
       }
     }).catch(function(err){
       btn.disabled = false;
@@ -493,6 +504,12 @@ window.initMcGeeAuth = function() {
   sb.auth.getSession().then(function(res){
     if (res.data && res.data.session) {
       currentUser = res.data.session.user;
+      // Sync database user metadata if in PRO_EMAILS
+      if (currentUser && currentUser.email && PRO_EMAILS.indexOf(currentUser.email.toLowerCase()) >= 0) {
+        if (!currentUser.user_metadata || currentUser.user_metadata.is_pro !== true) {
+          sb.auth.updateUser({ data: { is_pro: true } }).catch(function(){});
+        }
+      }
     }
     updateNavAuth();
     handleStripeSuccess();
