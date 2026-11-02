@@ -36,8 +36,8 @@ var PRO_EMAILS = [
   'said.cpge24@gmail.com'
 ];
 
-// THE 6 FEATURES WITH 1 FREE TRY EACH
-var FREE_FEATURE_SLUGS = ['vault', 'planner', 'sizing', 'styling', 'care', 'gift'];
+// ALL 12 FEATURES OFFER 1 FREE TRY EACH
+var ALL_TOOL_SLUGS = ['sizing', 'styling', 'care', 'gift', 'layering', 'anniversary', 'gold', 'diamond', 'earrings', 'wishlist', 'vault', 'planner'];
 
 var TH=[['light','Blush','#fbf5f2'],['plum','Plum','#2a1426'],['midnight','Midnight','#020617']];
 try{var st=localStorage.getItem('koo_theme');if(st==='plum'||st==='midnight')document.documentElement.dataset.theme=st}catch(e){}
@@ -67,8 +67,6 @@ var pages=[
 var rawPath = location.pathname.toLowerCase().replace(/^\/+|\/+$/g, '');
 var cleanSlug = rawPath.replace(/\.html$/, '');
 var here = (cleanSlug || 'index') + '.html';
-
-var ALL_TOOL_SLUGS = ['sizing', 'styling', 'care', 'gift', 'layering', 'anniversary', 'gold', 'diamond', 'earrings', 'wishlist', 'vault', 'planner'];
 var isToolPage = ALL_TOOL_SLUGS.indexOf(cleanSlug) >= 0;
 
 var K='koo_wishlist';
@@ -102,7 +100,7 @@ if(thb)thb.onclick=function(){var i=0;TH.forEach(function(x,j){if(x[0]===thNow()
 thLab();
 KOO.sync();
 
-/* ---------- Pro Auth & 6 Free Tries Engine ---------- */
+/* ---------- Pro Auth & 12 Free Tries Engine ---------- */
 var sb = null;
 var currentUser = null;
 var authMode = 'login';
@@ -135,9 +133,9 @@ function markFeatureUsed(slug) {
 
 function getRemainingTries() {
   var usedCount = getUsedFeatures().filter(function(s){
-    return FREE_FEATURE_SLUGS.indexOf(s) >= 0;
+    return ALL_TOOL_SLUGS.indexOf(s) >= 0;
   }).length;
-  var left = 6 - usedCount;
+  var left = ALL_TOOL_SLUGS.length - usedCount;
   return left > 0 ? left : 0;
 }
 
@@ -160,7 +158,7 @@ function updateNavAuth() {
   if (pro) {
     statusBadge = '<span class="bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-bold text-xs">⭐ Pro</span>';
   } else {
-    statusBadge = '<span class="px-2 py-0.5 rounded-full text-xs" style="background:rgba(243,226,179,0.2);color:#b76e79;border:1px solid rgba(183,110,121,0.25)">🎁 ' + triesLeft + '/6 Free Tries</span>';
+    statusBadge = '<span class="px-2 py-0.5 rounded-full text-xs" style="background:rgba(243,226,179,0.2);color:#b76e79;border:1px solid rgba(183,110,121,0.25)">🎁 ' + triesLeft + '/' + ALL_TOOL_SLUGS.length + ' Free Tries</span>';
   }
 
   if (currentUser) {
@@ -242,7 +240,7 @@ function openProfileModal() {
                   '<div><span class="muted text-xs uppercase tracking-wider">Current Plan</span>' +
                   '<h3 class="serif text-2xl ' + (pro ? 'gt' : '') + '">' + (pro ? 'Pro Member ⭐' : 'Free Visitor') + '</h3></div>' +
                   '<span class="chip" style="font-size:0.75rem;padding:0.25rem 0.75rem;' + (pro ? 'background:rgba(243,226,179,0.2);color:#f3e2b3;border-color:#b76e79' : '') + '">' +
-                  (pro ? '$6 / month' : triesLeft + '/6 Free Tries Left') + '</span>' +
+                  (pro ? '$6 / month' : triesLeft + '/' + ALL_TOOL_SLUGS.length + ' Free Tries Left') + '</span>' +
                   '</div>' +
                   (pro ? 
                     '<p class="muted text-xs mt-2">Unlimited access to all jewelry tools, lookbook planner, and gold tracker.</p>' +
@@ -315,7 +313,7 @@ function openProModal(isPageLock) {
                 '<span class="chip" style="font-size:0.75rem;padding:0.25rem 0.9rem;background:rgba(243,226,179,0.15);border-color:#b76e79;color:#f3e2b3">✨ MCGEE JEWELRY PRO</span>' +
                 '<h2 class="serif text-3xl md:text-5xl gt mt-3">Free Try Used For This Studio</h2>' +
                 '<p class="muted text-sm md:text-base mt-2 max-w-lg mx-auto">' +
-                'You have used your 1 free try for this feature (' + triesLeft + '/6 total tries remaining). Subscribe for <b class="gt">$6/month</b> to unlock all 12 tools with unlimited access.' +
+                'You have used your 1 free try for this feature (' + triesLeft + '/' + ALL_TOOL_SLUGS.length + ' total tries remaining). Subscribe for <b class="gt">$6/month</b> to unlock all 12 tools with unlimited access.' +
                 '</p>' +
                 '</div>' +
 
@@ -366,25 +364,22 @@ function checkDirectPagePaywall() {
   if (!isToolPage) return;
   if (isProUser()) return;
 
-  var isFreeFeature = FREE_FEATURE_SLUGS.indexOf(cleanSlug) >= 0;
-  if (isFreeFeature) {
-    // Check if user is currently in their active session for this 1 free try
-    var activeSessionKey = 'koo_active_session_' + cleanSlug;
-    if (sessionStorage.getItem(activeSessionKey) === '1') {
-      return; // Still in their allowed session on this page
-    }
-
-    if (!hasUsedFeature(cleanSlug)) {
-      // Consume the 1 free try for this feature!
-      markFeatureUsed(cleanSlug);
-      sessionStorage.setItem(activeSessionKey, '1');
-      updateNavAuth();
-      showFreeTryBanner(cleanSlug);
-      return;
-    }
+  // Active session on this page allows current visit without duplicate counting
+  var activeSessionKey = 'koo_active_session_' + cleanSlug;
+  if (sessionStorage.getItem(activeSessionKey) === '1') {
+    return;
   }
 
-  // Already used this feature, or it's not one of the 6 free ones -> Lock page!
+  if (!hasUsedFeature(cleanSlug)) {
+    // Consume the 1 free try for this feature!
+    markFeatureUsed(cleanSlug);
+    sessionStorage.setItem(activeSessionKey, '1');
+    updateNavAuth();
+    showFreeTryBanner(cleanSlug);
+    return;
+  }
+
+  // Already used this feature -> Lock page!
   openProModal(true);
 }
 
@@ -392,7 +387,7 @@ function showFreeTryBanner(slug) {
   var b = document.createElement('div');
   b.style.cssText = 'position:fixed;top:4.2rem;left:50%;transform:translateX(-50%);z-index:9999;max-width:90%;width:520px;padding:.6rem 1.2rem;border-radius:999px;font-size:.78rem;box-shadow:0 10px 25px rgba(0,0,0,0.18);';
   b.className = 'glass glow flex items-center justify-between gap-3 text-center';
-  b.innerHTML = '<span>🎁 <b>1 Free Try Active</b> for this studio (' + getRemainingTries() + '/6 remaining)</span>' +
+  b.innerHTML = '<span>🎁 <b>1 Free Try Active</b> for this studio (' + getRemainingTries() + '/' + ALL_TOOL_SLUGS.length + ' remaining)</span>' +
                 '<button onclick="this.parentElement.remove()" class="text-xs muted hover:text-white" style="cursor:pointer">✕</button>';
   document.body.appendChild(b);
   setTimeout(function(){ if(b) b.remove(); }, 6000);
@@ -408,11 +403,11 @@ document.addEventListener('click', function(e) {
     for (var i = 0; i < ALL_TOOL_SLUGS.length; i++) {
       var s = ALL_TOOL_SLUGS[i];
       if (href === s || href === s + '.html' || href === '/' + s || href.indexOf('/' + s + '.html') >= 0) {
-        // If it's one of the 6 features AND not yet used, let them click into their 1 free try!
-        if (FREE_FEATURE_SLUGS.indexOf(s) >= 0 && !hasUsedFeature(s)) {
+        // If not yet used, allow them to click into their 1 free try
+        if (!hasUsedFeature(s)) {
           return;
         }
-        // Otherwise, intercept and show Pro upgrade modal
+        // If already used, intercept and open the Pro modal
         e.preventDefault();
         openProModal(false);
         return;
