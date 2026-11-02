@@ -38,15 +38,29 @@ var PRO_EMAILS = [
 
 var ALL_TOOL_SLUGS = ['sizing', 'styling', 'care', 'gift', 'layering', 'anniversary', 'gold', 'diamond', 'earrings', 'wishlist', 'vault', 'planner'];
 
-/* ---------- LOCATION, CURRENCY & LANGUAGE DETECTOR ---------- */
+/* ---------- COMPREHENSIVE EUROPEAN & WORLD CURRENCIES ---------- */
 var CURRENCIES = {
-  USD: { symbol: '$', name: 'US Dollar', rate: 1.0 },
-  EUR: { symbol: '€', name: 'Euro', rate: 0.92 },
-  GBP: { symbol: '£', name: 'British Pound', rate: 0.79 },
-  MAD: { symbol: 'DH', name: 'Moroccan Dirham', rate: 10.1 },
-  CAD: { symbol: 'CA$', name: 'Canadian Dollar', rate: 1.36 },
-  AED: { symbol: 'AED', name: 'UAE Dirham', rate: 3.67 },
-  SAR: { symbol: 'SAR', name: 'Saudi Riyal', rate: 3.75 }
+  EUR: { symbol: '€', name: 'Euro (Eurozone)', rate: 0.92 },
+  GBP: { symbol: '£', name: 'British Pound (UK)', rate: 0.79 },
+  CHF: { symbol: 'CHF', name: 'Swiss Franc (Switzerland)', rate: 0.88 },
+  SEK: { symbol: 'kr', name: 'Swedish Krona (Sweden)', rate: 10.5 },
+  NOK: { symbol: 'kr', name: 'Norwegian Krone (Norway)', rate: 10.6 },
+  DKK: { symbol: 'kr', name: 'Danish Krone (Denmark)', rate: 6.9 },
+  PLN: { symbol: 'zł', name: 'Polish Złoty (Poland)', rate: 4.0 },
+  CZK: { symbol: 'Kč', name: 'Czech Koruna (Czechia)', rate: 23.2 },
+  HUF: { symbol: 'Ft', name: 'Hungarian Forint (Hungary)', rate: 365 },
+  RON: { symbol: 'lei', name: 'Romanian Leu (Romania)', rate: 4.6 },
+  BGN: { symbol: 'лв', name: 'Bulgarian Lev (Bulgaria)', rate: 1.8 },
+  ISK: { symbol: 'kr', name: 'Icelandic Króna (Iceland)', rate: 138 },
+  TRY: { symbol: '₺', name: 'Turkish Lira (Turkey)', rate: 34.0 },
+  UAH: { symbol: '₴', name: 'Ukrainian Hryvnia (Ukraine)', rate: 41.0 },
+  RSD: { symbol: 'din', name: 'Serbian Dinar (Serbia)', rate: 108 },
+  MAD: { symbol: 'DH', name: 'Moroccan Dirham (Morocco)', rate: 10.1 },
+  USD: { symbol: '$', name: 'US Dollar (USA)', rate: 1.0 },
+  CAD: { symbol: 'CA$', name: 'Canadian Dollar (Canada)', rate: 1.36 },
+  AED: { symbol: 'AED', name: 'UAE Dirham (UAE)', rate: 3.67 },
+  SAR: { symbol: 'SAR', name: 'Saudi Riyal (Saudi Arabia)', rate: 3.75 },
+  AUD: { symbol: 'A$', name: 'Australian Dollar (Australia)', rate: 1.52 }
 };
 
 var LANGUAGES = {
@@ -64,30 +78,40 @@ function detectLocale() {
   try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch(e){}
   var navLang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
 
-  var country = 'United States';
-  var cur = 'USD';
-  var lang = 'EN';
+  var country = 'Europe';
+  var cur = 'EUR';
+  var lang = 'FR';
 
-  if (tz.indexOf('Casablanca') >= 0 || navLang.indexOf('ma') >= 0) {
-    country = 'Morocco';
-    cur = 'MAD';
-    lang = navLang.indexOf('ar') >= 0 ? 'AR' : 'FR';
-  } else if (tz.indexOf('London') >= 0 || navLang.indexOf('gb') >= 0) {
-    country = 'United Kingdom';
-    cur = 'GBP';
-    lang = 'EN';
-  } else if (tz.indexOf('Paris') >= 0 || tz.indexOf('Berlin') >= 0 || tz.indexOf('Madrid') >= 0 || tz.indexOf('Rome') >= 0 || tz.indexOf('Europe') >= 0) {
-    country = 'Europe';
-    cur = 'EUR';
-    lang = navLang.indexOf('fr') >= 0 ? 'FR' : 'EN';
+  if (tz.indexOf('London') >= 0 || navLang.indexOf('gb') >= 0) {
+    country = 'UK'; cur = 'GBP'; lang = 'EN';
+  } else if (tz.indexOf('Zurich') >= 0) {
+    country = 'Switzerland'; cur = 'CHF'; lang = 'FR';
+  } else if (tz.indexOf('Stockholm') >= 0) {
+    country = 'Sweden'; cur = 'SEK'; lang = 'EN';
+  } else if (tz.indexOf('Oslo') >= 0) {
+    country = 'Norway'; cur = 'NOK'; lang = 'EN';
+  } else if (tz.indexOf('Copenhagen') >= 0) {
+    country = 'Denmark'; cur = 'DKK'; lang = 'EN';
+  } else if (tz.indexOf('Warsaw') >= 0) {
+    country = 'Poland'; cur = 'PLN'; lang = 'EN';
+  } else if (tz.indexOf('Prague') >= 0) {
+    country = 'Czechia'; cur = 'CZK'; lang = 'EN';
+  } else if (tz.indexOf('Budapest') >= 0) {
+    country = 'Hungary'; cur = 'HUF'; lang = 'EN';
+  } else if (tz.indexOf('Bucharest') >= 0) {
+    country = 'Romania'; cur = 'RON'; lang = 'EN';
+  } else if (tz.indexOf('Sofia') >= 0) {
+    country = 'Bulgaria'; cur = 'BGN'; lang = 'EN';
+  } else if (tz.indexOf('Reykjavik') >= 0) {
+    country = 'Iceland'; cur = 'ISK'; lang = 'EN';
+  } else if (tz.indexOf('Istanbul') >= 0) {
+    country = 'Turkey'; cur = 'TRY'; lang = 'EN';
+  } else if (tz.indexOf('Casablanca') >= 0 || navLang.indexOf('ma') >= 0) {
+    country = 'Morocco'; cur = 'MAD'; lang = navLang.indexOf('ar') >= 0 ? 'AR' : 'FR';
+  } else if (tz.indexOf('America') >= 0 || navLang.indexOf('us') >= 0) {
+    country = 'USA'; cur = 'USD'; lang = 'EN';
   } else if (tz.indexOf('Dubai') >= 0 || tz.indexOf('Riyadh') >= 0) {
-    country = 'Gulf Region';
-    cur = tz.indexOf('Riyadh') >= 0 ? 'SAR' : 'AED';
-    lang = 'AR';
-  } else if (tz.indexOf('Toronto') >= 0 || tz.indexOf('Vancouver') >= 0 || navLang.indexOf('ca') >= 0) {
-    country = 'Canada';
-    cur = 'CAD';
-    lang = navLang.indexOf('fr') >= 0 ? 'FR' : 'EN';
+    country = 'Gulf'; cur = tz.indexOf('Riyadh') >= 0 ? 'SAR' : 'AED'; lang = 'AR';
   }
 
   var detected = { country: country, currency: cur, lang: lang };
@@ -96,6 +120,26 @@ function detectLocale() {
 }
 
 var currentLocale = detectLocale();
+
+function formatPrice(usdAmount) {
+  var c = CURRENCIES[currentLocale.currency] || CURRENCIES.USD;
+  var converted = usdAmount * c.rate;
+  var formattedNumber;
+  if (c.rate > 40) {
+    formattedNumber = Math.round(converted).toLocaleString();
+  } else if (c.rate > 4) {
+    formattedNumber = (Math.round(converted * 2) / 2).toFixed(c.rate > 15 ? 0 : 1);
+  } else {
+    formattedNumber = converted.toFixed(2);
+  }
+
+  var postfixCurrencies = ['MAD', 'AED', 'SAR', 'HUF', 'CZK', 'PLN', 'RON', 'BGN', 'SEK', 'NOK', 'DKK', 'ISK', 'RSD', 'TRY', 'UAH'];
+  if (postfixCurrencies.indexOf(currentLocale.currency) >= 0) {
+    return formattedNumber + ' ' + c.symbol;
+  }
+  return c.symbol + formattedNumber;
+}
+window.formatPrice = formatPrice;
 
 function openLocaleModal() {
   var old = document.getElementById('mcgee-locale-dialog');
@@ -117,12 +161,12 @@ function openLocaleModal() {
   dlg.innerHTML = '<div class="glass glow p-6 md:p-8 rounded-3xl max-w-sm w-full relative" style="box-shadow:0 30px 60px rgba(0,0,0,0.5);border:1px solid rgba(243,226,179,0.25)">' +
                   '<button id="loc-close" style="position:absolute;top:1.2rem;right:1.2rem;width:2rem;height:2rem;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:1rem;cursor:pointer" class="muted hover:text-white">✕</button>' +
                   '<span class="chip text-xs">Regional Settings</span>' +
-                  '<h3 class="serif text-3xl gt mt-2">Location & Currency</h3>' +
-                  '<p class="muted text-xs mt-1">Select your preferred viewing currency and language.</p>' +
+                  '<h3 class="serif text-3xl gt mt-2">Currency & Language</h3>' +
+                  '<p class="muted text-xs mt-1">Select your preferred viewing currency and language. Prices convert automatically.</p>' +
                   '<div class="flex flex-col gap-3 mt-5">' +
-                  '<label class="fld text-left"><span>Currency</span><select id="loc-sel-cur">' + curOptions + '</select></label>' +
+                  '<label class="fld text-left"><span>Select Currency</span><select id="loc-sel-cur">' + curOptions + '</select></label>' +
                   '<label class="fld text-left"><span>Language</span><select id="loc-sel-lang">' + langOptions + '</select></label>' +
-                  '<button id="loc-btn-save" class="btn btn-gold w-full mt-3">Save Preferences</button>' +
+                  '<button id="loc-btn-save" class="btn btn-gold w-full mt-3">Save & Update Prices</button>' +
                   '</div>' +
                   '</div>';
 
@@ -136,21 +180,22 @@ function openLocaleModal() {
       currentLocale.lang = document.getElementById('loc-sel-lang').value;
       try { localStorage.setItem('koo_user_locale', JSON.stringify(currentLocale)); } catch(e){}
       dlg.remove();
-      updateTopBar();
+      updateNavAuth();
+      updateLocaleNavButton();
     };
   }
   dlg.onclick = function(e){ if (e.target === dlg) dlg.remove(); };
 }
 
-function updateTopBar() {
-  var el = document.getElementById('top-locale-btn');
-  if (el) {
-    var cur = CURRENCIES[currentLocale.currency] || CURRENCIES.USD;
-    el.innerHTML = '<span>📍 ' + currentLocale.country + '</span> &middot; <b class="gt font-semibold">' + currentLocale.currency + ' (' + cur.symbol + ')</b> &middot; <span>' + currentLocale.lang + '</span>';
+function updateLocaleNavButton() {
+  var b = document.getElementById('nav-locale-btn');
+  if (b) {
+    var cur = CURRENCIES[currentLocale.currency] || CURRENCIES.EUR;
+    b.innerHTML = '<span>📍 ' + currentLocale.currency + ' (' + cur.symbol + ') &middot; ' + currentLocale.lang + ' ▾</span>';
   }
 }
 
-/* ---------- NAV & LAYOUT BUILDER ---------- */
+/* ---------- NAV & PAGE BUILDER ---------- */
 var TH=[['light','Blush','#fbf5f2'],['plum','Plum','#2a1426'],['midnight','Midnight','#020617']];
 try{var st=localStorage.getItem('koo_theme');if(st==='plum'||st==='midnight')document.documentElement.dataset.theme=st}catch(e){}
 
@@ -159,6 +204,7 @@ function brand(id){return '<a href="index.html" class="brand" aria-label="McGee 
 
 var guides=[["/how-to-measure-ring-size-at-home","Measure Ring Size at Home"],["/how-to-untangle-a-necklace","Untangle Fine Gold Chains"],["/shop/necklaces/14k-yellow-gold-necklace-with-devil-emoji-symbol","Devil emoji necklace"],["/how-to-clean-sterling-silver-at-home","Clean Sterling Silver Guide"],["/why-does-gold-turn-skin-green","Gold Turning Skin Green"],["/product-category/rings","Rings guide"],["/what-earrings-are-trending-now","Earring trends"],["/shop/rings/14k-white-and-rose-gold-doulbe-diamond-infinity-design-band-3-8-cttw","Diamond infinity band"]];
 
+// "Care" moved into More, Currency switch placed in its position
 var pages=[
   ['index.html','Home'],
   ['vault.html','Jewelry Box'],
@@ -174,7 +220,7 @@ var pages=[
   ['gold.html','Gold calculator'],
   ['diamond.html','Diamond size'],
   ['earrings.html','Earring finder']
-], MAIN=6;
+];
 
 var rawPath = location.pathname.toLowerCase().replace(/^\/+|\/+$/g, '');
 var cleanSlug = rawPath.replace(/\.html$/, '');
@@ -193,22 +239,25 @@ var KOO=window.KOO={
 };
 
 function lk(p){return '<a class="l" href="'+p[0]+'"'+(p[0]===here?' aria-current="page"':'')+'>'+p[1]+(p[0]==='wishlist.html'?' <span data-count hidden class="ml-1 rounded-full px-1.5 text-xs" style="background:#b76e79;color:#fff"></span>':'')+'</a>'}
-var links=pages.map(lk).join(''),more=pages.slice(MAIN+1),desk=pages.slice(1,MAIN+1).map(lk).join('')+'<details class="more"><summary'+(more.some(function(p){return p[0]===here})?' style="color:#f3e2b3"':'')+'>More</summary><div class="more-menu">'+more.map(lk).join('')+'</div></details>';
 
-var curInfo = CURRENCIES[currentLocale.currency] || CURRENCIES.USD;
-var topUtilityBar = '<div class="border-b text-[11px] sm:text-xs py-1.5 px-4 sm:px-5" style="border-color:rgba(243,226,179,0.14);background:rgba(255,255,255,0.03)">' +
-                    '<div class="mx-auto max-w-6xl flex items-center justify-between">' +
-                    '<button id="top-locale-btn" class="flex items-center gap-1.5 muted hover:text-white transition-colors" title="Change Location, Currency & Language">' +
-                    '<span>📍 ' + currentLocale.country + '</span> &middot; <b class="gt font-semibold">' + currentLocale.currency + ' (' + curInfo.symbol + ')</b> &middot; <span>' + currentLocale.lang + '</span>' +
-                    '</button>' +
-                    '<span class="muted hidden sm:inline text-[11px]">Free Worldwide Jewelry Tools &middot; No App Needed</span>' +
-                    '</div></div>';
+var curInfo = CURRENCIES[currentLocale.currency] || CURRENCIES.EUR;
+var locBtnHtml = '<button id="nav-locale-btn" class="l flex items-center gap-1 font-medium" style="cursor:pointer;color:#b76e79" title="Change Currency & Language"><span>📍 ' + currentLocale.currency + ' (' + curInfo.symbol + ') &middot; ' + currentLocale.lang + ' ▾</span></button>';
+
+// Desktop menu: Jewelry Box, Look Planner, Size guide, Metal match, [Currency Switch], Gift finder, More
+var deskLinks = [
+  pages[1], pages[2], pages[3], pages[4]
+].map(lk).join('') + locBtnHtml + lk(pages[6]);
+
+var moreLinks = [pages[5], pages[7], pages[8], pages[9], pages[10], pages[11], pages[12], pages[13]].map(lk).join('');
+var desk = deskLinks + '<details class="more"><summary'+(here!=='index.html'&&['vault.html','planner.html','sizing.html','styling.html','gift.html'].indexOf(here)<0?' style="color:#f3e2b3"':'')+'>More</summary><div class="more-menu">'+moreLinks+'</div></details>';
+
+var mobLinks = pages.map(lk).join('') + '<div class="pt-2"><button id="m-nav-locale-btn" class="chip text-xs w-full text-center py-2">📍 Currency & Language: ' + currentLocale.currency + ' (' + curInfo.symbol + ') &middot; ' + currentLocale.lang + '</button></div>';
 
 var nav=document.getElementById('nav');
-if(nav)nav.innerHTML=topUtilityBar + '<header class="nav"><div class="mx-auto max-w-6xl px-4 sm:px-5 py-3 flex items-center justify-between">'+brand('lg1')+'<nav class="hidden lg:flex gap-1" aria-label="Main">'+desk+'</nav><div class="flex items-center gap-2" id="nav-actions"><button id="th" class="btn btn-ghost" style="padding:.35rem .9rem" aria-label="Change color theme"></button><span id="auth-slot"></span><button id="mb" class="lg:hidden btn btn-ghost" style="padding:.4rem 1rem" aria-expanded="false" aria-controls="mm">Menu</button></div></div><nav id="mm" class="hidden lg:hidden px-5 pb-4 flex-col gap-1" aria-label="Mobile">'+links+'<div id="mm-auth" class="pt-2 border-t border-rose-200/20 mt-2"></div></nav></header>';
+if(nav)nav.innerHTML='<header class="nav"><div class="mx-auto max-w-6xl px-4 sm:px-5 py-3 flex items-center justify-between">'+brand('lg1')+'<nav class="hidden lg:flex gap-1 items-center" aria-label="Main">'+desk+'</nav><div class="flex items-center gap-2" id="nav-actions"><button id="th" class="btn btn-ghost" style="padding:.35rem .9rem" aria-label="Change color theme"></button><span id="auth-slot"></span><button id="mb" class="lg:hidden btn btn-ghost" style="padding:.4rem 1rem" aria-expanded="false" aria-controls="mm">Menu</button></div></div><nav id="mm" class="hidden lg:hidden px-5 pb-4 flex-col gap-1" aria-label="Mobile">'+mobLinks+'<div id="mm-auth" class="pt-2 border-t border-rose-200/20 mt-2"></div></nav></header>';
 
-var locBtn = document.getElementById('top-locale-btn');
-if (locBtn) locBtn.onclick = openLocaleModal;
+var bLocDesk = document.getElementById('nav-locale-btn'); if (bLocDesk) bLocDesk.onclick = openLocaleModal;
+var bLocMob = document.getElementById('m-nav-locale-btn'); if (bLocMob) bLocMob.onclick = openLocaleModal;
 
 var mb=document.getElementById('mb');
 if(mb)mb.onclick=function(){var m=document.getElementById('mm'),o=m.classList.toggle('hidden');m.classList.toggle('flex',!o);mb.setAttribute('aria-expanded',!o)};
@@ -275,6 +324,7 @@ function updateNavAuth() {
   var mma = document.getElementById('mm-auth');
   var pro = isProUser();
   var triesLeft = getRemainingTries();
+  var priceLabel = formatPrice(6);
   var html = '';
   var mHtml = '';
 
@@ -290,17 +340,17 @@ function updateNavAuth() {
     var shortEmail = email.length > 14 ? email.slice(0, 11) + '...' : email;
     html = '<button id="nav-btn-profile" class="btn btn-ghost text-xs flex items-center gap-1.5" style="padding:.35rem .75rem" title="View Profile">' +
            statusBadge + '<span>' + shortEmail + '</span></button>' +
-           (!pro ? '<button id="nav-btn-pro" class="btn btn-gold text-xs" style="padding:.35rem .75rem">Upgrade ($6)</button>' : '');
+           (!pro ? '<button id="nav-btn-pro" class="btn btn-gold text-xs" style="padding:.35rem .75rem">Upgrade (' + priceLabel + ')</button>' : '');
     
     mHtml = '<div class="flex items-center justify-between text-sm py-2">' +
             '<button id="m-btn-profile" class="text-left font-medium gt">' + email + (statusBadge ? ' ' + statusBadge : '') + '</button>' +
             '<button id="m-btn-logout" class="text-red-400 text-xs">Log out</button></div>' +
-            (!pro ? '<button id="m-nav-btn-pro" class="btn btn-gold block w-full text-center mt-2">Upgrade to Pro ($6/mo)</button>' : '');
+            (!pro ? '<button id="m-nav-btn-pro" class="btn btn-gold block w-full text-center mt-2">Upgrade to Pro (' + priceLabel + '/mo)</button>' : '');
   } else {
     html = statusBadge + ' ' +
-           '<button id="nav-btn-pro" class="btn btn-gold text-xs hidden sm:inline-block" style="padding:.35rem .75rem">Pro $6/mo</button>' +
+           '<button id="nav-btn-pro" class="btn btn-gold text-xs hidden sm:inline-block" style="padding:.35rem .75rem">Pro ' + priceLabel + '/mo</button>' +
            '<button id="btn-login" class="btn btn-ghost text-xs" style="padding:.35rem .75rem">Log in</button>';
-    mHtml = '<div class="flex gap-2 mt-2"><button id="m-btn-login" class="btn btn-ghost flex-1">Log in</button><button id="m-nav-btn-pro" class="btn btn-gold flex-1 text-center">Pro $6/mo</button></div>';
+    mHtml = '<div class="flex gap-2 mt-2"><button id="m-btn-login" class="btn btn-ghost flex-1">Log in</button><button id="m-nav-btn-pro" class="btn btn-gold flex-1 text-center">Pro ' + priceLabel + '/mo</button></div>';
   }
 
   if (as) as.innerHTML = html;
@@ -345,6 +395,7 @@ function openProfileModal() {
   var email = currentUser.email || 'Member';
   var joinDate = currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Active';
   var savedCount = KOO.get().length;
+  var priceLabel = formatPrice(6);
 
   var dlg = document.createElement('div');
   dlg.id = 'mcgee-profile-dialog';
@@ -364,7 +415,7 @@ function openProfileModal() {
                   '<div><span class="muted text-xs uppercase tracking-wider">Current Plan</span>' +
                   '<h3 class="serif text-2xl ' + (pro ? 'gt' : '') + '">' + (pro ? 'Pro Member ⭐' : 'Free Visitor') + '</h3></div>' +
                   '<span class="chip" style="font-size:0.75rem;padding:0.25rem 0.75rem;' + (pro ? 'background:rgba(243,226,179,0.2);color:#f3e2b3;border-color:#b76e79' : '') + '">' +
-                  (pro ? '$6 / month' : triesLeft + '/' + ALL_TOOL_SLUGS.length + ' Free Tries Left') + '</span>' +
+                  (pro ? priceLabel + ' / month' : triesLeft + '/' + ALL_TOOL_SLUGS.length + ' Free Tries Left') + '</span>' +
                   '</div>' +
                   (pro ? 
                     '<p class="muted text-xs mt-2">Unlimited access to all jewelry tools, lookbook planner, and gold tracker.</p>' +
@@ -375,7 +426,7 @@ function openProfileModal() {
                     '</div>'
                     :
                     '<p class="muted text-xs mt-2">You have ' + triesLeft + ' free studio tries left. Upgrade to unlock all features permanently.</p>' +
-                    '<button id="prof-btn-upgrade" class="btn btn-gold w-full mt-3 text-sm">Upgrade to Pro ($6/month)</button>'
+                    '<button id="prof-btn-upgrade" class="btn btn-gold w-full mt-3 text-sm">Upgrade to Pro (' + priceLabel + '/month)</button>'
                   ) +
                   '</div>' +
                   '<div class="mt-4 p-4 rounded-2xl flex items-center justify-between" style="background:rgba(255,255,255,0.02);border:1px solid rgba(243,226,179,0.08)">' +
@@ -384,7 +435,7 @@ function openProfileModal() {
                   '<a href="wishlist.html" class="btn btn-ghost text-xs" style="padding:.35rem .75rem">View Wishlist</a>' +
                   '</div>' +
                   '<div class="mt-6 flex items-center justify-between pt-4 border-t border-rose-200/10">' +
-                  '<button id="prof-btn-logout" class="text-red-400 text-xs hover:underline">Log out of this device</button>' +
+                  '<button id="prof-btn-logout" class="text-xs text-red-400 hover:underline">Log out of this device</button>' +
                   '<button id="prof-btn-done" class="btn btn-ghost text-xs" style="padding:.35rem .9rem">Done</button>' +
                   '</div>' +
                   '</div>';
@@ -405,6 +456,7 @@ function openProModal(isPageLock) {
   if (old) old.remove();
 
   var triesLeft = getRemainingTries();
+  var priceLabel = formatPrice(6);
 
   var features = [
     { icon: '👑', t: 'My Jewelry Box & Value Vault', d: 'Track collection weight, gold melt value & insurance dossiers' },
@@ -437,7 +489,7 @@ function openProModal(isPageLock) {
                 '<span class="chip" style="font-size:0.75rem;padding:0.25rem 0.9rem;background:rgba(243,226,179,0.15);border-color:#b76e79;color:#f3e2b3">✨ MCGEE JEWELRY PRO</span>' +
                 '<h2 class="serif text-3xl md:text-5xl gt mt-3">Free Try Used For This Studio</h2>' +
                 '<p class="muted text-sm md:text-base mt-2 max-w-lg mx-auto">' +
-                'You have used your 1 free try for this feature (' + triesLeft + '/' + ALL_TOOL_SLUGS.length + ' total tries remaining). Subscribe for <b class="gt">$6/month</b> to unlock all 12 tools with unlimited access.' +
+                'You have used your 1 free try for this feature (' + triesLeft + '/' + ALL_TOOL_SLUGS.length + ' total tries remaining). Subscribe for <b class="gt">' + priceLabel + '/month</b> to unlock all 12 tools with unlimited access.' +
                 '</p>' +
                 '</div>' +
 
@@ -447,7 +499,7 @@ function openProModal(isPageLock) {
 
                 '<div class="mt-6 flex flex-col gap-2.5 items-center">' +
                 '<a href="' + getStripeUrl() + '" class="btn btn-gold w-full text-center py-3.5 text-base md:text-lg font-medium shadow-lg" style="letter-spacing:0.02em">' +
-                'Unlock All 12 Studios &nbsp;&rarr;&nbsp; $6/month' +
+                'Unlock All 12 Studios &nbsp;&rarr;&nbsp; ' + priceLabel + '/month' +
                 '</a>' +
                 '<p class="muted text-xs mt-0.5 text-center">Instant access &middot; Secure checkout via Stripe &middot; Cancel anytime in 1 click</p>' +
                 '</div>' +
@@ -506,7 +558,7 @@ function checkDirectPagePaywall() {
 
 function showFreeTryBanner(slug) {
   var b = document.createElement('div');
-  b.style.cssText = 'position:fixed;top:5.4rem;left:50%;transform:translateX(-50%);z-index:9999;max-width:90%;width:520px;padding:.6rem 1.2rem;border-radius:999px;font-size:.78rem;box-shadow:0 10px 25px rgba(0,0,0,0.18);';
+  b.style.cssText = 'position:fixed;top:4.5rem;left:50%;transform:translateX(-50%);z-index:9999;max-width:90%;width:520px;padding:.6rem 1.2rem;border-radius:999px;font-size:.78rem;box-shadow:0 10px 25px rgba(0,0,0,0.18);';
   b.className = 'glass glow flex items-center justify-between gap-3 text-center';
   b.innerHTML = '<span>🎁 <b>1 Free Try Active</b> for this studio (' + getRemainingTries() + '/' + ALL_TOOL_SLUGS.length + ' remaining)</span>' +
                 '<button onclick="this.parentElement.remove()" class="text-xs muted hover:text-white" style="cursor:pointer">✕</button>';
