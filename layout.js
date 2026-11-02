@@ -31,11 +31,13 @@ var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 var STRIPE_BASE = 'https://buy.stripe.com/5kQ00kb7pgWc8p8c6Y0ZW00';
 var STRIPE_PORTAL = 'https://billing.stripe.com/p/login/';
 
-// VERIFIED PRO SUBSCRIBERS LIST (Cross-device permanent sync)
 var PRO_EMAILS = [
   'ibrahimihamid77@gmail.com',
   'said.cpge24@gmail.com'
 ];
+
+// THE 6 FEATURES WITH 1 FREE TRY EACH
+var FREE_FEATURE_SLUGS = ['vault', 'planner', 'sizing', 'styling', 'care', 'gift'];
 
 var TH=[['light','Blush','#fbf5f2'],['plum','Plum','#2a1426'],['midnight','Midnight','#020617']];
 try{var st=localStorage.getItem('koo_theme');if(st==='plum'||st==='midnight')document.documentElement.dataset.theme=st}catch(e){}
@@ -66,8 +68,8 @@ var rawPath = location.pathname.toLowerCase().replace(/^\/+|\/+$/g, '');
 var cleanSlug = rawPath.replace(/\.html$/, '');
 var here = (cleanSlug || 'index') + '.html';
 
-var TOOL_SLUGS = ['sizing', 'styling', 'care', 'gift', 'layering', 'anniversary', 'gold', 'diamond', 'earrings', 'wishlist', 'vault', 'planner'];
-var isToolPage = TOOL_SLUGS.indexOf(cleanSlug) >= 0;
+var ALL_TOOL_SLUGS = ['sizing', 'styling', 'care', 'gift', 'layering', 'anniversary', 'gold', 'diamond', 'earrings', 'wishlist', 'vault', 'planner'];
+var isToolPage = ALL_TOOL_SLUGS.indexOf(cleanSlug) >= 0;
 
 var K='koo_wishlist';
 var KOO=window.KOO={
@@ -100,7 +102,7 @@ if(thb)thb.onclick=function(){var i=0;TH.forEach(function(x,j){if(x[0]===thNow()
 thLab();
 KOO.sync();
 
-/* ---------- Pro Auth & Membership Engine ---------- */
+/* ---------- Pro Auth & 6 Free Tries Engine ---------- */
 var sb = null;
 var currentUser = null;
 var authMode = 'login';
@@ -115,6 +117,30 @@ function isProUser() {
   return false;
 }
 
+function getUsedFeatures() {
+  try { return JSON.parse(localStorage.getItem('koo_used_features')) || []; } catch(e){ return []; }
+}
+
+function hasUsedFeature(slug) {
+  return getUsedFeatures().indexOf(slug) >= 0;
+}
+
+function markFeatureUsed(slug) {
+  var used = getUsedFeatures();
+  if (used.indexOf(slug) < 0) {
+    used.push(slug);
+    try { localStorage.setItem('koo_used_features', JSON.stringify(used)); } catch(e){}
+  }
+}
+
+function getRemainingTries() {
+  var usedCount = getUsedFeatures().filter(function(s){
+    return FREE_FEATURE_SLUGS.indexOf(s) >= 0;
+  }).length;
+  var left = 6 - usedCount;
+  return left > 0 ? left : 0;
+}
+
 function getStripeUrl() {
   if (currentUser && currentUser.email) {
     return STRIPE_BASE + '?prefilled_email=' + encodeURIComponent(currentUser.email);
@@ -126,23 +152,31 @@ function updateNavAuth() {
   var as = document.getElementById('auth-slot');
   var mma = document.getElementById('mm-auth');
   var pro = isProUser();
+  var triesLeft = getRemainingTries();
   var html = '';
   var mHtml = '';
+
+  var statusBadge = '';
+  if (pro) {
+    statusBadge = '<span class="bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-bold text-xs">⭐ Pro</span>';
+  } else {
+    statusBadge = '<span class="px-2 py-0.5 rounded-full text-xs" style="background:rgba(243,226,179,0.2);color:#b76e79;border:1px solid rgba(183,110,121,0.25)">🎁 ' + triesLeft + '/6 Free Tries</span>';
+  }
 
   if (currentUser) {
     var email = currentUser.email || 'Member';
     var shortEmail = email.length > 14 ? email.slice(0, 11) + '...' : email;
     html = '<button id="nav-btn-profile" class="btn btn-ghost text-xs flex items-center gap-1.5" style="padding:.35rem .75rem" title="View Profile">' +
-           (pro ? '<span class="bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded-full font-bold">⭐ Pro</span>' : '') +
-           '<span>' + shortEmail + '</span></button>' +
+           statusBadge + '<span>' + shortEmail + '</span></button>' +
            (!pro ? '<button id="nav-btn-pro" class="btn btn-gold text-xs" style="padding:.35rem .75rem">Upgrade ($6)</button>' : '');
     
     mHtml = '<div class="flex items-center justify-between text-sm py-2">' +
-            '<button id="m-btn-profile" class="text-left font-medium gt">' + email + (pro ? ' ⭐ Pro' : '') + '</button>' +
+            '<button id="m-btn-profile" class="text-left font-medium gt">' + email + (statusBadge ? ' ' + statusBadge : '') + '</button>' +
             '<button id="m-btn-logout" class="text-red-400 text-xs">Log out</button></div>' +
             (!pro ? '<button id="m-nav-btn-pro" class="btn btn-gold block w-full text-center mt-2">Upgrade to Pro ($6/mo)</button>' : '');
   } else {
-    html = '<button id="nav-btn-pro" class="btn btn-gold text-xs hidden sm:inline-block" style="padding:.35rem .75rem">Pro $6/mo</button>' +
+    html = statusBadge + ' ' +
+           '<button id="nav-btn-pro" class="btn btn-gold text-xs hidden sm:inline-block" style="padding:.35rem .75rem">Pro $6/mo</button>' +
            '<button id="btn-login" class="btn btn-ghost text-xs" style="padding:.35rem .75rem">Log in</button>';
     mHtml = '<div class="flex gap-2 mt-2"><button id="m-btn-login" class="btn btn-ghost flex-1">Log in</button><button id="m-nav-btn-pro" class="btn btn-gold flex-1 text-center">Pro $6/mo</button></div>';
   }
@@ -185,6 +219,7 @@ function openProfileModal() {
   if (old) old.remove();
 
   var pro = isProUser();
+  var triesLeft = getRemainingTries();
   var email = currentUser.email || 'Member';
   var joinDate = currentUser.created_at ? new Date(currentUser.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Active';
   var savedCount = KOO.get().length;
@@ -205,9 +240,9 @@ function openProfileModal() {
                   '<div class="mt-6 p-4 rounded-2xl" style="background:rgba(255,255,255,0.04);border:1px solid rgba(243,226,179,0.15)">' +
                   '<div class="flex items-center justify-between">' +
                   '<div><span class="muted text-xs uppercase tracking-wider">Current Plan</span>' +
-                  '<h3 class="serif text-2xl ' + (pro ? 'gt' : '') + '">' + (pro ? 'Pro Member ⭐' : 'Free Account') + '</h3></div>' +
+                  '<h3 class="serif text-2xl ' + (pro ? 'gt' : '') + '">' + (pro ? 'Pro Member ⭐' : 'Free Visitor') + '</h3></div>' +
                   '<span class="chip" style="font-size:0.75rem;padding:0.25rem 0.75rem;' + (pro ? 'background:rgba(243,226,179,0.2);color:#f3e2b3;border-color:#b76e79' : '') + '">' +
-                  (pro ? '$6 / month' : 'Free') + '</span>' +
+                  (pro ? '$6 / month' : triesLeft + '/6 Free Tries Left') + '</span>' +
                   '</div>' +
                   (pro ? 
                     '<p class="muted text-xs mt-2">Unlimited access to all jewelry tools, lookbook planner, and gold tracker.</p>' +
@@ -217,7 +252,7 @@ function openProfileModal() {
                     '<a href="' + STRIPE_PORTAL + '" target="_blank" rel="noopener" class="text-xs text-red-300 hover:text-red-400 text-center mt-1 underline">Cancel subscription in Stripe Portal</a>' +
                     '</div>'
                     :
-                    '<p class="muted text-xs mt-2">You are currently using free preview tools. Upgrade to unlock all features.</p>' +
+                    '<p class="muted text-xs mt-2">You have ' + triesLeft + ' free studio tries left. Upgrade to unlock all features permanently.</p>' +
                     '<button id="prof-btn-upgrade" class="btn btn-gold w-full mt-3 text-sm">Upgrade to Pro ($6/month)</button>'
                   ) +
                   '</div>' +
@@ -243,9 +278,11 @@ function openProfileModal() {
 
 /* ---------- STYLISH PRO SUBSCRIPTION BANNER (BLUR / FLOU) ---------- */
 function openProModal(isPageLock) {
-  if (isProUser()) return; // Never show to active Pro members
+  if (isProUser()) return;
   var old = document.getElementById('mcgee-pro-modal');
   if (old) old.remove();
+
+  var triesLeft = getRemainingTries();
 
   var features = [
     { icon: '👑', t: 'My Jewelry Box & Value Vault', d: 'Track collection weight, gold melt value & insurance dossiers' },
@@ -273,19 +310,26 @@ function openProModal(isPageLock) {
   
   m.innerHTML = '<div class="glass glow p-6 md:p-8 rounded-3xl max-w-2xl w-full relative my-auto" style="box-shadow:0 30px 60px rgba(0,0,0,0.5);border:1px solid rgba(243,226,179,0.25)">' +
                 '<button id="pro-close" style="position:absolute;top:1.2rem;right:1.2rem;width:2rem;height:2rem;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:1rem;cursor:pointer" class="muted hover:text-white" aria-label="Close">✕</button>' +
+                
                 '<div class="text-center">' +
                 '<span class="chip" style="font-size:0.75rem;padding:0.25rem 0.9rem;background:rgba(243,226,179,0.15);border-color:#b76e79;color:#f3e2b3">✨ MCGEE JEWELRY PRO</span>' +
-                '<h2 class="serif text-3xl md:text-5xl gt mt-3">Unlock All Jewelry Tools</h2>' +
-                '<p class="muted text-sm md:text-base mt-2 max-w-lg mx-auto">Get unlimited, instant access to all professional sizing, styling, lookbook, and gold tools for <b class="gt" style="font-size:1.15rem">only $6 a month</b>.</p>' +
+                '<h2 class="serif text-3xl md:text-5xl gt mt-3">Free Try Used For This Studio</h2>' +
+                '<p class="muted text-sm md:text-base mt-2 max-w-lg mx-auto">' +
+                'You have used your 1 free try for this feature (' + triesLeft + '/6 total tries remaining). Subscribe for <b class="gt">$6/month</b> to unlock all 12 tools with unlimited access.' +
+                '</p>' +
                 '</div>' +
-                '<div class="grid sm:grid-cols-2 gap-2.5 mt-5 max-h-[46vh] overflow-y-auto pr-1">' +
+
+                '<div class="grid sm:grid-cols-2 gap-2.5 mt-5 max-h-[44vh] overflow-y-auto pr-1">' +
                 featHtml +
                 '</div>' +
+
                 '<div class="mt-6 flex flex-col gap-2.5 items-center">' +
                 '<a href="' + getStripeUrl() + '" class="btn btn-gold w-full text-center py-3.5 text-base md:text-lg font-medium shadow-lg" style="letter-spacing:0.02em">' +
-                'Unlock All Features Now &nbsp;&rarr;&nbsp; $6/month</a>' +
-                '<p class="muted text-xs mt-1 text-center">Instant access &middot; Secure checkout via Stripe &middot; Cancel anytime in 1 click</p>' +
+                'Unlock All 12 Studios &nbsp;&rarr;&nbsp; $6/month' +
+                '</a>' +
+                '<p class="muted text-xs mt-0.5 text-center">Instant access &middot; Secure checkout via Stripe &middot; Cancel anytime in 1 click</p>' +
                 '</div>' +
+
                 '<div class="text-center mt-3 pt-3 border-t border-rose-200/10">' +
                 '<button id="pro-modal-login" class="text-xs muted hover:underline">Already subscribed? <b class="gt">Log in to your account</b></button>' +
                 '</div>' +
@@ -321,7 +365,37 @@ window.openProModal = openProModal;
 function checkDirectPagePaywall() {
   if (!isToolPage) return;
   if (isProUser()) return;
+
+  var isFreeFeature = FREE_FEATURE_SLUGS.indexOf(cleanSlug) >= 0;
+  if (isFreeFeature) {
+    // Check if user is currently in their active session for this 1 free try
+    var activeSessionKey = 'koo_active_session_' + cleanSlug;
+    if (sessionStorage.getItem(activeSessionKey) === '1') {
+      return; // Still in their allowed session on this page
+    }
+
+    if (!hasUsedFeature(cleanSlug)) {
+      // Consume the 1 free try for this feature!
+      markFeatureUsed(cleanSlug);
+      sessionStorage.setItem(activeSessionKey, '1');
+      updateNavAuth();
+      showFreeTryBanner(cleanSlug);
+      return;
+    }
+  }
+
+  // Already used this feature, or it's not one of the 6 free ones -> Lock page!
   openProModal(true);
+}
+
+function showFreeTryBanner(slug) {
+  var b = document.createElement('div');
+  b.style.cssText = 'position:fixed;top:4.2rem;left:50%;transform:translateX(-50%);z-index:9999;max-width:90%;width:520px;padding:.6rem 1.2rem;border-radius:999px;font-size:.78rem;box-shadow:0 10px 25px rgba(0,0,0,0.18);';
+  b.className = 'glass glow flex items-center justify-between gap-3 text-center';
+  b.innerHTML = '<span>🎁 <b>1 Free Try Active</b> for this studio (' + getRemainingTries() + '/6 remaining)</span>' +
+                '<button onclick="this.parentElement.remove()" class="text-xs muted hover:text-white" style="cursor:pointer">✕</button>';
+  document.body.appendChild(b);
+  setTimeout(function(){ if(b) b.remove(); }, 6000);
 }
 
 /* ---------- Global Click Interceptor for Tool Links ---------- */
@@ -331,9 +405,14 @@ document.addEventListener('click', function(e) {
   var a = e.target.closest('a');
   if (a && a.href) {
     var href = a.getAttribute('href') || '';
-    for (var i = 0; i < TOOL_SLUGS.length; i++) {
-      var s = TOOL_SLUGS[i];
+    for (var i = 0; i < ALL_TOOL_SLUGS.length; i++) {
+      var s = ALL_TOOL_SLUGS[i];
       if (href === s || href === s + '.html' || href === '/' + s || href.indexOf('/' + s + '.html') >= 0) {
+        // If it's one of the 6 features AND not yet used, let them click into their 1 free try!
+        if (FREE_FEATURE_SLUGS.indexOf(s) >= 0 && !hasUsedFeature(s)) {
+          return;
+        }
+        // Otherwise, intercept and show Pro upgrade modal
         e.preventDefault();
         openProModal(false);
         return;
@@ -504,7 +583,6 @@ window.initMcGeeAuth = function() {
   sb.auth.getSession().then(function(res){
     if (res.data && res.data.session) {
       currentUser = res.data.session.user;
-      // Sync database user metadata if in PRO_EMAILS
       if (currentUser && currentUser.email && PRO_EMAILS.indexOf(currentUser.email.toLowerCase()) >= 0) {
         if (!currentUser.user_metadata || currentUser.user_metadata.is_pro !== true) {
           sb.auth.updateUser({ data: { is_pro: true } }).catch(function(){});
