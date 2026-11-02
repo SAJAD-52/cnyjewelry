@@ -36,9 +36,121 @@ var PRO_EMAILS = [
   'said.cpge24@gmail.com'
 ];
 
-// ALL 12 FEATURES OFFER 1 FREE TRY EACH
 var ALL_TOOL_SLUGS = ['sizing', 'styling', 'care', 'gift', 'layering', 'anniversary', 'gold', 'diamond', 'earrings', 'wishlist', 'vault', 'planner'];
 
+/* ---------- LOCATION, CURRENCY & LANGUAGE DETECTOR ---------- */
+var CURRENCIES = {
+  USD: { symbol: '$', name: 'US Dollar', rate: 1.0 },
+  EUR: { symbol: '€', name: 'Euro', rate: 0.92 },
+  GBP: { symbol: '£', name: 'British Pound', rate: 0.79 },
+  MAD: { symbol: 'DH', name: 'Moroccan Dirham', rate: 10.1 },
+  CAD: { symbol: 'CA$', name: 'Canadian Dollar', rate: 1.36 },
+  AED: { symbol: 'AED', name: 'UAE Dirham', rate: 3.67 },
+  SAR: { symbol: 'SAR', name: 'Saudi Riyal', rate: 3.75 }
+};
+
+var LANGUAGES = {
+  EN: 'English',
+  FR: 'Français',
+  AR: 'العربية'
+};
+
+function detectLocale() {
+  var saved = null;
+  try { saved = JSON.parse(localStorage.getItem('koo_user_locale')); } catch(e){}
+  if (saved && saved.currency && saved.lang) return saved;
+
+  var tz = '';
+  try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch(e){}
+  var navLang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
+
+  var country = 'United States';
+  var cur = 'USD';
+  var lang = 'EN';
+
+  if (tz.indexOf('Casablanca') >= 0 || navLang.indexOf('ma') >= 0) {
+    country = 'Morocco';
+    cur = 'MAD';
+    lang = navLang.indexOf('ar') >= 0 ? 'AR' : 'FR';
+  } else if (tz.indexOf('London') >= 0 || navLang.indexOf('gb') >= 0) {
+    country = 'United Kingdom';
+    cur = 'GBP';
+    lang = 'EN';
+  } else if (tz.indexOf('Paris') >= 0 || tz.indexOf('Berlin') >= 0 || tz.indexOf('Madrid') >= 0 || tz.indexOf('Rome') >= 0 || tz.indexOf('Europe') >= 0) {
+    country = 'Europe';
+    cur = 'EUR';
+    lang = navLang.indexOf('fr') >= 0 ? 'FR' : 'EN';
+  } else if (tz.indexOf('Dubai') >= 0 || tz.indexOf('Riyadh') >= 0) {
+    country = 'Gulf Region';
+    cur = tz.indexOf('Riyadh') >= 0 ? 'SAR' : 'AED';
+    lang = 'AR';
+  } else if (tz.indexOf('Toronto') >= 0 || tz.indexOf('Vancouver') >= 0 || navLang.indexOf('ca') >= 0) {
+    country = 'Canada';
+    cur = 'CAD';
+    lang = navLang.indexOf('fr') >= 0 ? 'FR' : 'EN';
+  }
+
+  var detected = { country: country, currency: cur, lang: lang };
+  try { localStorage.setItem('koo_user_locale', JSON.stringify(detected)); } catch(e){}
+  return detected;
+}
+
+var currentLocale = detectLocale();
+
+function openLocaleModal() {
+  var old = document.getElementById('mcgee-locale-dialog');
+  if (old) old.remove();
+
+  var dlg = document.createElement('div');
+  dlg.id = 'mcgee-locale-dialog';
+  dlg.style.cssText = 'position:fixed;inset:0;background:rgba(18,10,14,0.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);z-index:100000;display:flex;align-items:center;justify-content:center;padding:1.25rem;';
+
+  var curOptions = Object.keys(CURRENCIES).map(function(k){
+    var c = CURRENCIES[k];
+    return '<option value="' + k + '"' + (currentLocale.currency === k ? ' selected' : '') + '>' + k + ' (' + c.symbol + ') - ' + c.name + '</option>';
+  }).join('');
+
+  var langOptions = Object.keys(LANGUAGES).map(function(l){
+    return '<option value="' + l + '"' + (currentLocale.lang === l ? ' selected' : '') + '>' + LANGUAGES[l] + ' (' + l + ')</option>';
+  }).join('');
+
+  dlg.innerHTML = '<div class="glass glow p-6 md:p-8 rounded-3xl max-w-sm w-full relative" style="box-shadow:0 30px 60px rgba(0,0,0,0.5);border:1px solid rgba(243,226,179,0.25)">' +
+                  '<button id="loc-close" style="position:absolute;top:1.2rem;right:1.2rem;width:2rem;height:2rem;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:1rem;cursor:pointer" class="muted hover:text-white">✕</button>' +
+                  '<span class="chip text-xs">Regional Settings</span>' +
+                  '<h3 class="serif text-3xl gt mt-2">Location & Currency</h3>' +
+                  '<p class="muted text-xs mt-1">Select your preferred viewing currency and language.</p>' +
+                  '<div class="flex flex-col gap-3 mt-5">' +
+                  '<label class="fld text-left"><span>Currency</span><select id="loc-sel-cur">' + curOptions + '</select></label>' +
+                  '<label class="fld text-left"><span>Language</span><select id="loc-sel-lang">' + langOptions + '</select></label>' +
+                  '<button id="loc-btn-save" class="btn btn-gold w-full mt-3">Save Preferences</button>' +
+                  '</div>' +
+                  '</div>';
+
+  document.body.appendChild(dlg);
+
+  var cl = document.getElementById('loc-close'); if (cl) cl.onclick = function(){ dlg.remove(); };
+  var saveBtn = document.getElementById('loc-btn-save');
+  if (saveBtn) {
+    saveBtn.onclick = function(){
+      currentLocale.currency = document.getElementById('loc-sel-cur').value;
+      currentLocale.lang = document.getElementById('loc-sel-lang').value;
+      try { localStorage.setItem('koo_user_locale', JSON.stringify(currentLocale)); } catch(e){}
+      dlg.remove();
+      updateTopBar();
+    };
+  }
+  dlg.onclick = function(e){ if (e.target === dlg) dlg.remove(); };
+}
+
+function updateTopBar() {
+  var el = document.getElementById('top-locale-btn');
+  if (el) {
+    var cur = CURRENCIES[currentLocale.currency] || CURRENCIES.USD;
+    el.innerHTML = '<span>📍 ' + currentLocale.country + '</span> &middot; <b class="gt font-semibold">' + currentLocale.currency + ' (' + cur.symbol + ')</b> &middot; <span>' + currentLocale.lang + '</span>';
+  }
+}
+
+/* ---------- NAV & LAYOUT BUILDER ---------- */
 var TH=[['light','Blush','#fbf5f2'],['plum','Plum','#2a1426'],['midnight','Midnight','#020617']];
 try{var st=localStorage.getItem('koo_theme');if(st==='plum'||st==='midnight')document.documentElement.dataset.theme=st}catch(e){}
 
@@ -83,8 +195,20 @@ var KOO=window.KOO={
 function lk(p){return '<a class="l" href="'+p[0]+'"'+(p[0]===here?' aria-current="page"':'')+'>'+p[1]+(p[0]==='wishlist.html'?' <span data-count hidden class="ml-1 rounded-full px-1.5 text-xs" style="background:#b76e79;color:#fff"></span>':'')+'</a>'}
 var links=pages.map(lk).join(''),more=pages.slice(MAIN+1),desk=pages.slice(1,MAIN+1).map(lk).join('')+'<details class="more"><summary'+(more.some(function(p){return p[0]===here})?' style="color:#f3e2b3"':'')+'>More</summary><div class="more-menu">'+more.map(lk).join('')+'</div></details>';
 
+var curInfo = CURRENCIES[currentLocale.currency] || CURRENCIES.USD;
+var topUtilityBar = '<div class="border-b text-[11px] sm:text-xs py-1.5 px-4 sm:px-5" style="border-color:rgba(243,226,179,0.14);background:rgba(255,255,255,0.03)">' +
+                    '<div class="mx-auto max-w-6xl flex items-center justify-between">' +
+                    '<button id="top-locale-btn" class="flex items-center gap-1.5 muted hover:text-white transition-colors" title="Change Location, Currency & Language">' +
+                    '<span>📍 ' + currentLocale.country + '</span> &middot; <b class="gt font-semibold">' + currentLocale.currency + ' (' + curInfo.symbol + ')</b> &middot; <span>' + currentLocale.lang + '</span>' +
+                    '</button>' +
+                    '<span class="muted hidden sm:inline text-[11px]">Free Worldwide Jewelry Tools &middot; No App Needed</span>' +
+                    '</div></div>';
+
 var nav=document.getElementById('nav');
-if(nav)nav.innerHTML='<header class="nav"><div class="mx-auto max-w-6xl px-5 py-3 flex items-center justify-between">'+brand('lg1')+'<nav class="hidden lg:flex gap-1" aria-label="Main">'+desk+'</nav><div class="flex items-center gap-2" id="nav-actions"><button id="th" class="btn btn-ghost" style="padding:.35rem .9rem" aria-label="Change color theme"></button><span id="auth-slot"></span><button id="mb" class="lg:hidden btn btn-ghost" style="padding:.4rem 1rem" aria-expanded="false" aria-controls="mm">Menu</button></div></div><nav id="mm" class="hidden lg:hidden px-5 pb-4 flex-col gap-1" aria-label="Mobile">'+links+'<div id="mm-auth" class="pt-2 border-t border-rose-200/20 mt-2"></div></nav></header>';
+if(nav)nav.innerHTML=topUtilityBar + '<header class="nav"><div class="mx-auto max-w-6xl px-4 sm:px-5 py-3 flex items-center justify-between">'+brand('lg1')+'<nav class="hidden lg:flex gap-1" aria-label="Main">'+desk+'</nav><div class="flex items-center gap-2" id="nav-actions"><button id="th" class="btn btn-ghost" style="padding:.35rem .9rem" aria-label="Change color theme"></button><span id="auth-slot"></span><button id="mb" class="lg:hidden btn btn-ghost" style="padding:.4rem 1rem" aria-expanded="false" aria-controls="mm">Menu</button></div></div><nav id="mm" class="hidden lg:hidden px-5 pb-4 flex-col gap-1" aria-label="Mobile">'+links+'<div id="mm-auth" class="pt-2 border-t border-rose-200/20 mt-2"></div></nav></header>';
+
+var locBtn = document.getElementById('top-locale-btn');
+if (locBtn) locBtn.onclick = openLocaleModal;
 
 var mb=document.getElementById('mb');
 if(mb)mb.onclick=function(){var m=document.getElementById('mm'),o=m.classList.toggle('hidden');m.classList.toggle('flex',!o);mb.setAttribute('aria-expanded',!o)};
@@ -260,7 +384,7 @@ function openProfileModal() {
                   '<a href="wishlist.html" class="btn btn-ghost text-xs" style="padding:.35rem .75rem">View Wishlist</a>' +
                   '</div>' +
                   '<div class="mt-6 flex items-center justify-between pt-4 border-t border-rose-200/10">' +
-                  '<button id="prof-btn-logout" class="text-xs text-red-400 hover:underline">Log out of this device</button>' +
+                  '<button id="prof-btn-logout" class="text-red-400 text-xs hover:underline">Log out of this device</button>' +
                   '<button id="prof-btn-done" class="btn btn-ghost text-xs" style="padding:.35rem .9rem">Done</button>' +
                   '</div>' +
                   '</div>';
@@ -364,14 +488,12 @@ function checkDirectPagePaywall() {
   if (!isToolPage) return;
   if (isProUser()) return;
 
-  // Active session on this page allows current visit without duplicate counting
   var activeSessionKey = 'koo_active_session_' + cleanSlug;
   if (sessionStorage.getItem(activeSessionKey) === '1') {
     return;
   }
 
   if (!hasUsedFeature(cleanSlug)) {
-    // Consume the 1 free try for this feature!
     markFeatureUsed(cleanSlug);
     sessionStorage.setItem(activeSessionKey, '1');
     updateNavAuth();
@@ -379,13 +501,12 @@ function checkDirectPagePaywall() {
     return;
   }
 
-  // Already used this feature -> Lock page!
   openProModal(true);
 }
 
 function showFreeTryBanner(slug) {
   var b = document.createElement('div');
-  b.style.cssText = 'position:fixed;top:4.2rem;left:50%;transform:translateX(-50%);z-index:9999;max-width:90%;width:520px;padding:.6rem 1.2rem;border-radius:999px;font-size:.78rem;box-shadow:0 10px 25px rgba(0,0,0,0.18);';
+  b.style.cssText = 'position:fixed;top:5.4rem;left:50%;transform:translateX(-50%);z-index:9999;max-width:90%;width:520px;padding:.6rem 1.2rem;border-radius:999px;font-size:.78rem;box-shadow:0 10px 25px rgba(0,0,0,0.18);';
   b.className = 'glass glow flex items-center justify-between gap-3 text-center';
   b.innerHTML = '<span>🎁 <b>1 Free Try Active</b> for this studio (' + getRemainingTries() + '/' + ALL_TOOL_SLUGS.length + ' remaining)</span>' +
                 '<button onclick="this.parentElement.remove()" class="text-xs muted hover:text-white" style="cursor:pointer">✕</button>';
@@ -403,11 +524,9 @@ document.addEventListener('click', function(e) {
     for (var i = 0; i < ALL_TOOL_SLUGS.length; i++) {
       var s = ALL_TOOL_SLUGS[i];
       if (href === s || href === s + '.html' || href === '/' + s || href.indexOf('/' + s + '.html') >= 0) {
-        // If not yet used, allow them to click into their 1 free try
         if (!hasUsedFeature(s)) {
           return;
         }
-        // If already used, intercept and open the Pro modal
         e.preventDefault();
         openProModal(false);
         return;
