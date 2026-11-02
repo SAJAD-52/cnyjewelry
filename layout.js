@@ -38,35 +38,51 @@ var PRO_EMAILS = [
 
 var ALL_TOOL_SLUGS = ['sizing', 'styling', 'care', 'gift', 'layering', 'anniversary', 'gold', 'diamond', 'earrings', 'wishlist', 'vault', 'planner'];
 
-/* ---------- COMPREHENSIVE EUROPEAN & WORLD CURRENCIES ---------- */
+/* ---------- CURRENCIES & MATCHING LANGUAGES ---------- */
 var CURRENCIES = {
-  EUR: { symbol: '€', name: 'Euro (Eurozone)', rate: 0.92 },
-  GBP: { symbol: '£', name: 'British Pound (UK)', rate: 0.79 },
-  CHF: { symbol: 'CHF', name: 'Swiss Franc (Switzerland)', rate: 0.88 },
-  SEK: { symbol: 'kr', name: 'Swedish Krona (Sweden)', rate: 10.5 },
-  NOK: { symbol: 'kr', name: 'Norwegian Krone (Norway)', rate: 10.6 },
-  DKK: { symbol: 'kr', name: 'Danish Krone (Denmark)', rate: 6.9 },
-  PLN: { symbol: 'zł', name: 'Polish Złoty (Poland)', rate: 4.0 },
-  CZK: { symbol: 'Kč', name: 'Czech Koruna (Czechia)', rate: 23.2 },
-  HUF: { symbol: 'Ft', name: 'Hungarian Forint (Hungary)', rate: 365 },
-  RON: { symbol: 'lei', name: 'Romanian Leu (Romania)', rate: 4.6 },
-  BGN: { symbol: 'лв', name: 'Bulgarian Lev (Bulgaria)', rate: 1.8 },
-  ISK: { symbol: 'kr', name: 'Icelandic Króna (Iceland)', rate: 138 },
-  TRY: { symbol: '₺', name: 'Turkish Lira (Turkey)', rate: 34.0 },
-  UAH: { symbol: '₴', name: 'Ukrainian Hryvnia (Ukraine)', rate: 41.0 },
-  RSD: { symbol: 'din', name: 'Serbian Dinar (Serbia)', rate: 108 },
-  MAD: { symbol: 'DH', name: 'Moroccan Dirham (Morocco)', rate: 10.1 },
-  USD: { symbol: '$', name: 'US Dollar (USA)', rate: 1.0 },
-  CAD: { symbol: 'CA$', name: 'Canadian Dollar (Canada)', rate: 1.36 },
-  AED: { symbol: 'AED', name: 'UAE Dirham (UAE)', rate: 3.67 },
-  SAR: { symbol: 'SAR', name: 'Saudi Riyal (Saudi Arabia)', rate: 3.75 },
-  AUD: { symbol: 'A$', name: 'Australian Dollar (Australia)', rate: 1.52 }
+  EUR: { symbol: '€', name: 'Euro (Eurozone)', rate: 0.92, defaultLang: 'FR' },
+  GBP: { symbol: '£', name: 'British Pound (UK)', rate: 0.79, defaultLang: 'EN' },
+  CHF: { symbol: 'CHF', name: 'Swiss Franc (Switzerland)', rate: 0.88, defaultLang: 'FR' },
+  SEK: { symbol: 'kr', name: 'Swedish Krona (Sweden)', rate: 10.5, defaultLang: 'SV' },
+  NOK: { symbol: 'kr', name: 'Norwegian Krone (Norway)', rate: 10.6, defaultLang: 'NO' },
+  DKK: { symbol: 'kr', name: 'Danish Krone (Denmark)', rate: 6.9, defaultLang: 'DA' },
+  PLN: { symbol: 'zł', name: 'Polish Złoty (Poland)', rate: 4.0, defaultLang: 'PL' },
+  CZK: { symbol: 'Kč', name: 'Czech Koruna (Czechia)', rate: 23.2, defaultLang: 'CS' },
+  HUF: { symbol: 'Ft', name: 'Hungarian Forint (Hungary)', rate: 365, defaultLang: 'HU' },
+  RON: { symbol: 'lei', name: 'Romanian Leu (Romania)', rate: 4.6, defaultLang: 'RO' },
+  BGN: { symbol: 'лв', name: 'Bulgarian Lev (Bulgaria)', rate: 1.8, defaultLang: 'BG' },
+  ISK: { symbol: 'kr', name: 'Icelandic Króna (Iceland)', rate: 138, defaultLang: 'EN' },
+  TRY: { symbol: '₺', name: 'Turkish Lira (Turkey)', rate: 34.0, defaultLang: 'TR' },
+  UAH: { symbol: '₴', name: 'Ukrainian Hryvnia (Ukraine)', rate: 41.0, defaultLang: 'UK' },
+  RSD: { symbol: 'din', name: 'Serbian Dinar (Serbia)', rate: 108, defaultLang: 'EN' },
+  MAD: { symbol: 'DH', name: 'Moroccan Dirham (Morocco)', rate: 10.1, defaultLang: 'FR' },
+  USD: { symbol: '$', name: 'US Dollar (USA)', rate: 1.0, defaultLang: 'EN' },
+  CAD: { symbol: 'CA$', name: 'Canadian Dollar (Canada)', rate: 1.36, defaultLang: 'EN' },
+  AED: { symbol: 'AED', name: 'UAE Dirham (UAE)', rate: 3.67, defaultLang: 'AR' },
+  SAR: { symbol: 'SAR', name: 'Saudi Riyal (Saudi Arabia)', rate: 3.75, defaultLang: 'AR' },
+  AUD: { symbol: 'A$', name: 'Australian Dollar (Australia)', rate: 1.52, defaultLang: 'EN' }
 };
 
 var LANGUAGES = {
   EN: 'English',
   FR: 'Français',
-  AR: 'العربية'
+  AR: 'العربية',
+  SV: 'Svenska',
+  NO: 'Norsk',
+  DA: 'Dansk',
+  DE: 'Deutsch',
+  ES: 'Español',
+  IT: 'Italiano',
+  NL: 'Nederlands',
+  PT: 'Português',
+  PL: 'Polski',
+  CS: 'Čeština',
+  HU: 'Magyar',
+  RO: 'Română',
+  BG: 'Български',
+  TR: 'Türkçe',
+  UK: 'Українська',
+  EL: 'Ελληνικά'
 };
 
 function detectLocale() {
@@ -78,43 +94,48 @@ function detectLocale() {
   try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch(e){}
   var navLang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
 
-  var country = 'Europe';
   var cur = 'EUR';
   var lang = 'FR';
 
-  if (tz.indexOf('London') >= 0 || navLang.indexOf('gb') >= 0) {
-    country = 'UK'; cur = 'GBP'; lang = 'EN';
+  if (tz.indexOf('Stockholm') >= 0 || navLang.indexOf('sv') >= 0) {
+    cur = 'SEK'; lang = 'SV';
+  } else if (tz.indexOf('Oslo') >= 0 || navLang.indexOf('no') >= 0 || navLang.indexOf('nb') >= 0) {
+    cur = 'NOK'; lang = 'NO';
+  } else if (tz.indexOf('Copenhagen') >= 0 || navLang.indexOf('da') >= 0) {
+    cur = 'DKK'; lang = 'DA';
+  } else if (tz.indexOf('London') >= 0 || navLang.indexOf('gb') >= 0) {
+    cur = 'GBP'; lang = 'EN';
   } else if (tz.indexOf('Zurich') >= 0) {
-    country = 'Switzerland'; cur = 'CHF'; lang = 'FR';
-  } else if (tz.indexOf('Stockholm') >= 0) {
-    country = 'Sweden'; cur = 'SEK'; lang = 'EN';
-  } else if (tz.indexOf('Oslo') >= 0) {
-    country = 'Norway'; cur = 'NOK'; lang = 'EN';
-  } else if (tz.indexOf('Copenhagen') >= 0) {
-    country = 'Denmark'; cur = 'DKK'; lang = 'EN';
-  } else if (tz.indexOf('Warsaw') >= 0) {
-    country = 'Poland'; cur = 'PLN'; lang = 'EN';
-  } else if (tz.indexOf('Prague') >= 0) {
-    country = 'Czechia'; cur = 'CZK'; lang = 'EN';
-  } else if (tz.indexOf('Budapest') >= 0) {
-    country = 'Hungary'; cur = 'HUF'; lang = 'EN';
-  } else if (tz.indexOf('Bucharest') >= 0) {
-    country = 'Romania'; cur = 'RON'; lang = 'EN';
-  } else if (tz.indexOf('Sofia') >= 0) {
-    country = 'Bulgaria'; cur = 'BGN'; lang = 'EN';
-  } else if (tz.indexOf('Reykjavik') >= 0) {
-    country = 'Iceland'; cur = 'ISK'; lang = 'EN';
-  } else if (tz.indexOf('Istanbul') >= 0) {
-    country = 'Turkey'; cur = 'TRY'; lang = 'EN';
+    cur = 'CHF'; lang = 'FR';
+  } else if (tz.indexOf('Berlin') >= 0 || navLang.indexOf('de') >= 0) {
+    cur = 'EUR'; lang = 'DE';
+  } else if (tz.indexOf('Madrid') >= 0 || navLang.indexOf('es') >= 0) {
+    cur = 'EUR'; lang = 'ES';
+  } else if (tz.indexOf('Rome') >= 0 || navLang.indexOf('it') >= 0) {
+    cur = 'EUR'; lang = 'IT';
+  } else if (tz.indexOf('Warsaw') >= 0 || navLang.indexOf('pl') >= 0) {
+    cur = 'PLN'; lang = 'PL';
+  } else if (tz.indexOf('Prague') >= 0 || navLang.indexOf('cs') >= 0) {
+    cur = 'CZK'; lang = 'CS';
+  } else if (tz.indexOf('Budapest') >= 0 || navLang.indexOf('hu') >= 0) {
+    cur = 'HUF'; lang = 'HU';
+  } else if (tz.indexOf('Bucharest') >= 0 || navLang.indexOf('ro') >= 0) {
+    cur = 'RON'; lang = 'RO';
+  } else if (tz.indexOf('Sofia') >= 0 || navLang.indexOf('bg') >= 0) {
+    cur = 'BGN'; lang = 'BG';
+  } else if (tz.indexOf('Istanbul') >= 0 || navLang.indexOf('tr') >= 0) {
+    cur = 'TRY'; lang = 'TR';
+  } else if (tz.indexOf('Kyiv') >= 0 || navLang.indexOf('uk') >= 0) {
+    cur = 'UAH'; lang = 'UK';
   } else if (tz.indexOf('Casablanca') >= 0 || navLang.indexOf('ma') >= 0) {
-    country = 'Morocco'; cur = 'MAD'; lang = navLang.indexOf('ar') >= 0 ? 'AR' : 'FR';
+    cur = 'MAD'; lang = navLang.indexOf('ar') >= 0 ? 'AR' : 'FR';
+  } else if (tz.indexOf('Dubai') >= 0 || tz.indexOf('Riyadh') >= 0 || navLang.indexOf('ar') >= 0) {
+    cur = tz.indexOf('Riyadh') >= 0 ? 'SAR' : 'AED'; lang = 'AR';
   } else if (tz.indexOf('America') >= 0 || navLang.indexOf('us') >= 0) {
-    country = 'USA'; cur = 'USD'; lang = 'EN';
-  } else if (tz.indexOf('Dubai') >= 0 || tz.indexOf('Riyadh') >= 0) {
-    country = 'Gulf'; cur = tz.indexOf('Riyadh') >= 0 ? 'SAR' : 'AED'; lang = 'AR';
+    cur = 'USD'; lang = 'EN';
   }
 
-  var detected = { country: country, currency: cur, lang: lang };
+  var detected = { currency: cur, lang: lang };
   try { localStorage.setItem('koo_user_locale', JSON.stringify(detected)); } catch(e){}
   return detected;
 }
@@ -125,10 +146,11 @@ function formatPrice(usdAmount) {
   var c = CURRENCIES[currentLocale.currency] || CURRENCIES.USD;
   var converted = usdAmount * c.rate;
   var formattedNumber;
-  if (c.rate > 40) {
+
+  if (c.rate >= 40) {
     formattedNumber = Math.round(converted).toLocaleString();
-  } else if (c.rate > 4) {
-    formattedNumber = (Math.round(converted * 2) / 2).toFixed(c.rate > 15 ? 0 : 1);
+  } else if (c.rate >= 3.5) {
+    formattedNumber = Math.round(converted).toString();
   } else {
     formattedNumber = converted.toFixed(2);
   }
@@ -162,15 +184,25 @@ function openLocaleModal() {
                   '<button id="loc-close" style="position:absolute;top:1.2rem;right:1.2rem;width:2rem;height:2rem;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:1rem;cursor:pointer" class="muted hover:text-white">✕</button>' +
                   '<span class="chip text-xs">Regional Settings</span>' +
                   '<h3 class="serif text-3xl gt mt-2">Currency & Language</h3>' +
-                  '<p class="muted text-xs mt-1">Select your preferred viewing currency and language. Prices convert automatically.</p>' +
+                  '<p class="muted text-xs mt-1">Select your preferred currency and language.</p>' +
                   '<div class="flex flex-col gap-3 mt-5">' +
                   '<label class="fld text-left"><span>Select Currency</span><select id="loc-sel-cur">' + curOptions + '</select></label>' +
                   '<label class="fld text-left"><span>Language</span><select id="loc-sel-lang">' + langOptions + '</select></label>' +
-                  '<button id="loc-btn-save" class="btn btn-gold w-full mt-3">Save & Update Prices</button>' +
+                  '<button id="loc-btn-save" class="btn btn-gold w-full mt-3">Save Preferences</button>' +
                   '</div>' +
                   '</div>';
 
   document.body.appendChild(dlg);
+
+  var curSelect = document.getElementById('loc-sel-cur');
+  if (curSelect) {
+    curSelect.onchange = function() {
+      var chosen = CURRENCIES[curSelect.value];
+      if (chosen && chosen.defaultLang) {
+        document.getElementById('loc-sel-lang').value = chosen.defaultLang;
+      }
+    };
+  }
 
   var cl = document.getElementById('loc-close'); if (cl) cl.onclick = function(){ dlg.remove(); };
   var saveBtn = document.getElementById('loc-btn-save');
@@ -181,30 +213,30 @@ function openLocaleModal() {
       try { localStorage.setItem('koo_user_locale', JSON.stringify(currentLocale)); } catch(e){}
       dlg.remove();
       updateNavAuth();
-      updateLocaleNavButton();
+      updateLocaleNavButtons();
     };
   }
   dlg.onclick = function(e){ if (e.target === dlg) dlg.remove(); };
 }
 
-function updateLocaleNavButton() {
-  var b = document.getElementById('nav-locale-btn');
-  if (b) {
-    var cur = CURRENCIES[currentLocale.currency] || CURRENCIES.EUR;
-    b.innerHTML = '<span>📍 ' + currentLocale.currency + ' (' + cur.symbol + ') &middot; ' + currentLocale.lang + ' ▾</span>';
-  }
+function updateLocaleNavButtons() {
+  var bDesk = document.getElementById('nav-locale-btn');
+  var bMob = document.getElementById('m-nav-locale-btn');
+  var cur = CURRENCIES[currentLocale.currency] || CURRENCIES.EUR;
+  var txt = '📍 ' + currentLocale.currency + ' (' + cur.symbol + ') ▾';
+  if (bDesk) bDesk.innerHTML = '<span class="whitespace-nowrap">' + txt + '</span>';
+  if (bMob) bMob.textContent = '📍 Currency & Language: ' + currentLocale.currency + ' (' + cur.symbol + ') · ' + (LANGUAGES[currentLocale.lang] || currentLocale.lang);
 }
 
 /* ---------- NAV & PAGE BUILDER ---------- */
 var TH=[['light','Blush','#fbf5f2'],['plum','Plum','#2a1426'],['midnight','Midnight','#020617']];
 try{var st=localStorage.getItem('koo_theme');if(st==='plum'||st==='midnight')document.documentElement.dataset.theme=st}catch(e){}
 
-function logo(id){return '<svg width="38" height="38" viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="'+id+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3e2b3"/><stop offset=".55" stop-color="#e8b4b8"/><stop offset="1" stop-color="#b76e79"/></linearGradient></defs><circle cx="20" cy="25" r="11" fill="none" stroke="url(#'+id+')" stroke-width="2.6"/><polygon points="14,5 26,5 31,10 20,19 9,10" fill="url(#'+id+')"/><g stroke="rgba(60,30,40,.45)" stroke-width=".8" fill="none"><polyline points="9,10 31,10"/><polyline points="14,5 17,10 20,19 23,10 26,5"/></g></svg>'}
-function brand(id){return '<a href="index.html" class="brand" aria-label="McGee Jewelry home">'+logo(id)+'<span><span class="serif gt brand-n">McGee</span><span class="brand-s">JEWELRY</span></span></a>'}
+function logo(id){return '<svg width="36" height="36" viewBox="0 0 40 40" aria-hidden="true" class="shrink-0"><defs><linearGradient id="'+id+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3e2b3"/><stop offset=".55" stop-color="#e8b4b8"/><stop offset="1" stop-color="#b76e79"/></linearGradient></defs><circle cx="20" cy="25" r="11" fill="none" stroke="url(#'+id+')" stroke-width="2.6"/><polygon points="14,5 26,5 31,10 20,19 9,10" fill="url(#'+id+')"/><g stroke="rgba(60,30,40,.45)" stroke-width=".8" fill="none"><polyline points="9,10 31,10"/><polyline points="14,5 17,10 20,19 23,10 26,5"/></g></svg>'}
+function brand(id){return '<a href="index.html" class="brand shrink-0" aria-label="McGee Jewelry home">'+logo(id)+'<span><span class="serif gt brand-n">McGee</span><span class="brand-s hidden sm:inline">JEWELRY</span></span></a>'}
 
 var guides=[["/how-to-measure-ring-size-at-home","Measure Ring Size at Home"],["/how-to-untangle-a-necklace","Untangle Fine Gold Chains"],["/shop/necklaces/14k-yellow-gold-necklace-with-devil-emoji-symbol","Devil emoji necklace"],["/how-to-clean-sterling-silver-at-home","Clean Sterling Silver Guide"],["/why-does-gold-turn-skin-green","Gold Turning Skin Green"],["/product-category/rings","Rings guide"],["/what-earrings-are-trending-now","Earring trends"],["/shop/rings/14k-white-and-rose-gold-doulbe-diamond-infinity-design-band-3-8-cttw","Diamond infinity band"]];
 
-// "Care" moved into More, Currency switch placed in its position
 var pages=[
   ['index.html','Home'],
   ['vault.html','Jewelry Box'],
@@ -238,12 +270,12 @@ var KOO=window.KOO={
   document.querySelectorAll('[data-save]').forEach(function(b){var on=KOO.has(b.dataset.id);b.setAttribute('aria-pressed',on);b.textContent=on?'♥ Saved':'♡ Save'})}
 };
 
-function lk(p){return '<a class="l" href="'+p[0]+'"'+(p[0]===here?' aria-current="page"':'')+'>'+p[1]+(p[0]==='wishlist.html'?' <span data-count hidden class="ml-1 rounded-full px-1.5 text-xs" style="background:#b76e79;color:#fff"></span>':'')+'</a>'}
+function lk(p){return '<a class="l whitespace-nowrap" href="'+p[0]+'"'+(p[0]===here?' aria-current="page"':'')+'>'+p[1]+(p[0]==='wishlist.html'?' <span data-count hidden class="ml-1 rounded-full px-1.5 text-xs" style="background:#b76e79;color:#fff"></span>':'')+'</a>'}
 
 var curInfo = CURRENCIES[currentLocale.currency] || CURRENCIES.EUR;
-var locBtnHtml = '<button id="nav-locale-btn" class="l flex items-center gap-1 font-medium" style="cursor:pointer;color:#b76e79" title="Change Currency & Language"><span>📍 ' + currentLocale.currency + ' (' + curInfo.symbol + ') &middot; ' + currentLocale.lang + ' ▾</span></button>';
+var locBtnHtml = '<button id="nav-locale-btn" class="l whitespace-nowrap flex items-center gap-1 font-medium text-xs py-1 px-2.5 rounded-full" style="cursor:pointer;color:#b76e79;background:rgba(243,226,179,0.15);border:1px solid rgba(183,110,121,0.25)" title="Change Currency & Language"><span>📍 ' + currentLocale.currency + ' (' + curInfo.symbol + ') ▾</span></button>';
 
-// Desktop menu: Jewelry Box, Look Planner, Size guide, Metal match, [Currency Switch], Gift finder, More
+// Desktop Menu: Jewelry Box | Look Planner | Size guide | Metal match | Currency Button | Gift finder | More ▾
 var deskLinks = [
   pages[1], pages[2], pages[3], pages[4]
 ].map(lk).join('') + locBtnHtml + lk(pages[6]);
@@ -251,10 +283,25 @@ var deskLinks = [
 var moreLinks = [pages[5], pages[7], pages[8], pages[9], pages[10], pages[11], pages[12], pages[13]].map(lk).join('');
 var desk = deskLinks + '<details class="more"><summary'+(here!=='index.html'&&['vault.html','planner.html','sizing.html','styling.html','gift.html'].indexOf(here)<0?' style="color:#f3e2b3"':'')+'>More</summary><div class="more-menu">'+moreLinks+'</div></details>';
 
-var mobLinks = pages.map(lk).join('') + '<div class="pt-2"><button id="m-nav-locale-btn" class="chip text-xs w-full text-center py-2">📍 Currency & Language: ' + currentLocale.currency + ' (' + curInfo.symbol + ') &middot; ' + currentLocale.lang + '</button></div>';
+var mobLinks = pages.map(lk).join('') + 
+  '<div class="pt-3 mt-2 border-t border-rose-200/20 flex flex-col gap-2">' +
+  '<button id="m-nav-locale-btn" class="chip text-xs w-full text-center py-2">📍 Currency & Language: ' + currentLocale.currency + ' (' + curInfo.symbol + ') · ' + (LANGUAGES[currentLocale.lang]||currentLocale.lang) + '</button>' +
+  '<button id="m-th" class="btn btn-ghost text-xs w-full py-2">Switch Theme</button>' +
+  '</div>';
 
 var nav=document.getElementById('nav');
-if(nav)nav.innerHTML='<header class="nav"><div class="mx-auto max-w-6xl px-4 sm:px-5 py-3 flex items-center justify-between">'+brand('lg1')+'<nav class="hidden lg:flex gap-1 items-center" aria-label="Main">'+desk+'</nav><div class="flex items-center gap-2" id="nav-actions"><button id="th" class="btn btn-ghost" style="padding:.35rem .9rem" aria-label="Change color theme"></button><span id="auth-slot"></span><button id="mb" class="lg:hidden btn btn-ghost" style="padding:.4rem 1rem" aria-expanded="false" aria-controls="mm">Menu</button></div></div><nav id="mm" class="hidden lg:hidden px-5 pb-4 flex-col gap-1" aria-label="Mobile">'+mobLinks+'<div id="mm-auth" class="pt-2 border-t border-rose-200/20 mt-2"></div></nav></header>';
+if(nav)nav.innerHTML='<header class="nav"><div class="mx-auto max-w-7xl px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2">' +
+  brand('lg1') +
+  '<nav class="hidden xl:flex gap-1 items-center" aria-label="Main">' + desk + '</nav>' +
+  '<div class="flex items-center gap-1.5 sm:gap-2 shrink-0" id="nav-actions">' +
+  '<button id="th" class="btn btn-ghost hidden sm:inline-flex text-xs py-1.5 px-3" aria-label="Change color theme"></button>' +
+  '<span id="auth-slot" class="flex items-center gap-1.5 shrink-0"></span>' +
+  '<button id="mb" class="xl:hidden btn btn-ghost py-1.5 px-3 text-xs" aria-expanded="false" aria-controls="mm">Menu</button>' +
+  '</div></div>' +
+  '<nav id="mm" class="hidden xl:hidden px-4 pb-4 flex-col gap-1" aria-label="Mobile">' +
+  '<div id="mm-auth" class="pb-2 mb-2 border-b border-rose-200/20"></div>' +
+  mobLinks +
+  '</nav></header>';
 
 var bLocDesk = document.getElementById('nav-locale-btn'); if (bLocDesk) bLocDesk.onclick = openLocaleModal;
 var bLocMob = document.getElementById('m-nav-locale-btn'); if (bLocMob) bLocMob.onclick = openLocaleModal;
@@ -267,9 +314,24 @@ if(f)f.innerHTML='<footer class="mx-auto max-w-6xl px-5 py-12 border-t" style="b
 
 /* ---------- Theme switcher ---------- */
 function thNow(){return document.documentElement.dataset.theme||'light'}
-function thLab(){var t=document.getElementById('th'),c=thNow(),r=TH.filter(function(x){return x[0]===c})[0]||TH[0];if(t)t.textContent='Theme: '+r[1];var m=document.querySelector('meta[name="theme-color"]');if(m)m.content=r[2]}
-var thb=document.getElementById('th');
-if(thb)thb.onclick=function(){var i=0;TH.forEach(function(x,j){if(x[0]===thNow())i=j});var n=TH[(i+1)%TH.length][0];if(n==='light')document.documentElement.removeAttribute('data-theme');else document.documentElement.dataset.theme=n;try{localStorage.setItem('koo_theme',n)}catch(e){}thLab()};
+function thLab(){
+  var t=document.getElementById('th'),c=thNow(),r=TH.filter(function(x){return x[0]===c})[0]||TH[0];
+  if(t)t.textContent='Theme: '+r[1];
+  var mt=document.getElementById('m-th');
+  if(mt)mt.textContent='Theme: '+r[1];
+  var m=document.querySelector('meta[name="theme-color"]');
+  if(m)m.content=r[2];
+}
+function cycleTheme(){
+  var i=0;TH.forEach(function(x,j){if(x[0]===thNow())i=j});
+  var n=TH[(i+1)%TH.length][0];
+  if(n==='light')document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.dataset.theme=n;
+  try{localStorage.setItem('koo_theme',n)}catch(e){}
+  thLab();
+}
+var thb=document.getElementById('th'); if(thb) thb.onclick = cycleTheme;
+var mthb=document.getElementById('m-th'); if(mthb) mthb.onclick = cycleTheme;
 thLab();
 KOO.sync();
 
@@ -325,32 +387,45 @@ function updateNavAuth() {
   var pro = isProUser();
   var triesLeft = getRemainingTries();
   var priceLabel = formatPrice(6);
-  var html = '';
-  var mHtml = '';
 
   var statusBadge = '';
   if (pro) {
-    statusBadge = '<span class="bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-bold text-xs">⭐ Pro</span>';
+    statusBadge = '<span class="bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-bold text-xs whitespace-nowrap">⭐ Pro</span>';
   } else {
-    statusBadge = '<span class="px-2 py-0.5 rounded-full text-xs" style="background:rgba(243,226,179,0.2);color:#b76e79;border:1px solid rgba(183,110,121,0.25)">🎁 ' + triesLeft + '/' + ALL_TOOL_SLUGS.length + ' Free Tries</span>';
+    statusBadge = '<span class="px-2 py-0.5 rounded-full text-xs whitespace-nowrap hidden sm:inline-block" style="background:rgba(243,226,179,0.2);color:#b76e79;border:1px solid rgba(183,110,121,0.25)">🎁 ' + triesLeft + '/' + ALL_TOOL_SLUGS.length + ' Free Tries</span>';
   }
+
+  var html = '';
+  var mHtml = '';
 
   if (currentUser) {
     var email = currentUser.email || 'Member';
-    var shortEmail = email.length > 14 ? email.slice(0, 11) + '...' : email;
-    html = '<button id="nav-btn-profile" class="btn btn-ghost text-xs flex items-center gap-1.5" style="padding:.35rem .75rem" title="View Profile">' +
-           statusBadge + '<span>' + shortEmail + '</span></button>' +
-           (!pro ? '<button id="nav-btn-pro" class="btn btn-gold text-xs" style="padding:.35rem .75rem">Upgrade (' + priceLabel + ')</button>' : '');
+    var shortEmail = email.length > 12 ? email.slice(0, 9) + '...' : email;
+    html = statusBadge +
+           '<button id="nav-btn-profile" class="btn btn-ghost text-xs py-1.5 px-2.5 whitespace-nowrap flex items-center gap-1" title="View Profile">' +
+           '<span>' + shortEmail + '</span></button>' +
+           (!pro ? '<button id="nav-btn-pro" class="btn btn-gold text-xs py-1.5 px-2.5 whitespace-nowrap">Upgrade (' + priceLabel + ')</button>' : '');
     
-    mHtml = '<div class="flex items-center justify-between text-sm py-2">' +
-            '<button id="m-btn-profile" class="text-left font-medium gt">' + email + (statusBadge ? ' ' + statusBadge : '') + '</button>' +
-            '<button id="m-btn-logout" class="text-red-400 text-xs">Log out</button></div>' +
-            (!pro ? '<button id="m-nav-btn-pro" class="btn btn-gold block w-full text-center mt-2">Upgrade to Pro (' + priceLabel + '/mo)</button>' : '');
+    mHtml = '<div class="flex items-center justify-between text-xs py-1">' +
+            '<button id="m-btn-profile" class="text-left font-medium gt">' + email + '</button>' +
+            '<button id="m-btn-logout" class="text-red-400">Log out</button>' +
+            '</div>' +
+            (!pro ? 
+              '<div class="flex items-center justify-between gap-2 mt-2">' +
+              '<span class="text-xs muted">🎁 ' + triesLeft + '/12 Free Tries</span>' +
+              '<button id="m-nav-btn-pro" class="btn btn-gold text-xs py-1.5 px-3">Upgrade (' + priceLabel + '/mo)</button>' +
+              '</div>' 
+              : '<span class="chip text-xs mt-1">⭐ Pro Member Active</span>');
   } else {
-    html = statusBadge + ' ' +
-           '<button id="nav-btn-pro" class="btn btn-gold text-xs hidden sm:inline-block" style="padding:.35rem .75rem">Pro ' + priceLabel + '/mo</button>' +
-           '<button id="btn-login" class="btn btn-ghost text-xs" style="padding:.35rem .75rem">Log in</button>';
-    mHtml = '<div class="flex gap-2 mt-2"><button id="m-btn-login" class="btn btn-ghost flex-1">Log in</button><button id="m-nav-btn-pro" class="btn btn-gold flex-1 text-center">Pro ' + priceLabel + '/mo</button></div>';
+    html = statusBadge +
+           '<button id="nav-btn-pro" class="btn btn-gold text-xs py-1.5 px-2.5 whitespace-nowrap">Pro ' + priceLabel + '</button>' +
+           '<button id="btn-login" class="btn btn-ghost text-xs py-1.5 px-2.5 whitespace-nowrap">Log in</button>';
+
+    mHtml = '<div class="flex items-center justify-between gap-2">' +
+            '<button id="m-btn-login" class="btn btn-ghost flex-1 py-1.5 text-xs">Log in</button>' +
+            '<button id="m-nav-btn-pro" class="btn btn-gold flex-1 text-center py-1.5 text-xs">Pro ' + priceLabel + '/mo</button>' +
+            '</div>' +
+            '<p class="text-xs muted text-center mt-2">🎁 ' + triesLeft + '/12 Free Tries Remaining</p>';
   }
 
   if (as) as.innerHTML = html;
