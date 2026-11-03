@@ -142,6 +142,60 @@ function detectLocale() {
 
 var currentLocale = detectLocale();
 
+/* ---------- TRANSLATION ENGINE & RTL SETUP ---------- */
+function applyTranslation(langCode) {
+  var code = (langCode || 'EN').toLowerCase();
+  
+  // RTL for Arabic
+  if (code === 'ar') {
+    document.documentElement.setAttribute('dir', 'rtl');
+  } else {
+    document.documentElement.removeAttribute('dir');
+  }
+
+  // Set Google Translate cookie
+  var host = location.hostname;
+  var rootHost = host.replace(/^www\./, '');
+  if (code === 'en') {
+    document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=" + host + "; path=/;";
+    document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=." + rootHost + "; path=/;";
+  } else {
+    var cookieVal = "/en/" + code;
+    document.cookie = "googtrans=" + cookieVal + "; path=/;";
+    document.cookie = "googtrans=" + cookieVal + "; domain=" + host + "; path=/;";
+    document.cookie = "googtrans=" + cookieVal + "; domain=." + rootHost + "; path=/;";
+  }
+}
+
+// Inject Google Translate script & hide its default banner
+(function() {
+  // Suppress Google Translate default top banner with luxury CSS
+  var st = document.createElement('style');
+  st.textContent = '.goog-te-banner-frame, .skiptranslate iframe { display:none !important; } body { top:0px !important; } #goog-gt-tt, .goog-te-balloon-frame { display:none !important; } .goog-text-highlight { background:none !important; box-shadow:none !important; }';
+  document.head.appendChild(st);
+
+  // Hidden translate element
+  var gDiv = document.createElement('div');
+  gDiv.id = 'google_translate_element';
+  gDiv.style.display = 'none';
+  document.body.appendChild(gDiv);
+
+  window.googleTranslateElementInit = function() {
+    new google.translate.TranslateElement({
+      pageLanguage: 'en',
+      autoDisplay: false
+    }, 'google_translate_element');
+  };
+
+  var gScript = document.createElement('script');
+  gScript.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+  gScript.async = true;
+  document.head.appendChild(gScript);
+
+  applyTranslation(currentLocale.lang);
+})();
+
 function formatPrice(usdAmount) {
   var c = CURRENCIES[currentLocale.currency] || CURRENCIES.USD;
   var converted = usdAmount * c.rate;
@@ -184,11 +238,11 @@ function openLocaleModal() {
                   '<button id="loc-close" style="position:absolute;top:1.2rem;right:1.2rem;width:2rem;height:2rem;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:1rem;cursor:pointer" class="muted hover:text-white">✕</button>' +
                   '<span class="chip text-xs">Regional Settings</span>' +
                   '<h3 class="serif text-3xl gt mt-2">Currency & Language</h3>' +
-                  '<p class="muted text-xs mt-1">Select your preferred currency and language.</p>' +
+                  '<p class="muted text-xs mt-1">Select your preferred currency and language. The website translates instantly.</p>' +
                   '<div class="flex flex-col gap-3 mt-5">' +
                   '<label class="fld text-left"><span>Select Currency</span><select id="loc-sel-cur">' + curOptions + '</select></label>' +
-                  '<label class="fld text-left"><span>Language</span><select id="loc-sel-lang">' + langOptions + '</select></label>' +
-                  '<button id="loc-btn-save" class="btn btn-gold w-full mt-3">Save Preferences</button>' +
+                  '<label class="fld text-left"><span>Website Language</span><select id="loc-sel-lang">' + langOptions + '</select></label>' +
+                  '<button id="loc-btn-save" class="btn btn-gold w-full mt-3">Apply & Translate</button>' +
                   '</div>' +
                   '</div>';
 
@@ -208,24 +262,18 @@ function openLocaleModal() {
   var saveBtn = document.getElementById('loc-btn-save');
   if (saveBtn) {
     saveBtn.onclick = function(){
-      currentLocale.currency = document.getElementById('loc-sel-cur').value;
-      currentLocale.lang = document.getElementById('loc-sel-lang').value;
+      var newCur = document.getElementById('loc-sel-cur').value;
+      var newLang = document.getElementById('loc-sel-lang').value;
+      currentLocale.currency = newCur;
+      currentLocale.lang = newLang;
       try { localStorage.setItem('koo_user_locale', JSON.stringify(currentLocale)); } catch(e){}
+      applyTranslation(newLang);
       dlg.remove();
-      updateNavAuth();
-      updateLocaleNavButtons();
+      // Reload to let translation apply cleanly
+      location.reload();
     };
   }
   dlg.onclick = function(e){ if (e.target === dlg) dlg.remove(); };
-}
-
-function updateLocaleNavButtons() {
-  var bDesk = document.getElementById('nav-locale-btn');
-  var bMob = document.getElementById('m-nav-locale-btn');
-  var cur = CURRENCIES[currentLocale.currency] || CURRENCIES.EUR;
-  var txt = '📍 ' + currentLocale.currency + ' (' + cur.symbol + ') ▾';
-  if (bDesk) bDesk.innerHTML = '<span class="whitespace-nowrap">' + txt + '</span>';
-  if (bMob) bMob.textContent = '📍 Currency & Language: ' + currentLocale.currency + ' (' + cur.symbol + ') · ' + (LANGUAGES[currentLocale.lang] || currentLocale.lang);
 }
 
 /* ---------- NAV & PAGE BUILDER ---------- */
@@ -275,7 +323,7 @@ function lk(p){return '<a class="l whitespace-nowrap" href="'+p[0]+'"'+(p[0]===h
 var curInfo = CURRENCIES[currentLocale.currency] || CURRENCIES.EUR;
 var locBtnHtml = '<button id="nav-locale-btn" class="l whitespace-nowrap flex items-center gap-1 font-medium text-xs py-1 px-2.5 rounded-full" style="cursor:pointer;color:#b76e79;background:rgba(243,226,179,0.15);border:1px solid rgba(183,110,121,0.25)" title="Change Currency & Language"><span>📍 ' + currentLocale.currency + ' (' + curInfo.symbol + ') ▾</span></button>';
 
-// Desktop Menu: Jewelry Box | Look Planner | Size guide | Metal match | Currency Button | Gift finder | More ▾
+// Desktop Menu: Jewelry Box | Look Planner | Size guide | Metal match | Currency Switch | Gift finder | More ▾
 var deskLinks = [
   pages[1], pages[2], pages[3], pages[4]
 ].map(lk).join('') + locBtnHtml + lk(pages[6]);
@@ -510,7 +558,7 @@ function openProfileModal() {
                   '<a href="wishlist.html" class="btn btn-ghost text-xs" style="padding:.35rem .75rem">View Wishlist</a>' +
                   '</div>' +
                   '<div class="mt-6 flex items-center justify-between pt-4 border-t border-rose-200/10">' +
-                  '<button id="prof-btn-logout" class="text-xs text-red-400 hover:underline">Log out of this device</button>' +
+                  '<button id="prof-btn-logout" class="text-red-400 text-xs hover:underline">Log out of this device</button>' +
                   '<button id="prof-btn-done" class="btn btn-ghost text-xs" style="padding:.35rem .9rem">Done</button>' +
                   '</div>' +
                   '</div>';
