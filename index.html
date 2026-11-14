@@ -55,9 +55,66 @@
   opacity: 1;
   pointer-events: auto;
 }
+.studio-card {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  border: 1px solid rgba(243, 226, 179, 0.2);
+  transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s, box-shadow 0.42s;
+  animation: studioIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.studio-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(243, 226, 179, 0.58);
+  box-shadow: 0 26px 50px -18px rgba(183, 110, 121, 0.42);
+}
+.studio-img-wrap {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(243, 226, 179, 0.16), rgba(183, 110, 121, 0.22));
+}
+.studio-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.75s cubic-bezier(0.16, 1, 0.3, 1), filter 0.45s ease;
+}
+.studio-card:hover .studio-img-wrap img {
+  transform: scale(1.07);
+  filter: contrast(1.04) brightness(1.03);
+}
+.studio-sheen {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 25%, rgba(255, 255, 255, 0.24) 48%, transparent 72%);
+  transform: translateX(-130%);
+  transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+.studio-card:hover .studio-sheen {
+  transform: translateX(130%);
+}
+.studio-arrow {
+  display: inline-block;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.studio-card:hover .studio-arrow {
+  transform: translateX(5px);
+}
+@keyframes studioIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
 @media (prefers-reduced-motion: reduce) {
-  .hero-media-frame, .hero-media-frame::after, .editorial-img, .sticky-pro-bar {
+  .hero-media-frame, .hero-media-frame::after, .editorial-img, .sticky-pro-bar,
+  .studio-card, .studio-img-wrap img, .studio-sheen, .studio-arrow {
     transition: none !important;
+    animation: none !important;
   }
 }
 </style>
@@ -177,82 +234,42 @@ All tools unlocked
 </div>
 </section>
 
-<!-- ALL 12 FEATURES IN ONE PLACE -->
+<!-- ALL 12 FEATURES IN AN EDITORIAL MOTION GALLERY -->
 <section id="suite" class="mt-12 sm:mt-16 reveal" aria-labelledby="th">
-<div class="flex flex-wrap items-end justify-between mb-6 sm:mb-8 gap-3">
+<div class="flex flex-wrap items-end justify-between mb-6 gap-4">
 <div>
 <p class="text-xs muted mb-1">Complete Atelier Collection</p>
 <h2 id="th" class="text-3xl sm:text-4xl md:text-5xl gt">12 Specialized Jewelry Studios</h2>
-<p class="muted text-xs sm:text-sm mt-1">Try any studio once for free, or unlock unlimited access across every device.</p>
+<p class="muted text-xs sm:text-sm mt-1">Explore every fine-jewelry studio below, or unlock unlimited access across all devices.</p>
 </div>
-<button type="button" id="suite-pro-btn" class="btn btn-ghost text-xs py-2 px-4">
+<button type="button" id="suite-pro-btn" class="btn btn-ghost text-xs py-2 px-4 shrink-0">
 Unlock All 12 (<span data-pro-price>$6</span>/mo) &rarr;
 </button>
 </div>
 
-<div class="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
+<!-- Segmented Filter Controls -->
+<div class="flex flex-wrap items-center justify-between gap-3 mb-7">
+<div id="studio-filters" class="inline-flex flex-wrap gap-1.5 p-1 rounded-2xl glass" role="tablist" aria-label="Filter jewelry studios">
+<button type="button" class="chip text-xs py-2 px-4" role="tab" aria-selected="true" data-cat="all">All 12 Studios</button>
+<button type="button" class="chip text-xs py-2 px-4" role="tab" aria-selected="false" data-cat="vault">Vault &amp; Valuation</button>
+<button type="button" class="chip text-xs py-2 px-4" role="tab" aria-selected="false" data-cat="fit">Fit &amp; Precision</button>
+<button type="button" class="chip text-xs py-2 px-4" role="tab" aria-selected="false" data-cat="styling">Styling &amp; Gifting</button>
+</div>
+<p id="studio-count" class="text-xs muted tabular-nums">Showing 12 studios</p>
+</div>
 
-<a href="sizing.html" class="glass glow p-5 sm:p-6 block no-underline text-inherit sm:col-span-2 tool-card rounded-2xl sm:rounded-3xl">
-<p class="text-xs muted">01 &middot; Sizing Studio</p>
-<h3 class="text-2xl sm:text-3xl mt-2 gt">Ring &amp; bracelet size guide</h3>
-<p class="muted text-xs sm:text-sm mt-1.5">Slide to your size and convert US, UK, EU, and Japan scales at once with an interactive millimeter ring.</p>
-</a>
+<div id="studio-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6"></div>
 
-<a href="styling.html" class="glass glow p-5 sm:p-6 block no-underline text-inherit tool-card rounded-2xl sm:rounded-3xl">
-<p class="text-xs muted">02 &middot; Color Match</p>
-<h3 class="text-2xl sm:text-3xl mt-2 gt">Metal &amp; undertone match</h3>
-<p class="muted text-xs sm:text-sm mt-1.5">Discover whether yellow gold, platinum, or rose gold illuminates your natural complexion.</p>
-</a>
-
-<a href="care.html" class="glass glow p-5 sm:p-6 block no-underline text-inherit tool-card rounded-2xl sm:rounded-3xl">
-<p class="text-xs muted">03 &middot; Care Vault</p>
-<h3 class="text-2xl sm:text-3xl mt-2 gt">Jewelry care guide</h3>
-<p class="muted text-xs sm:text-sm mt-1.5">Gold, silver, pearls, and diamonds: safe cleaning rituals and what quietly damages brilliance.</p>
-</a>
-
-<a href="gift.html" class="glass glow p-5 sm:p-6 block no-underline text-inherit sm:col-span-2 tool-card rounded-2xl sm:rounded-3xl">
-<p class="text-xs muted">04 &middot; Smart Quiz</p>
-<h3 class="text-2xl sm:text-3xl mt-2 gt">Gift finder quiz</h3>
-<p class="muted text-xs sm:text-sm mt-1.5">Four thoughtful questions, three gift recommendations matched to her aesthetic and your budget.</p>
-</a>
-
-<a href="layering.html" class="glass glow p-5 sm:p-6 block no-underline text-inherit tool-card rounded-2xl sm:rounded-3xl">
-<p class="text-xs muted">05 &middot; Chains Studio</p>
-<h3 class="text-2xl sm:text-3xl mt-2 gt">Necklace layering guide</h3>
-<p class="muted text-xs sm:text-sm mt-1.5">Simulate chain lengths and spacing that drape cleanly across 6 neckline styles.</p>
-</a>
-
-<a href="wishlist.html" class="glass glow p-5 sm:p-6 block no-underline text-inherit tool-card rounded-2xl sm:rounded-3xl">
-<p class="text-xs muted">06 &middot; Wishlist Vault</p>
-<h3 class="text-2xl sm:text-3xl mt-2 gt">Cloud Wishlist</h3>
-<p class="muted text-xs sm:text-sm mt-1.5">Bookmark pieces from any guide or tool and keep your shortlist synced across devices.</p>
-</a>
-
-<a href="anniversary.html" class="glass glow p-5 sm:p-6 block no-underline text-inherit tool-card rounded-2xl sm:rounded-3xl">
-<p class="text-xs muted">07 &middot; Milestones</p>
-<h3 class="text-2xl sm:text-3xl mt-2 gt">Anniversary gifts by year</h3>
-<p class="muted text-xs sm:text-sm mt-1.5">Traditional gifts and gemstones curated for milestone anniversaries from year 1 to 60.</p>
-</a>
-
-<a href="gold.html" class="glass glow p-5 sm:p-6 block no-underline text-inherit sm:col-span-2 tool-card rounded-2xl sm:rounded-3xl">
-<p class="text-xs muted">08 &middot; Melt Engine</p>
-<h3 class="text-2xl sm:text-3xl mt-2 gt">Gold karat &amp; melt calculator</h3>
-<p class="muted text-xs sm:text-sm mt-1.5">Compare purity levels across 10k, 14k, 18k, and 24k and compute exact scrap value per gram.</p>
-</a>
-
-<a href="diamond.html" class="glass glow p-5 sm:p-6 block no-underline text-inherit tool-card rounded-2xl sm:rounded-3xl">
-<p class="text-xs muted">09 &middot; Carat Scale</p>
-<h3 class="text-2xl sm:text-3xl mt-2 gt">How big is a carat?</h3>
-<p class="muted text-xs sm:text-sm mt-1.5">Visualize diamond carat weights at exact millimeter scale on a hand model.</p>
-</a>
-
-<a href="earrings.html" class="glass glow p-5 sm:p-6 block no-underline text-inherit sm:col-span-2 tool-card rounded-2xl sm:rounded-3xl">
-<p class="text-xs muted">10 &middot; Face Match</p>
-<h3 class="text-2xl sm:text-3xl mt-2 gt">Earrings for your face shape</h3>
-<p class="muted text-xs sm:text-sm mt-1.5">Discover which studs, huggies, hoops, and drops harmonize with your facial structure.</p>
-</a>
-
-</div></section>
+<div class="mt-8 glass p-5 sm:p-6 rounded-2xl flex flex-wrap items-center justify-between gap-4">
+<div>
+<p class="serif text-xl sm:text-2xl gt leading-tight">Want unlimited saves, cloud photo vault, and printable appraisals?</p>
+<p class="muted text-xs sm:text-sm mt-0.5">Every studio includes 1 complimentary try &mdash; upgrade anytime for <span data-pro-price>$6</span>/month.</p>
+</div>
+<button type="button" id="suite-bottom-cta" class="btn btn-gold text-xs sm:text-sm py-3 px-6 shrink-0">
+Go Pro &mdash; <span data-pro-price>$6</span>/mo &rarr;
+</button>
+</div>
+</section>
 
 <!-- INTERACTIVE STUDIO 1: RING SIZER -->
 <section id="size" class="mt-16 sm:mt-24 grid lg:grid-cols-2 gap-8 items-center scroll-mt-20 reveal">
@@ -467,7 +484,7 @@ if (window.formatPrice) {
 }
 
 /* ---------- Wire Pro Checkout CTAs ---------- */
-['hero-cta-pro', 'suite-pro-btn', 'offer-cta-pro', 'sticky-cta-btn'].forEach(function(id){
+['hero-cta-pro', 'suite-pro-btn', 'suite-bottom-cta', 'offer-cta-pro', 'sticky-cta-btn'].forEach(function(id){
   var el = document.getElementById(id);
   if (el) el.onclick = function(){
     if (window.isProUser && window.isProUser()) {
@@ -477,6 +494,66 @@ if (window.formatPrice) {
     }
   };
 });
+
+/* ---------- 12 Specialized Jewelry Studios Gallery ---------- */
+(function(){
+  var STUDIOS = [
+    { num: '01', cat: 'vault', label: 'Portfolio Studio', title: 'My Jewelry Box & Value Vault', desc: 'Catalog pieces, back up compressed photos, calculate pure gold weight, and print insurance records.', href: 'vault.html', img: 'images/home/vault-tray.jpg', alt: 'Walnut and suede jewelry collector tray with rings and brass jeweler scale' },
+    { num: '02', cat: 'styling', label: 'Styling Studio', title: 'Lookbook & Wear Planner', desc: 'Map out 7 days of jewelry outfits, log daily wears, and uncover your true Cost-Per-Wear.', href: 'planner.html', img: 'images/home/atelier-bench.jpg', alt: 'Goldsmith desk with 18k gold pendant chain and jeweler loupe' },
+    { num: '03', cat: 'fit', label: 'Sizing Studio', title: 'Ring & Bracelet Size Guide', desc: 'Convert US, UK, EU, and Japan scales simultaneously with a live millimeter diameter circle.', href: 'sizing.html', img: 'images/home/studio-diamond.jpg', alt: 'Radiant diamond solitaire ring and platinum band on cream silk and travertine' },
+    { num: '04', cat: 'styling', label: 'Color Harmony', title: 'Metal & Undertone Match', desc: 'Discover whether yellow gold, rose gold, silver, or platinum brings out your skin glow.', href: 'styling.html', img: 'images/home/studio-gemstones.jpg', alt: 'Faceted sapphire, emerald, ruby, and citrine gems beside rose and white gold swatches' },
+    { num: '05', cat: 'vault', label: 'Melt Engine', title: 'Gold Karat & Melt Calculator', desc: 'Compare 10k through 24k purity levels and calculate exact scrap gold value by gram or ounce.', href: 'gold.html', img: 'images/home/studio-gold.jpg', alt: '24k fine gold bullion bar beside 18k and 14k gold curb chains and brass tweezers' },
+    { num: '06', cat: 'fit', label: 'Carat Scale', title: 'Diamond Carat Visualizer', desc: 'Preview round diamond dimensions from 0.25 ct to 4.0 ct to exact millimeter scale on a hand.', href: 'diamond.html', img: 'images/home/hero-flatlay.jpg', alt: '18k rose gold solitaire diamond ring, herringbone chain, and gold hoops on travertine' },
+    { num: '07', cat: 'styling', label: 'Chains Studio', title: 'Necklace Layering Guide', desc: 'Test multi-chain spacing and drop lengths effortlessly across six everyday necklines.', href: 'layering.html', img: 'images/home/studio-layering.jpg', alt: 'Layered 18k yellow gold choker, herringbone chain, and medallion over cream cashmere' },
+    { num: '08', cat: 'fit', label: 'Face Match', title: 'Earrings for Your Face Shape', desc: 'Match studs, huggies, hoops, and drops to your facial proportions and ear sensitivity.', href: 'earrings.html', img: 'images/home/studio-earrings.jpg', alt: 'Sculptural gold hoops, baroque pearl drops, and diamond studs on carved alabaster' },
+    { num: '09', cat: 'styling', label: 'Smart Quiz', title: 'Gift Finder Concierge', desc: 'Answer four quick style questions to receive tailored fine jewelry gift recommendations.', href: 'gift.html', img: 'images/home/vault-tray.jpg', alt: 'Curated fine jewelry box with heirloom signet rings and pearl drops' },
+    { num: '10', cat: 'vault', label: 'Care Archive', title: 'Jewelry Care & Cleaning Vault', desc: 'Gentle rituals for gold, sterling silver, pearls, diamonds, and treated colored gemstones.', href: 'care.html', img: 'images/home/studio-diamond.jpg', alt: 'Diamond ring and platinum eternity band in soft studio light' },
+    { num: '11', cat: 'styling', label: 'Milestones', title: 'Anniversary Gifts by Year', desc: 'Traditional metals and meaningful milestone gemstones curated from year 1 through 60.', href: 'anniversary.html', img: 'images/home/studio-earrings.jpg', alt: 'Baroque pearl drop earrings and diamond studs in alabaster stone dish' },
+    { num: '12', cat: 'vault', label: 'Saved Vault', title: 'Cloud Wishlist', desc: 'Save favorite gemstones, ring specs, and gift ideas synced seamlessly to your account.', href: 'wishlist.html', img: 'images/home/studio-gemstones.jpg', alt: 'Sapphire, emerald, ruby, amethyst, and citrine gemstones on suede' }
+  ];
+
+  var grid = document.getElementById('studio-grid');
+  var countEl = document.getElementById('studio-count');
+  var filterBtns = document.querySelectorAll('#studio-filters [data-cat]');
+  if (!grid) return;
+
+  function renderStudios(cat) {
+    var list = cat === 'all' ? STUDIOS : STUDIOS.filter(function(s){ return s.cat === cat; });
+    if (countEl) countEl.textContent = 'Showing ' + list.length + (list.length === 1 ? ' studio' : ' studios');
+
+    grid.innerHTML = list.map(function(s, i){
+      var delay = Math.min(i * 45, 360);
+      return '<a href="' + s.href + '" class="glass glow studio-card" style="animation-delay:' + delay + 'ms">' +
+             '<div class="studio-img-wrap">' +
+             '<img src="' + s.img + '" alt="' + s.alt + '" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">' +
+             '<div class="studio-sheen"></div>' +
+             '<div class="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent pointer-events-none"></div>' +
+             '</div>' +
+             '<div class="p-5 sm:p-6 flex-1 flex flex-col justify-between">' +
+             '<div>' +
+             '<p class="text-[11px] uppercase tracking-wider muted tabular-nums">' + s.num + ' &middot; ' + s.label + '</p>' +
+             '<h3 class="serif text-2xl sm:text-3xl gt mt-1.5 leading-snug">' + s.title + '</h3>' +
+             '<p class="muted text-xs sm:text-sm mt-2 leading-relaxed">' + s.desc + '</p>' +
+             '</div>' +
+             '<div class="mt-4 pt-3 border-t border-rose-200/15 flex items-center justify-between text-xs">' +
+             '<span class="muted">1 Free Try &middot; Pro Unlimited</span>' +
+             '<span class="gt font-medium">Open <span class="studio-arrow">&rarr;</span></span>' +
+             '</div>' +
+             '</div>' +
+             '</a>';
+    }).join('');
+  }
+
+  filterBtns.forEach(function(btn){
+    btn.onclick = function(){
+      var cat = btn.dataset.cat;
+      filterBtns.forEach(function(b){ b.setAttribute('aria-selected', b === btn ? 'true' : 'false'); });
+      renderStudios(cat);
+    };
+  });
+
+  renderStudios('all');
+})();
 
 /* ---------- Scroll Reveal Observer (Compositor-Only) ---------- */
 (function(){
