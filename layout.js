@@ -596,11 +596,10 @@ async function handleStripeSuccess() {
   }
 }
 
-/* ---------- FIRST-LOGIN DATA MIGRATION PROMPT ---------- */
-async function checkAndPromptCloudSync(user) {
+/* ---------- MANUAL LOCAL-TO-CLOUD SYNC HELPER (Triggered only from Profile if desired) ---------- */
+async function syncLocalToCloud(user) {
   if (!user || !sb) return;
   var migrationKey = 'koo_migrated_' + user.id;
-  if (localStorage.getItem(migrationKey)) return;
 
   var vaultData = [];
   var planData = {};
@@ -611,107 +610,65 @@ async function checkAndPromptCloudSync(user) {
   try { wearData = JSON.parse(localStorage.getItem('koo_wear_history')) || []; } catch(e){}
   try { wishData = JSON.parse(localStorage.getItem('koo_wishlist')) || []; } catch(e){}
 
-  var hasLocalData = vaultData.length > 0 || Object.keys(planData).length > 0 || wearData.length > 0 || wishData.length > 0;
-  if (!hasLocalData) {
-    localStorage.setItem(migrationKey, 'true');
-    return;
-  }
-
-  var modal = document.createElement('div');
-  modal.id = 'cloud-migration-dialog';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(18,10,14,0.85);backdrop-filter:blur(12px);z-index:100001;display:flex;align-items:center;justify-content:center;padding:1.25rem;';
-  modal.innerHTML = '<div class="glass glow p-6 md:p-8 rounded-3xl max-w-md w-full text-center relative" style="border:1px solid rgba(243,226,179,0.3)">' +
-                    '<span class="text-4xl block mb-2">☁️</span>' +
-                    '<span class="chip text-xs">Cloud Backup Available</span>' +
-                    '<h3 class="serif text-3xl gt mt-2">Sync Local Data</h3>' +
-                    '<p class="muted text-sm mt-2 leading-relaxed">' +
-                    'We detected ' + (vaultData.length ? vaultData.length + ' jewelry piece(s), ' : '') +
-                    (wishData.length ? wishData.length + ' wishlist item(s), ' : '') +
-                    'and styling plans saved on this device. Would you like to import them to your secure cloud account?' +
-                    '</p>' +
-                    '<div class="flex flex-col gap-2 mt-6">' +
-                    '<button id="btn-sync-confirm" class="btn btn-gold w-full py-2.5 text-sm font-medium">Yes, Sync to Cloud Account</button>' +
-                    '<button id="btn-sync-skip" class="btn btn-ghost w-full py-2 text-xs">Keep On Device Only</button>' +
-                    '</div>' +
-                    '</div>';
-  document.body.appendChild(modal);
-
-  document.getElementById('btn-sync-skip').onclick = function(){
-    localStorage.setItem(migrationKey, 'declined');
-    modal.remove();
-  };
-
-  document.getElementById('btn-sync-confirm').onclick = async function(){
-    var btn = document.getElementById('btn-sync-confirm');
-    btn.disabled = true;
-    btn.textContent = 'Syncing...';
-
-    try {
-      // Sync pieces (respect limit if non-pro)
-      if (vaultData.length > 0) {
-        var piecesToInsert = vaultData.map(function(p){
-          return {
-            user_id: user.id,
-            name: p.name || 'Fine Jewelry',
-            category: p.cat || 'Other',
-            karat: p.karat || '14k',
-            weight_g: parseFloat(p.weight) || 0,
-            paid_price: parseFloat(p.price) || 0,
-            notes: p.notes || ''
-          };
-        });
-        if (!window.__isPro && piecesToInsert.length > 2) {
-          piecesToInsert = piecesToInsert.slice(0, 2);
-        }
-        await sb.from('pieces').insert(piecesToInsert);
-      }
-
-      // Sync weekly plan
-      var days = Object.keys(planData);
-      for (var i = 0; i < days.length; i++) {
-        var day = days[i];
-        if (!window.__isPro && ['Monday', 'Tuesday'].indexOf(day) < 0) continue;
-        await sb.from('weekly_plan').upsert({
+  try {
+    if (vaultData.length > 0) {
+      var piecesToInsert = vaultData.map(function(p){
+        return {
           user_id: user.id,
-          day: day,
-          piece_ids: [planData[day]]
-        }, { onConflict: 'user_id,day' });
+          name: p.name || 'Fine Jewelry',
+          category: p.cat || 'Other',
+          karat: p.karat || '14k',
+          weight_g: parseFloat(p.weight) || 0,
+          paid_price: parseFloat(p.price) || 0,
+          notes: p.notes || ''
+        };
+      });
+      if (!window.__isPro && piecesToInsert.length > 2) {
+        piecesToInsert = piecesToInsert.slice(0, 2);
       }
-
-      // Sync wears
-      if (wearData.length > 0) {
-        var wearsToInsert = wearData.map(function(w){
-          return {
-            user_id: user.id,
-            piece_name: w.piece,
-            vibe: w.vibe || 'Everyday',
-            worn_on: w.date || new Date().toISOString().slice(0,10)
-          };
-        });
-        if (!window.__isPro && wearsToInsert.length > 3) {
-          wearsToInsert = wearsToInsert.slice(0, 3);
-        }
-        await sb.from('wear_log').insert(wearsToInsert);
-      }
-
-      // Sync wishlist
-      if (wishData.length > 0) {
-        var wishToInsert = wishData.map(function(it){
-          return { user_id: user.id, item: it };
-        });
-        await sb.from('wishlist').insert(wishToInsert);
-      }
-
-      localStorage.setItem(migrationKey, 'true');
-      modal.remove();
-      showToast('✨ Data successfully synced to your cloud account!');
-      setTimeout(function(){ location.reload(); }, 900);
-    } catch(err) {
-      console.error('Migration error:', err);
-      showToast('Some items could not be synced: ' + err.message, true);
-      modal.remove();
+      await sb.from('pieces').insert(piecesToInsert);
     }
-  };
+
+    var days = Object.keys(planData);
+    for (var i = 0; i < days.length; i++) {
+      var day = days[i];
+      if (!window.__isPro && ['Monday', 'Tuesday'].indexOf(day) < 0) continue;
+      await sb.from('weekly_plan').upsert({
+        user_id: user.id,
+        day: day,
+        piece_ids: [planData[day]]
+      }, { onConflict: 'user_id,day' });
+    }
+
+    if (wearData.length > 0) {
+      var wearsToInsert = wearData.map(function(w){
+        return {
+          user_id: user.id,
+          piece_name: w.piece,
+          vibe: w.vibe || 'Everyday',
+          worn_on: w.date || new Date().toISOString().slice(0,10)
+        };
+      });
+      if (!window.__isPro && wearsToInsert.length > 3) {
+        wearsToInsert = wearsToInsert.slice(0, 3);
+      }
+      await sb.from('wear_log').insert(wearsToInsert);
+    }
+
+    if (wishData.length > 0) {
+      var wishToInsert = wishData.map(function(it){
+        return { user_id: user.id, item: it };
+      });
+      await sb.from('wishlist').insert(wishToInsert);
+    }
+
+    localStorage.setItem(migrationKey, 'true');
+    showToast('✨ Data successfully synced to your cloud account!');
+    setTimeout(function(){ location.reload(); }, 900);
+  } catch(err) {
+    console.error('Migration error:', err);
+    showToast('Some items could not be synced: ' + err.message, true);
+  }
 }
 
 /* ---------- USER PROFILE & BILLING MODAL ---------- */
@@ -1079,7 +1036,6 @@ window.initMcGeeAuth = async function() {
       window.currentUser = currentUser;
       await refreshProStatus();
       await KOO.loadFromCloud();
-      checkAndPromptCloudSync(currentUser);
     }
   } catch(e) {
     console.error('Session retrieval error:', e);
@@ -1095,7 +1051,6 @@ window.initMcGeeAuth = async function() {
     await refreshProStatus();
     if (currentUser) {
       await KOO.loadFromCloud();
-      checkAndPromptCloudSync(currentUser);
     }
     updateNavAuth();
     handleStripeSuccess();
