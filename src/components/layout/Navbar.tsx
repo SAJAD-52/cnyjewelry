@@ -42,6 +42,7 @@ export const Navbar: React.FC = () => {
     { slug: 'gold', label: 'Gold calculator' },
     { slug: 'diamond', label: 'Diamond size' },
     { slug: 'earrings', label: 'Earring finder' },
+    { slug: 'beading', label: 'Beading board' },
   ];
 
   const handleNav = (slug: string) => {

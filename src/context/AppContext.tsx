@@ -51,7 +51,7 @@ export const LANGUAGES: Record<string, string> = {
 export const ALL_TOOL_SLUGS = [
   'sizing', 'styling', 'care', 'gift', 'layering', 
   'anniversary', 'gold', 'diamond', 'earrings', 'wishlist', 
-  'vault', 'planner'
+  'vault', 'planner', 'beading'
 ];
 
 export const PRO_EMAILS = [

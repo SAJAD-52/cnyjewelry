@@ -31,7 +31,7 @@ var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 var STRIPE_BASE = 'https://buy.stripe.com/5kQ00kb7pgWc8p8c6Y0ZW00';
 var STRIPE_PORTAL = 'https://billing.stripe.com/p/login/';
 
-var ALL_TOOL_SLUGS = ['sizing', 'styling', 'care', 'gift', 'layering', 'anniversary', 'gold', 'diamond', 'earrings', 'wishlist', 'vault', 'planner'];
+var ALL_TOOL_SLUGS = ['sizing', 'styling', 'care', 'gift', 'layering', 'anniversary', 'gold', 'diamond', 'earrings', 'wishlist', 'vault', 'planner', 'beading'];
 
 /* ---------- CURRENCIES & MATCHING LANGUAGES ---------- */
 var CURRENCIES = {
@@ -256,7 +256,8 @@ var pages=[
   ['anniversary.html','Anniversary gifts'],
   ['gold.html','Gold calculator'],
   ['diamond.html','Diamond size'],
-  ['earrings.html','Earring finder']
+  ['earrings.html','Earring finder'],
+  ['beading.html','Beading board']
 ];
 
 var rawPath = location.pathname.toLowerCase().replace(/^\/+|\/+$/g, '');
@@ -336,7 +337,7 @@ var deskLinks = [
   pages[1], pages[2], pages[3], pages[4]
 ].map(lk).join('') + locBtnHtml + lk(pages[6]);
 
-var moreLinks = [pages[5], pages[7], pages[8], pages[9], pages[10], pages[11], pages[12], pages[13]].map(lk).join('');
+var moreLinks = [pages[5], pages[7], pages[8], pages[9], pages[10], pages[11], pages[12], pages[13], pages[14]].map(lk).join('');
 var desk = deskLinks + '<details class="more"><summary' + (here !== 'index.html' && ['vault.html','planner.html','sizing.html','styling.html','gift.html'].indexOf(here) < 0 ? ' style="color:#f3e2b3"' : '') + '>More</summary><div class="more-menu">' + moreLinks + '</div></details>';
 
 var mobLinks = pages.map(lk).join('') + 
@@ -513,7 +514,7 @@ function updateNavAuth() {
             '</div>' +
             (!pro ? 
               '<div class="flex items-center justify-between gap-2 mt-2">' +
-              '<span class="text-xs muted">🎁 ' + triesLeft + '/12 Free Tries</span>' +
+              '<span class="text-xs muted">🎁 ' + triesLeft + '/' + ALL_TOOL_SLUGS.length + ' Free Tries</span>' +
               '<button id="m-nav-btn-pro" class="btn btn-gold text-xs py-1.5 px-3">Upgrade (' + priceLabel + '/mo)</button>' +
               '</div>' 
               : '<span class="chip text-xs mt-1">⭐ Pro Member Active</span>');
@@ -526,7 +527,7 @@ function updateNavAuth() {
             '<button id="m-btn-login" class="btn btn-ghost flex-1 py-1.5 text-xs">Log in</button>' +
             '<button id="m-nav-btn-pro" class="btn btn-gold flex-1 text-center py-1.5 text-xs">Pro ' + priceLabel + '/mo</button>' +
             '</div>' +
-            '<p class="text-xs muted text-center mt-2">🎁 ' + triesLeft + '/12 Free Tries Remaining</p>';
+            '<p class="text-xs muted text-center mt-2">🎁 ' + triesLeft + '/' + ALL_TOOL_SLUGS.length + ' Free Tries Remaining</p>';
   }
 
   if (as) as.innerHTML = html;
@@ -755,6 +756,7 @@ function openProModal(isPageLock) {
     { icon: '📿', t: 'Necklace Layering Studio', d: 'Recommended chain lengths and spacing for 6 necklines' },
     { icon: '🎨', t: 'Metal & Skin Undertone Match', d: 'Gold, silver and rose gold flattering guide' },
     { icon: '🎁', t: '4-Question Smart Gift Finder', d: 'Custom jewelry gift recommendations by style and budget' },
+    { icon: '🧿', t: 'Beading Board & Pattern Designer', d: 'Millimeter bracelet patterns, bead counts, BOM CSV & blueprints' },
     { icon: '♡', t: 'Synced Pro Wishlist', d: 'Save unlimited pieces and styling sets across devices' }
   ];
 
@@ -777,8 +779,8 @@ function openProModal(isPageLock) {
                 '<h2 class="serif text-3xl md:text-5xl gt mt-3">' + (isPageLock ? 'Free Try Used For This Studio' : 'Unlock Your Complete Jewelry Studio') + '</h2>' +
                 '<p class="muted text-sm md:text-base mt-2 max-w-lg mx-auto">' +
                 (isPageLock
-                  ? 'You have used your 1 free try for this feature (' + triesLeft + '/' + ALL_TOOL_SLUGS.length + ' total tries remaining). Subscribe for <b class="gt">' + priceLabel + '/month</b> to unlock all 12 tools with unlimited access.'
-                  : 'Track unlimited fine gold pieces, export printable insurance sheets, and unlock all 12 interactive styling &amp; sizing tools for <b class="gt">' + priceLabel + '/month</b>.') +
+                  ? 'You have used your 1 free try for this feature (' + triesLeft + '/' + ALL_TOOL_SLUGS.length + ' total tries remaining). Subscribe for <b class="gt">' + priceLabel + '/month</b> to unlock all ' + ALL_TOOL_SLUGS.length + ' tools with unlimited access.'
+                  : 'Track unlimited fine gold pieces, export printable insurance sheets, and unlock all ' + ALL_TOOL_SLUGS.length + ' interactive styling, beading &amp; sizing tools for <b class="gt">' + priceLabel + '/month</b>.') +
                 '</p>' +
                 '</div>' +
 
@@ -788,7 +790,7 @@ function openProModal(isPageLock) {
 
                 '<div class="mt-6 flex flex-col gap-2.5 items-center">' +
                 '<a href="' + getStripeUrl() + '" class="btn btn-gold w-full text-center py-3.5 text-base md:text-lg font-medium shadow-lg" style="letter-spacing:0.02em">' +
-                'Unlock All 12 Studios &nbsp;&rarr;&nbsp; ' + priceLabel + '/month' +
+                'Unlock All ' + ALL_TOOL_SLUGS.length + ' Studios &nbsp;&rarr;&nbsp; ' + priceLabel + '/month' +
                 '</a>' +
                 '<p class="muted text-xs mt-0.5 text-center">Instant access &middot; Secure checkout via Stripe &middot; Cancel anytime in 1 click</p>' +
                 '</div>' +

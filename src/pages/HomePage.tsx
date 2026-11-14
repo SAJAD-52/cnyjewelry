@@ -155,7 +155,7 @@ export const HomePage: React.FC = () => {
           {/* TRUST TICKER */}
           <div className="grid grid-cols-3 gap-2 mt-8 pt-6 border-t border-rose-200/15 text-[11px] sm:text-xs muted text-center sm:text-left">
             <div>
-              <b className="gt text-base sm:text-lg block serif leading-tight">12 Studios</b> Zero guesswork
+              <b className="gt text-base sm:text-lg block serif leading-tight">13 Studios</b> Zero guesswork
             </div>
             <div>
               <b className="gt text-base sm:text-lg block serif leading-tight">100% Private</b> On-device vault
@@ -254,7 +254,7 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* ALL 12 FEATURES IN ONE PLACE */}
+      {/* ALL 13 FEATURES IN ONE PLACE */}
       <section id="suite" className="mt-12 sm:mt-16" aria-labelledby="suite-heading">
         <div className="flex flex-wrap items-end justify-between mb-6 sm:mb-8 gap-2">
           <div>
@@ -263,10 +263,10 @@ export const HomePage: React.FC = () => {
               The McGee Jewelry Studio
             </h2>
             <p className="muted text-xs sm:text-sm mt-1">
-              Twelve specialized interactive tools and guides built exclusively for jewelry.
+              Thirteen specialized interactive tools and guides built exclusively for jewelry.
             </p>
           </div>
-          <span className="chip text-[11px] sm:text-xs">12 Active Tools</span>
+          <span className="chip text-[11px] sm:text-xs">13 Active Tools</span>
         </div>
 
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-5">
@@ -369,7 +369,7 @@ export const HomePage: React.FC = () => {
             </p>
           </button>
 
-          <button onClick={() => navigate('earrings')} className="glass glow p-5 sm:p-6 md:p-7 block text-left no-underline text-inherit sm:col-span-2 tool-card rounded-2xl sm:rounded-3xl cursor-pointer">
+          <button onClick={() => navigate('earrings')} className="glass glow p-5 sm:p-6 md:p-7 block text-left no-underline text-inherit tool-card rounded-2xl sm:rounded-3xl cursor-pointer">
             <div className="flex items-center justify-between">
               <div className="text-2xl sm:text-3xl gt">❋</div>
               <span className="chip text-[11px] sm:text-xs">Face Match</span>
@@ -377,6 +377,17 @@ export const HomePage: React.FC = () => {
             <h3 className="text-2xl sm:text-3xl mt-3 sm:mt-4">Earrings for your face shape</h3>
             <p className="muted text-xs sm:text-sm mt-1.5">
               Discover which studs, huggies, hoops, and chandelier drops harmonize with your facial structure.
+            </p>
+          </button>
+
+          <button onClick={() => navigate('beading')} className="glass glow p-5 sm:p-6 md:p-7 block text-left no-underline text-inherit tool-card rounded-2xl sm:rounded-3xl cursor-pointer">
+            <div className="flex items-center justify-between">
+              <div className="text-2xl sm:text-3xl gt">🧿</div>
+              <span className="chip text-[11px] sm:text-xs">Pattern Studio</span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl mt-3 sm:mt-4">Beading board &amp; pattern designer</h3>
+            <p className="muted text-xs sm:text-sm mt-1.5">
+              Arrange bracelet &amp; necklace bead patterns on a millimeter board with cord cut lengths and BOM estimates.
             </p>
           </button>
         </div>

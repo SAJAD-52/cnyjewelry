@@ -19,6 +19,7 @@ export const Footer: React.FC = () => {
     { slug: 'gold', label: 'Gold calculator' },
     { slug: 'diamond', label: 'Diamond size' },
     { slug: 'earrings', label: 'Earring finder' },
+    { slug: 'beading', label: 'Beading board' },
     { slug: 'privacy', label: 'Privacy and ads' },
   ];
 

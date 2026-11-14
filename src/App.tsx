@@ -20,6 +20,7 @@ import { AnniversaryPage } from './pages/AnniversaryPage';
 import { GoldPage } from './pages/GoldPage';
 import { DiamondPage } from './pages/DiamondPage';
 import { EarringsPage } from './pages/EarringsPage';
+import { BeadingPage } from './pages/BeadingPage';
 import { WishlistPage } from './pages/WishlistPage';
 import { BlogPage } from './pages/BlogPage';
 import { ArticlePage } from './pages/ArticlePage';
@@ -66,6 +67,8 @@ export const App: React.FC = () => {
         return <DiamondPage />;
       case 'earrings':
         return <EarringsPage />;
+      case 'beading':
+        return <BeadingPage />;
       case 'wishlist':
         return <WishlistPage />;
       case 'blog':

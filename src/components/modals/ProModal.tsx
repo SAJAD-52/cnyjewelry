@@ -29,6 +29,7 @@ export const ProModal: React.FC = () => {
     { icon: '📿', t: 'Necklace Layering Studio', d: 'Recommended chain lengths and spacing for 6 necklines' },
     { icon: '🎨', t: 'Metal & Skin Undertone Match', d: 'Gold, silver and rose gold flattering guide' },
     { icon: '🎁', t: '4-Question Smart Gift Finder', d: 'Custom jewelry gift recommendations by style and budget' },
+    { icon: '🧿', t: 'Beading Board & Pattern Designer', d: 'Millimeter bracelet patterns, bead counts, BOM CSV & blueprints' },
     { icon: '♡', t: 'Synced Pro Wishlist', d: 'Save unlimited pieces and styling sets across devices' }
   ];
 
@@ -86,7 +87,7 @@ export const ProModal: React.FC = () => {
           </span>
           <h2 className="serif text-3xl md:text-5xl gt mt-3">Free Try Used For This Studio</h2>
           <p className="muted text-sm md:text-base mt-2 max-w-lg mx-auto">
-            You have used your 1 free try for this feature ({remainingTries}/{ALL_TOOL_SLUGS.length} total tries remaining). Subscribe for <b className="gt">{priceLabel}/month</b> to unlock all 12 tools with unlimited access.
+            You have used your 1 free try for this feature ({remainingTries}/{ALL_TOOL_SLUGS.length} total tries remaining). Subscribe for <b className="gt">{priceLabel}/month</b> to unlock all {ALL_TOOL_SLUGS.length} tools with unlimited access.
           </p>
         </div>
 
@@ -117,7 +118,7 @@ export const ProModal: React.FC = () => {
             className="btn btn-gold w-full text-center py-3.5 text-base md:text-lg font-medium shadow-lg justify-center no-underline"
             style={{ letterSpacing: '0.02em' }}
           >
-            Unlock All 12 Studios &nbsp;&rarr;&nbsp; {priceLabel}/month
+            Unlock All {ALL_TOOL_SLUGS.length} Studios &nbsp;&rarr;&nbsp; {priceLabel}/month
           </a>
           <p className="muted text-xs mt-0.5 text-center">
             Instant access &middot; Secure checkout via Stripe &middot; Cancel anytime in 1 click

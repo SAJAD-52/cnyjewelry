@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Beading Board &amp; Bracelet Pattern Designer | McGee Jewelry</title>
+<meta name="description" content="Design custom beaded bracelets and necklaces on an interactive millimeter beading board. Calculate exact bead counts, cord lengths, and material costs.">
+<meta name="theme-color" content="#fbf5f2">
+<meta property="og:title" content="Beading Board &amp; Bracelet Pattern Designer | McGee Jewelry">
+<meta property="og:description" content="Lay out repeating bead patterns on an interactive millimeter board with live bead count totals, cord cut length math, and Bill of Materials estimates.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.mcgeejewelry.com/beading">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://www.mcgeejewelry.com/beading">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "Beading Board & Bracelet Pattern Designer",
+      "url": "https://www.mcgeejewelry.com/beading",
+      "applicationCategory": "DesignApplication",
+      "operatingSystem": "Web",
+      "description": "Interactive millimeter beading board and bracelet pattern calculator for estimating bead counts, clasp clearances, stringing cord cut lengths, and material costs.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "description": "1 complimentary studio try; unlimited saved presets, CSV BOM export, and printable workshop blueprints with McGee Jewelry Pro."
+      }
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How many beads do I need for a 7-inch (17.8 cm) bracelet?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Subtract your clasp length (typically 10 to 15 mm, or 0 mm for stretch cord) from 178 mm, then divide by your bead diameter. Using 8 mm beads with a 12 mm clasp leaves 166 mm of bead span, which holds 20 beads (160 mm) plus subtle crimp/wire-guard clearance."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why do larger beads make a bracelet feel tighter?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Bead diameter adds wall thickness around the inside curve of the wrist. A strand of 10 mm or 12 mm beads measured end-to-end sits tighter around the wrist than a 4 mm strand of the same flat length, so adding 5 to 10 mm of extra drape helps keep chunky bracelets comfortable."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How much extra wire or elastic cord should I cut?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "For flexible beading wire finished with crimp tubes and wire guards, add at least 60 to 80 mm (30 to 40 mm per side) beyond the net bead span so pliers can seat crimps cleanly. For elastic stretch cord, add 100 to 120 mm total for tensioning and tying a double surgeon's knot."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is included free versus with McGee Jewelry Pro?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Your complimentary studio try provides the full interactive beading board preview, live pattern repeat builder, bead counts, stringing length math, and estimated material cost breakdown. McGee Jewelry Pro unlocks unlimited sessions across all studios, saved local pattern presets, Bill of Materials CSV downloads, and printable/PDF scaled workshop blueprints."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
+<style>
+.bead-palette-btn {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(183, 110, 121, 0.24);
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s, background 0.2s;
+}
+.bead-palette-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(243, 226, 179, 0.65);
+  background: rgba(183, 110, 121, 0.12);
+}
+html:not([data-theme="plum"]):not([data-theme="midnight"]) .bead-palette-btn {
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(183, 110, 121, 0.25);
+}
+html:not([data-theme="plum"]):not([data-theme="midnight"]) .bead-palette-btn:hover {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: #b76e79;
+}
+.board-surface {
+  background: rgba(2, 6, 23, 0.45);
+  border: 1px solid rgba(243, 226, 179, 0.18);
+  border-radius: 1.25rem;
+}
+html:not([data-theme="plum"]):not([data-theme="midnight"]) .board-surface {
+  background: rgba(251, 245, 242, 0.92);
+  border-color: rgba(183, 110, 121, 0.25);
+}
+html[data-theme="plum"] .board-surface {
+  background: rgba(34, 14, 30, 0.62);
+}
+.slot-pill {
+  border-radius: 0.85rem;
+  border: 1px solid rgba(183, 110, 121, 0.28);
+  background: rgba(255, 255, 255, 0.04);
+}
+html:not([data-theme="plum"]):not([data-theme="midnight"]) .slot-pill {
+  background: rgba(255, 255, 255, 0.85);
+}
+.print-only { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .bead-palette-btn, .tool-card, .glow, .btn { transition: none !important; animation: none !important; }
+}
+@media print {
+  #nav, #foot, .no-print, [data-ad], [data-aff] { display: none !important; }
+  .print-only { display: block !important; }
+  body { background: #fff !important; color: #111 !important; }
+  main { padding: 0 !important; max-width: 100% !important; }
+  .glass, .stat, .board-surface {
+    background: #fff !important;
+    color: #111 !important;
+    border: 1px solid #bbb !important;
+    box-shadow: none !important;
+  }
+  .gt { background: none !important; -webkit-text-fill-color: #2b1d20 !important; color: #2b1d20 !important; }
+  .muted { color: #444 !important; }
+}
+</style>
+</head>
+<body class="overflow-x-hidden">
+<a class="skip" href="#main">Skip to content</a>
+<div id="nav"></div>
+
+<main id="main" class="mx-auto max-w-6xl px-4 sm:px-5 pb-24 pt-8 sm:pt-10">
+  <!-- HEADER & FREE VS PRO SCOPE -->
+  <header class="mb-8">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+      <span class="chip text-xs">Fit &amp; Craft Studio &middot; Millimeter Beading Board</span>
+      <span id="beading-tier-badge" class="chip text-xs">1 Free Try &middot; Pro Unlocks Presets &amp; Exports</span>
+    </div>
+    <h1 class="text-4xl sm:text-5xl md:text-6xl gt">Beading Board &amp; Bracelet Pattern Designer</h1>
+    <p class="muted text-base sm:text-lg mt-3 max-w-3xl">
+      Lay out repeating bead motifs around a calibrated millimeter channel, inspect wrist curvature clearance, and compute your exact bead count, stringing cut length, and material Bill of Materials.
+    </p>
+
+    <div class="glass p-4 rounded-2xl mt-5 grid sm:grid-cols-2 gap-3 text-xs">
+      <div class="flex items-start gap-2.5">
+        <span class="chip text-[11px] py-1 px-2.5 shrink-0" aria-hidden="true">Free Try</span>
+        <p class="muted leading-relaxed">
+          <strong class="font-medium text-inherit">Included in your free session:</strong> full interactive U-board &amp; wrist loop visualizer, repeating or mirrored pattern builder, exact bead counts, cord length math, and localized cost estimate.
+        </p>
+      </div>
+      <div class="flex items-start gap-2.5">
+        <span class="chip text-[11px] py-1 px-2.5 shrink-0" style="border-color:#b76e79" aria-hidden="true">Pro Atelier</span>
+        <p class="muted leading-relaxed">
+          <strong class="font-medium text-inherit">Included with Pro:</strong> unlimited sessions, saved pattern presets on this device, 1-click <strong class="font-medium text-inherit">BOM CSV download</strong>, and <strong class="font-medium text-inherit">printable / PDF workshop blueprint</strong>.
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <!-- PRINT BLUEPRINT HEADER -->
+  <div class="print-only mb-6 pb-4 border-b border-neutral-300">
+    <h2 class="serif text-3xl">McGee Jewelry Studio &mdash; Beading Pattern Blueprint</h2>
+    <p id="print-meta" class="text-xs text-neutral-600 mt-1"></p>
+    <div class="mt-3">
+      <p class="text-[11px] font-medium mb-1">Calibration Check (50 mm / 5.0 cm reference bar &mdash; print at 100% / Actual Size):</p>
+      <svg width="50mm" height="10mm" viewBox="0 0 50 10" aria-label="50 millimeter print calibration bar">
+        <rect x="0" y="0" width="50" height="4" fill="#111"/>
+        <line x1="0" y1="4" x2="0" y2="9" stroke="#111" stroke-width="0.4"/>
+        <line x1="10" y1="4" x2="10" y2="7.5" stroke="#111" stroke-width="0.3"/>
+        <line x1="25" y1="4" x2="25" y2="9" stroke="#111" stroke-width="0.4"/>
+        <line x1="40" y1="4" x2="40" y2="7.5" stroke="#111" stroke-width="0.3"/>
+        <line x1="50" y1="4" x2="50" y2="9" stroke="#111" stroke-width="0.4"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- WORKSPACE GRID -->
+  <div class="grid lg:grid-cols-12 gap-6 items-start">
+
+    <!-- LEFT: BOARD VISUALIZER & LIVE METRICS -->
+    <section class="lg:col-span-7 flex flex-col gap-5" aria-label="Interactive Beading Board">
+      <div class="glass glow p-5 sm:p-6 rounded-3xl">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div>
+            <h2 class="serif text-2xl sm:text-3xl gt">Millimeter Design Board</h2>
+            <p id="board-sub" class="muted text-xs mt-0.5 tabular-nums">Center focal alignment &middot; Proportional bead diameters</p>
+          </div>
+          <div class="flex flex-wrap gap-1.5 no-print" role="tablist" aria-label="Board View Mode">
+            <button id="view-board-btn" type="button" class="chip text-xs py-2 px-3.5" role="tab" aria-selected="true">U-Board Channel</button>
+            <button id="view-loop-btn" type="button" class="chip text-xs py-2 px-3.5" role="tab" aria-selected="false">Wrist Loop</button>
+          </div>
+        </div>
+
+        <div class="board-surface p-3 sm:p-4 overflow-hidden">
+          <svg id="bead-board-svg" viewBox="0 0 640 320" class="w-full h-auto block" role="img" aria-label="Interactive millimeter beading board showing arranged bead pattern"></svg>
+        </div>
+
+        <div id="bead-inspect" class="mt-3 text-xs muted flex flex-wrap items-center justify-between gap-2 tabular-nums">
+          <span>Tap or hover any bead on the board to inspect size, hole clearance, and estimated cost.</span>
+          <span id="symmetry-status" class="font-medium gt"></span>
+        </div>
+
+        <!-- 4 CORE STATS -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 tabular-nums">
+          <div class="stat">
+            <span class="muted text-[11px] uppercase tracking-wider">Beads Required</span>
+            <b id="stat-beads" class="gt text-2xl mt-0.5">0</b>
+            <span id="stat-repeats" class="muted text-[11px] block mt-0.5">0 motifs</span>
+          </div>
+          <div class="stat">
+            <span class="muted text-[11px] uppercase tracking-wider">Net Bead Span</span>
+            <b id="stat-span" class="gt text-2xl mt-0.5">0 mm</b>
+            <span id="stat-gap" class="muted text-[11px] block mt-0.5">0.0 mm gap</span>
+          </div>
+          <div class="stat">
+            <span class="muted text-[11px] uppercase tracking-wider">Cut Wire / Cord</span>
+            <b id="stat-cord" class="gt text-2xl mt-0.5">0 mm</b>
+            <span id="stat-cord-in" class="muted text-[11px] block mt-0.5">0.0 in total</span>
+          </div>
+          <div class="stat">
+            <span class="muted text-[11px] uppercase tracking-wider">Est. Material Cost</span>
+            <b id="stat-cost" class="gt text-2xl mt-0.5">$0.00</b>
+            <span id="stat-weight" class="muted text-[11px] block mt-0.5">Est. 0.0 g</span>
+          </div>
+        </div>
+
+        <!-- HOLE COMPATIBILITY & CHUNKY BEAD FIT WARNINGS -->
+        <div id="fit-advisories" class="mt-4 flex flex-col gap-2 text-xs"></div>
+
+        <!-- EXPORT & PRESET ACTION BAR -->
+        <div class="mt-5 pt-4 border-t border-rose-200/15 flex flex-wrap items-center justify-between gap-2.5 no-print">
+          <div class="flex flex-wrap gap-2">
+            <button id="btn-save-preset" type="button" class="btn btn-ghost text-xs py-2.5 px-4">
+              Save Preset <span class="opacity-75">(Pro)</span>
+            </button>
+            <button id="btn-export-csv" type="button" class="btn btn-ghost text-xs py-2.5 px-4">
+              Export BOM CSV <span class="opacity-75">(Pro)</span>
+            </button>
+          </div>
+          <button id="btn-print-blueprint" type="button" class="btn btn-gold text-xs py-2.5 px-5">
+            Print / Save PDF Blueprint (Pro)
+          </button>
+        </div>
+      </div>
+
+      <!-- BILL OF MATERIALS (BOM) TABLE -->
+      <div class="glass p-5 sm:p-6 rounded-3xl">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div>
+            <h2 class="serif text-2xl sm:text-3xl gt">Bill of Materials (BOM)</h2>
+            <p class="muted text-xs">Exact bead counts per finished strand plus clasp &amp; stringing allowance</p>
+          </div>
+          <span class="chip text-[11px] tabular-nums" id="bom-summary-chip">0 SKUs</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs sm:text-sm tabular-nums">
+            <thead>
+              <tr class="text-[11px] uppercase tracking-wider muted border-b border-rose-200/20">
+                <th class="pb-2.5 pr-3">Component</th>
+                <th class="pb-2.5 px-2">Size / Spec</th>
+                <th class="pb-2.5 px-2 text-right">Qty</th>
+                <th class="pb-2.5 px-2 text-right">Span</th>
+                <th class="pb-2.5 pl-2 text-right">Est. Cost</th>
+              </tr>
+            </thead>
+            <tbody id="bom-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TRANSPARENT FORMULAS & ASSUMPTIONS -->
+      <details class="faq" open>
+        <summary>Formulas, Tolerance &amp; Estimate Assumptions</summary>
+        <div id="formula-breakdown" class="mt-3 text-xs sm:text-sm muted space-y-2 tabular-nums leading-relaxed"></div>
+        <p class="muted text-[11px] mt-3 pt-3 border-t border-rose-200/10">
+          <strong class="text-inherit">Estimate Disclaimer:</strong> Bead outer diameters, drill hole diameters, per-bead gram weights, and sample unit material prices are nominal planning estimates. Natural gemstone strands, baroque pearls, and artisan lampwork glass vary by &plusmn;0.2&ndash;0.6 mm; confirm critical fits with calipers before cutting precious metal wire.
+        </p>
+      </details>
+    </section>
+
+    <!-- RIGHT: CONFIGURATION & REPEATING MOTIF STUDIO -->
+    <aside class="lg:col-span-5 flex flex-col gap-5 no-print" aria-label="Pattern Controls">
+      <!-- 1. FIT & STRINGING SPECIFICATIONS -->
+      <div class="glass p-5 sm:p-6 rounded-3xl">
+        <h2 class="serif text-2xl gt mb-4">1. Wrist Size &amp; Stringing Spec</h2>
+
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <label class="fld">
+            <span>Project Type</span>
+            <select id="proj-type">
+              <option value="bracelet_clasp" selected>Clasp Bracelet</option>
+              <option value="bracelet_stretch">Stretch Bracelet</option>
+              <option value="anklet">Anklet</option>
+              <option value="necklace">Beaded Necklace</option>
+            </select>
+          </label>
+          <label class="fld">
+            <span>Drape Fit</span>
+            <select id="fit-ease">
+              <option value="10">Snug (+1.0 cm)</option>
+              <option value="15" selected>Comfort (+1.5 cm)</option>
+              <option value="25">Loose (+2.5 cm)</option>
+              <option value="0">Exact Length (+0 cm)</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="mb-4">
+          <div class="flex items-center justify-between text-sm mb-2 tabular-nums">
+            <label for="body-size-slider" id="body-size-label">Wrist circumference</label>
+            <b id="body-size-readout" class="serif text-2xl gt">16.0 cm (6.30 in)</b>
+          </div>
+          <input id="body-size-slider" type="range" min="13" max="23" step="0.5" value="16" class="w-full cursor-pointer">
+          <p id="target-length-line" class="muted text-xs mt-2 tabular-nums"></p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <label class="fld">
+            <span>Clasp Allowance</span>
+            <select id="clasp-select">
+              <option value="0|None (Stretch Knot)|0">None &mdash; Stretch Knot (0 mm)</option>
+              <option value="10|Small Spring Ring (10 mm)|1.40">Spring Ring (10 mm)</option>
+              <option value="12|14k GF Lobster Clasp (12 mm)|3.80" selected>Lobster Clasp (12 mm)</option>
+              <option value="15|Toggle Bar Clasp (15 mm)|4.50">Toggle Clasp (15 mm)</option>
+              <option value="18|Magnetic Bayonet (18 mm)|5.20">Magnetic Clasp (18 mm)</option>
+            </select>
+          </label>
+          <label class="fld">
+            <span>Stringing Cord</span>
+            <select id="cord-select">
+              <option value="0.38|7-Strand Beading Wire (0.38 mm)|60|0.45" selected>0.38 mm Beading Wire</option>
+              <option value="0.46|49-Strand Fine Wire (0.46 mm)|70|0.65">0.46 mm 49-Strand Wire</option>
+              <option value="0.80|Clear Stretch Elastic (0.80 mm)|120|0.25">0.80 mm Stretch Elastic</option>
+              <option value="0.50|Knotted Silk Thread (0.50 mm)|140|0.55">0.50 mm Silk Thread</option>
+            </select>
+          </label>
+        </div>
+
+        <!-- STARTER TEMPLATES & MIRROR -->
+        <div class="pt-3 border-t border-rose-200/15">
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <span class="text-xs font-medium">Starter Motifs</span>
+            <label class="inline-flex items-center gap-2 text-xs cursor-pointer select-none">
+              <input id="mirror-toggle" type="checkbox" class="accent-[#b76e79] w-4 h-4">
+              <span>Mirror motif (A-B-C-B-A)</span>
+            </label>
+          </div>
+          <div class="flex flex-wrap gap-1.5" id="starter-motifs">
+            <button type="button" class="chip text-xs py-2 px-3" data-motif="pearl_gold">Pearl &amp; Gold</button>
+            <button type="button" class="chip text-xs py-2 px-3" data-motif="rose_carnelian">Rose &amp; Carnelian</button>
+            <button type="button" class="chip text-xs py-2 px-3" data-motif="onyx_minimal">Onyx &amp; Gold</button>
+            <button type="button" class="chip text-xs py-2 px-3" data-motif="seed_rhythm">Seed Rhythm</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. REPEATING MOTIF BUILDER -->
+      <div class="glass p-5 sm:p-6 rounded-3xl">
+        <div class="flex items-center justify-between gap-2 mb-3">
+          <div>
+            <h2 class="serif text-2xl gt">2. Repeating Motif Sequence</h2>
+            <p class="muted text-xs">Build the repeating unit (1&ndash;14 beads). The board fills your span automatically.</p>
+          </div>
+          <button id="btn-clear-motif" type="button" class="text-xs muted hover:underline py-1 px-2">Reset</button>
+        </div>
+
+        <div id="motif-list" class="flex flex-col gap-2 max-h-64 overflow-y-auto pr-1"></div>
+        <div id="motif-empty" class="hidden text-center py-5 muted text-xs">Add beads from the tray below to start your pattern motif.</div>
+      </div>
+
+      <!-- 3. BEAD TRAY PALETTE -->
+      <div class="glass p-5 sm:p-6 rounded-3xl">
+        <h2 class="serif text-2xl gt mb-1">3. Atelier Bead Tray</h2>
+        <p class="muted text-xs mb-3">Tap any bead to append it to your motif unit.</p>
+        <div id="bead-palette" class="grid grid-cols-2 gap-2"></div>
+
+        <!-- CUSTOM BEAD INPUT -->
+        <details class="mt-4 pt-3 border-t border-rose-200/15">
+          <summary class="text-xs font-medium gt cursor-pointer py-1">+ Add custom bead dimensions</summary>
+          <form id="custom-bead-form" class="grid grid-cols-2 gap-2.5 mt-3 text-xs">
+            <label class="fld col-span-2">
+              <span>Bead Name</span>
+              <input id="cb-name" required placeholder="e.g. Jade Rondelle">
+            </label>
+            <label class="fld">
+              <span>Diameter (mm)</span>
+              <input id="cb-mm" type="number" step="0.5" min="1.5" max="20" value="6" required>
+            </label>
+            <label class="fld">
+              <span>Hole Size (mm)</span>
+              <input id="cb-hole" type="number" step="0.1" min="0.4" max="5" value="1.0" required>
+            </label>
+            <label class="fld">
+              <span>Est. Cost (USD)</span>
+              <input id="cb-price" type="number" step="0.05" min="0" value="0.45" required>
+            </label>
+            <label class="fld">
+              <span>Color Swatch</span>
+              <input id="cb-color" type="color" value="#3d8b6c" style="padding:0.25rem;height:2.55rem">
+            </label>
+            <button type="submit" class="btn btn-gold col-span-2 text-xs py-2.5 mt-1">Add Custom Bead to Motif</button>
+          </form>
+        </details>
+      </div>
+
+      <!-- 4. SAVED PRESETS (PRO) -->
+      <div class="glass p-5 sm:p-6 rounded-3xl">
+        <div class="flex items-center justify-between gap-2 mb-2">
+          <h2 class="serif text-2xl gt">Saved Pattern Presets</h2>
+          <span class="chip text-[11px]">Pro Library</span>
+        </div>
+        <p class="muted text-xs mb-3">Saved locally in this browser for quick studio reloads.</p>
+        <div id="presets-list" class="flex flex-col gap-2 text-xs"></div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- UNGATED SEO EXPLAINER (300–500 WORDS) -->
+  <section class="pk glass p-6 sm:p-8 rounded-3xl mt-12 no-print" aria-labelledby="guide-heading">
+    <span class="chip text-xs mb-2 inline-block">Bench Reference Guide</span>
+    <h2 id="guide-heading" class="serif text-3xl sm:text-4xl gt">How to Plan a Bracelet on a Millimeter Beading Board</h2>
+    <p class="muted text-sm sm:text-base mt-3 leading-relaxed">
+      A velvet or wooden beading design board takes the guesswork out of jewelry stringing by letting you test symmetry, bead spacing, and clasp allowance before cutting expensive wire or silk. Traditional U-channel boards place the zero mark at the center front of the strand, radiating outward in millimeters and inches along both sides. Whether you are building a delicate 2&nbsp;mm seed bead stacker or an 8&nbsp;mm gemstone bracelet, locking in the <strong class="text-inherit font-medium">net bead span</strong> first keeps your focal bead centered and prevents wasted findings.
+    </p>
+    <p class="muted text-sm sm:text-base leading-relaxed">
+      Start with an accurate wrist measurement from our <a href="sizing.html" class="gt underline font-medium">Ring &amp; Bracelet Size Guide</a>, then add drape ease for your preferred silhouette: 1.0&nbsp;cm (10&nbsp;mm) gives a close fit, 1.5&nbsp;cm offers everyday comfort, and 2.5&nbsp;cm creates loose charm-style movement. Keep in mind that bead thickness changes inner fit geometry. Because 10&nbsp;mm and 12&nbsp;mm rounds sit higher off the skin, their inner wearing circumference shrinks relative to their flat end-to-end measurement. Stepping up 5 to 10&nbsp;mm in ease keeps chunky gemstone bracelets from pinching.
+    </p>
+    <p class="muted text-sm sm:text-base leading-relaxed">
+      Next, subtract the physical length of your clasp from the target finished length—typically 10&nbsp;mm for a compact spring ring or 12 to 18&nbsp;mm for lobster and magnetic clasps—leaving zero clasp deduction for stretch cord designs. When cutting stringing material, add generous finishing tails: flexible 7-strand or 49-strand beading wire needs roughly 30 to 35&nbsp;mm on each end so you can pass twice through crimp tubes and wire guardians cleanly, while 0.8&nbsp;mm elastic cord requires 100 to 120&nbsp;mm of extra tensioning lead for a secure double surgeon&rsquo;s knot. Always verify that your smallest spacer or seed bead hole exceeds twice the wire diameter at crimp return zones. Once finished, archive heirloom gold findings in <a href="vault.html" class="gt underline font-medium">My Jewelry Box</a>, calculate chain pairings in the <a href="layering.html" class="gt underline font-medium">Necklace Layering Studio</a>, review <a href="gold.html" class="gt underline font-medium">10k&ndash;24k gold values</a>, or check gentle cleaning steps in our <a href="care.html" class="gt underline font-medium">Jewelry Care Vault</a>.
+    </p>
+  </section>
+
+  <!-- UNGATED FAQ -->
+  <section class="mt-12 no-print" aria-labelledby="faq-heading">
+    <p class="text-xs muted mb-1">Bench Questions</p>
+    <h2 id="faq-heading" class="text-3xl sm:text-4xl gt mb-6">Frequently Asked Questions</h2>
+    <div class="grid gap-3 max-w-3xl">
+      <details class="faq">
+        <summary>How many beads do I need for a 7-inch (17.8 cm) bracelet?</summary>
+        <p class="muted mt-2.5 text-xs sm:text-sm leading-relaxed">
+          Subtract your clasp length (for example, 12 mm for a standard lobster clasp, or 0 mm for a stretch bracelet) from 178 mm to find your net bead span (166 mm). Dividing 166 mm by an 8 mm gemstone round fits 20 beads (160 mm) with 6 mm left for crimp tubes, bead bumpers, or two 3 mm gold spacer beads.
+        </p>
+      </details>
+      <details class="faq">
+        <summary>Why do chunky 10 mm or 12 mm beads feel tighter than 4 mm beads?</summary>
+        <p class="muted mt-2.5 text-xs sm:text-sm leading-relaxed">
+          Beads are rigid spheres strung through their center axis. When curved into a circle, half the bead radius pushes inward toward your wrist, reducing inner circumference by roughly &pi; &times; bead diameter compared to flat length. Adding 0.5 to 1.0 cm extra ease compensates cleanly.
+        </p>
+      </details>
+      <details class="faq">
+        <summary>How much extra wire or elastic cord should I cut before stringing?</summary>
+        <p class="muted mt-2.5 text-xs sm:text-sm leading-relaxed">
+          For coated stainless steel beading wire, cut your net bead span plus 60&ndash;70 mm so each end can loop through crimp tubes and wire guardians without slipping. For 0.8 mm stretch cord, add at least 120 mm total so you can pre-stretch the cord and pull a firm double surgeon&rsquo;s knot comfortably.
+        </p>
+      </details>
+      <details class="faq">
+        <summary>What is included in the free session versus McGee Jewelry Pro?</summary>
+        <p class="muted mt-2.5 text-xs sm:text-sm leading-relaxed">
+          Your free studio session gives you the complete interactive millimeter beading board, wrist loop preview, exact bead counts, cord cut lengths, hole-clearance checks, and material cost totals. McGee Jewelry Pro unlocks unlimited sessions across all 13 studios plus saved pattern presets, Bill of Materials CSV exports, and printable/PDF workshop blueprints.
+        </p>
+      </details>
+    </div>
+  </section>
+</main>
+
+<div id="foot"></div>
+<script src="layout.js"></script>
+<script src="ads.js"></script>
+<script src="affiliates.js"></script>
+
+<script>
+(function(){
+  var PRESET_KEY = 'koo_beading_presets_v1';
+
+  var BEAD_LIBRARY = [
+    { id: 'seed11', name: 'Seed Bead 11/0', mm: 2.0, hole: 0.8, priceUsd: 0.03, weightG: 0.02, color: '#f3e2b3', finish: 'glass' },
+    { id: 'seed8', name: 'Seed Bead 8/0', mm: 3.0, hole: 1.1, priceUsd: 0.05, weightG: 0.04, color: '#e8d7c3', finish: 'glass' },
+    { id: 'gold3', name: '14k GF Spacer', mm: 3.0, hole: 1.0, priceUsd: 0.35, weightG: 0.08, color: '#e5c16c', finish: 'metal' },
+    { id: 'gold4', name: '14k GF Round', mm: 4.0, hole: 1.2, priceUsd: 0.55, weightG: 0.14, color: '#d8ab4c', finish: 'metal' },
+    { id: 'pearl6', name: 'Freshwater Pearl', mm: 6.0, hole: 0.9, priceUsd: 0.85, weightG: 0.32, color: '#f8f2ea', finish: 'pearl' },
+    { id: 'pearl8', name: 'Baroque Pearl', mm: 8.0, hole: 1.0, priceUsd: 1.45, weightG: 0.68, color: '#f3ebe0', finish: 'pearl' },
+    { id: 'roseq6', name: 'Rose Quartz', mm: 6.0, hole: 1.0, priceUsd: 0.32, weightG: 0.30, color: '#e8b4b8', finish: 'stone' },
+    { id: 'roseq8', name: 'Rose Quartz 8mm', mm: 8.0, hole: 1.0, priceUsd: 0.52, weightG: 0.72, color: '#dca0a8', finish: 'stone' },
+    { id: 'carn6', name: 'Carnelian Agate', mm: 6.0, hole: 1.0, priceUsd: 0.34, weightG: 0.30, color: '#b54a32', finish: 'stone' },
+    { id: 'onyx6', name: 'Black Onyx', mm: 6.0, hole: 1.0, priceUsd: 0.28, weightG: 0.30, color: '#28262c', finish: 'stone' },
+    { id: 'lapis8', name: 'Lapis Lazuli', mm: 8.0, hole: 1.0, priceUsd: 0.75, weightG: 0.75, color: '#29488d', finish: 'stone' },
+    { id: 'lab8', name: 'Labradorite', mm: 8.0, hole: 1.0, priceUsd: 0.65, weightG: 0.74, color: '#6b858d', finish: 'stone' }
+  ];
+
+  var STARTERS = {
+    pearl_gold: {
+      mirror: false,
+      slots: ['pearl6', 'gold3', 'pearl6', 'gold3', 'pearl8', 'gold3']
+    },
+    rose_carnelian: {
+      mirror: true,
+      slots: ['roseq6', 'gold3', 'carn6', 'pearl8']
+    },
+    onyx_minimal: {
+      mirror: false,
+      slots: ['onyx6', 'onyx6', 'onyx6', 'gold4']
+    },
+    seed_rhythm: {
+      mirror: true,
+      slots: ['seed8', 'seed11', 'gold3', 'pearl6']
+    }
+  };
+
+  var state = {
+    project: 'bracelet_clasp',
+    bodyCm: 16.0,
+    easeMm: 15,
+    mirror: false,
+    view: 'board',
+    motif: [],
+    selectedSeqIdx: -1
+  };
+
+  function byId(id){ return document.getElementById(id); }
+  function findBead(id){
+    for (var i = 0; i < BEAD_LIBRARY.length; i++) {
+      if (BEAD_LIBRARY[i].id === id) return Object.assign({}, BEAD_LIBRARY[i]);
+    }
+    return Object.assign({}, BEAD_LIBRARY[4]);
+  }
+  function fmtMoney(usd){
+    if (typeof window.formatPrice === 'function') return window.formatPrice(usd);
+    return '$' + usd.toFixed(2);
+  }
+  function isPro(){
+    return (typeof window.isProUser === 'function') && window.isProUser();
+  }
+  function requirePro(fn){
+    if (isPro()) { fn(); return; }
+    if (typeof window.openProModal === 'function') window.openProModal(false);
+  }
+  function esc(str){
+    return String(str || '').replace(/[&<>"']/g, function(ch){
+      return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[ch];
+    });
+  }
+
+  function loadStarter(key){
+    var s = STARTERS[key] || STARTERS.pearl_gold;
+    state.mirror = !!s.mirror;
+    byId('mirror-toggle').checked = state.mirror;
+    state.motif = s.slots.map(findBead);
+    state.selectedSeqIdx = -1;
+    renderAll();
+  }
+
+  function buildCycle(){
+    if (!state.motif.length) return [];
+    if (!state.mirror || state.motif.length < 2) return state.motif.slice();
+    var rev = state.motif.slice(0, state.motif.length - 1).reverse();
+    return state.motif.concat(rev);
+  }
+
+  function parseClasp(){
+    var parts = byId('clasp-select').value.split('|');
+    return { mm: parseFloat(parts[0]) || 0, label: parts[1] || 'Clasp', priceUsd: parseFloat(parts[2]) || 0 };
+  }
+  function parseCord(){
+    var parts = byId('cord-select').value.split('|');
+    return {
+      diamMm: parseFloat(parts[0]) || 0.38,
+      label: parts[1] || 'Beading Wire',
+      tailMm: parseFloat(parts[2]) || 60,
+      priceUsd: parseFloat(parts[3]) || 0.45
+    };
+  }
+
+  function computeLayout(){
+    var clasp = parseClasp();
+    var cord = parseCord();
+    var ease = state.project === 'bracelet_stretch' && state.easeMm === 0 ? 15 : state.easeMm;
+    var targetMm = Math.round(state.bodyCm * 10) + ease;
+    var effectiveClaspMm = state.project === 'bracelet_stretch' ? 0 : clasp.mm;
+    var netSpanMm = Math.max(40, targetMm - effectiveClaspMm);
+
+    var cycle = buildCycle();
+    var seq = [];
+    var usedMm = 0;
+
+    if (cycle.length > 0) {
+      var safety = 0;
+      while (safety < 450) {
+        var b = cycle[safety % cycle.length];
+        if (usedMm + b.mm <= netSpanMm + 0.01) {
+          seq.push(Object.assign({}, b, { seqIndex: safety }));
+          usedMm += b.mm;
+          safety++;
+        } else {
+          break;
+        }
+      }
+    }
+
+    var gapMm = Math.max(0, netSpanMm - usedMm);
+    var cutCordMm = Math.round(netSpanMm + cord.tailMm);
+    var totalWeightG = seq.reduce(function(sum, b){ return sum + (b.weightG || 0.25); }, 0);
+    var beadsCostUsd = seq.reduce(function(sum, b){ return sum + (b.priceUsd || 0); }, 0);
+    var findingsCostUsd = (state.project === 'bracelet_stretch' ? 0 : clasp.priceUsd) + cord.priceUsd + (state.project === 'bracelet_stretch' ? 0.10 : 0.40);
+    var totalCostUsd = beadsCostUsd + findingsCostUsd;
+
+    var maxBeadMm = seq.reduce(function(m, b){ return Math.max(m, b.mm); }, 0);
+    var minHoleMm = seq.reduce(function(m, b){ return Math.min(m, b.hole || 1.0); }, 99);
+    var needsDoublePass = state.project !== 'bracelet_stretch' && cord.diamMm <= 0.55;
+    var requiredHole = needsDoublePass ? cord.diamMm * 2 : cord.diamMm * 1.1;
+
+    var bomMap = {};
+    seq.forEach(function(b){
+      var key = b.name + '|' + b.mm.toFixed(1) + '|' + b.priceUsd.toFixed(2);
+      if (!bomMap[key]) {
+        bomMap[key] = { name: b.name, spec: b.mm.toFixed(1) + ' mm (hole ' + (b.hole || 1).toFixed(1) + ' mm)', qty: 0, spanMm: 0, costUsd: 0, color: b.color };
+      }
+      bomMap[key].qty += 1;
+      bomMap[key].spanMm += b.mm;
+      bomMap[key].costUsd += b.priceUsd;
+    });
+
+    var cycleLenMm = cycle.reduce(function(s, b){ return s + b.mm; }, 0);
+    var motifRepeats = cycle.length > 0 ? (seq.length / cycle.length) : 0;
+
+    return {
+      clasp: clasp,
+      effectiveClaspMm: effectiveClaspMm,
+      cord: cord,
+      easeMm: ease,
+      targetMm: targetMm,
+      netSpanMm: netSpanMm,
+      cycle: cycle,
+      cycleLenMm: cycleLenMm,
+      seq: seq,
+      usedMm: usedMm,
+      gapMm: gapMm,
+      cutCordMm: cutCordMm,
+      totalWeightG: totalWeightG,
+      totalCostUsd: totalCostUsd,
+      beadsCostUsd: beadsCostUsd,
+      findingsCostUsd: findingsCostUsd,
+      maxBeadMm: maxBeadMm,
+      minHoleMm: minHoleMm === 99 ? 0 : minHoleMm,
+      requiredHole: requiredHole,
+      motifRepeats: motifRepeats,
+      bomList: Object.keys(bomMap).map(function(k){ return bomMap[k]; })
+    };
+  }
+
+  function renderPalette(){
+    var host = byId('bead-palette');
+    host.innerHTML = BEAD_LIBRARY.map(function(b){
+      return '<button type="button" class="bead-palette-btn" data-add-bead="' + b.id + '">' +
+        '<span class="w-6 h-6 rounded-full shrink-0 border border-white/40 shadow-inner" style="background:' + b.color + '"></span>' +
+        '<span class="min-w-0 flex-1">' +
+          '<span class="block text-xs font-medium truncate">' + esc(b.name) + '</span>' +
+          '<span class="block text-[11px] muted tabular-nums">' + b.mm.toFixed(1) + ' mm &middot; ' + fmtMoney(b.priceUsd) + '</span>' +
+        '</span>' +
+      '</button>';
+    }).join('');
+    host.querySelectorAll('[data-add-bead]').forEach(function(btn){
+      btn.onclick = function(){
+        if (state.motif.length >= 14) {
+          if (window.showMcGeeToast) window.showMcGeeToast('Motif unit capped at 14 beads for clean repetition.', true);
+          return;
+        }
+        state.motif.push(findBead(btn.dataset.addBead));
+        renderAll();
+      };
+    });
+  }
+
+  function renderMotif(){
+    var list = byId('motif-list');
+    var empty = byId('motif-empty');
+    if (state.motif.length === 0) {
+      list.innerHTML = '';
+      empty.classList.remove('hidden');
+      return;
+    }
+    empty.classList.add('hidden');
+    list.innerHTML = state.motif.map(function(b, idx){
+      return '<div class="slot-pill px-3 py-2 flex items-center justify-between gap-2 text-xs">' +
+        '<div class="flex items-center gap-2.5 min-w-0">' +
+          '<span class="w-4 h-4 rounded-full shrink-0 border border-white/50" style="background:' + b.color + '"></span>' +
+          '<span class="truncate font-medium">' + (idx + 1) + '. ' + esc(b.name) + '</span>' +
+          '<span class="muted tabular-nums shrink-0">' + b.mm.toFixed(1) + 'mm</span>' +
+        '</div>' +
+        '<div class="flex items-center gap-1 shrink-0">' +
+          '<button type="button" class="chip text-[11px] py-1 px-2" data-act="up" data-idx="' + idx + '" aria-label="Move bead earlier">&#8593;</button>' +
+          '<button type="button" class="chip text-[11px] py-1 px-2" data-act="down" data-idx="' + idx + '" aria-label="Move bead later">&#8595;</button>' +
+          '<button type="button" class="chip text-[11px] py-1 px-2 text-red-400" data-act="del" data-idx="' + idx + '" aria-label="Remove bead">&#10005;</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    list.querySelectorAll('[data-act]').forEach(function(btn){
+      btn.onclick = function(){
+        var i = parseInt(btn.dataset.idx, 10);
+        var act = btn.dataset.act;
+        if (act === 'del') {
+          state.motif.splice(i, 1);
+        } else if (act === 'up' && i > 0) {
+          var tmp = state.motif[i - 1]; state.motif[i - 1] = state.motif[i]; state.motif[i] = tmp;
+        } else if (act === 'down' && i < state.motif.length - 1) {
+          var tmp2 = state.motif[i + 1]; state.motif[i + 1] = state.motif[i]; state.motif[i] = tmp2;
+        }
+        state.selectedSeqIdx = -1;
+        renderAll();
+      };
+    });
+  }
+
+  function beadFillDef(id, color){
+    return '<radialGradient id="bf-' + id + '" cx="35%" cy="30%" r="70%">' +
+      '<stop offset="0%" stop-color="#ffffff" stop-opacity="0.72"/>' +
+      '<stop offset="35%" stop-color="' + color + '" stop-opacity="1"/>' +
+      '<stop offset="100%" stop-color="#1a0b10" stop-opacity="0.45"/>' +
+    '</radialGradient>';
+  }
+
+  function renderBoardSvg(data){
+    var svg = byId('bead-board-svg');
+    var defs = '<defs>';
+    var seenColors = {};
+    data.seq.forEach(function(b, i){
+      if (!seenColors[b.color]) {
+        seenColors[b.color] = 'c' + i;
+        defs += beadFillDef(seenColors[b.color], b.color);
+      }
+    });
+    defs += '</defs>';
+
+    if (state.view === 'loop') {
+      // Closed Circular Wrist Loop View
+      var cx = 320, cy = 160;
+      var totalLen = data.usedMm + (data.effectiveClaspMm || 0);
+      var R = Math.min(118, Math.max(76, (totalLen / (2 * Math.PI)) * 3.1));
+      var pxPerMm = (2 * Math.PI * R) / Math.max(100, data.netSpanMm + data.effectiveClaspMm);
+      var out = defs;
+      out += '<circle cx="' + cx + '" cy="' + cy + '" r="' + R.toFixed(1) + '" fill="none" stroke="rgba(183,110,121,0.35)" stroke-width="2" stroke-dasharray="4 4"/>';
+      out += '<text x="' + cx + '" y="' + (cy - 6) + '" text-anchor="middle" fill="#b76e79" font-size="22" font-family="Cormorant Garamond,serif">' + (data.targetMm / 10).toFixed(1) + ' cm</text>';
+      out += '<text x="' + cx + '" y="' + (cy + 14) + '" text-anchor="middle" fill="#94a3b8" font-size="11" font-family="Jost,sans-serif">' + data.seq.length + ' beads &middot; ' + data.usedMm.toFixed(1) + ' mm span</text>';
+
+      // Start right after clasp at top (angle -PI/2)
+      var totalArcMm = data.netSpanMm + data.effectiveClaspMm;
+      var startMm = data.effectiveClaspMm / 2;
+      if (data.effectiveClaspMm > 0) {
+        out += '<rect x="' + (cx - Math.max(12, data.effectiveClaspMm * pxPerMm * 0.45)) + '" y="' + (cy - R - 7) + '" width="' + Math.max(24, data.effectiveClaspMm * pxPerMm * 0.9) + '" height="14" rx="7" fill="#d8ab4c" stroke="#fff" stroke-opacity="0.5"/>';
+        out += '<text x="' + cx + '" y="' + (cy - R - 14) + '" text-anchor="middle" fill="#b76e79" font-size="10">Clasp ' + data.effectiveClaspMm + ' mm</text>';
+      }
+
+      var curMm = startMm + (data.gapMm / 2);
+      data.seq.forEach(function(b, idx){
+        var midMm = curMm + b.mm / 2;
+        var angle = -Math.PI / 2 + (midMm / totalArcMm) * 2 * Math.PI;
+        var bx = cx + R * Math.cos(angle);
+        var by = cy + R * Math.sin(angle);
+        var br = Math.max(3.2, (b.mm * pxPerMm) / 2);
+        var gid = seenColors[b.color];
+        var sel = state.selectedSeqIdx === idx ? ' stroke="#f3e2b3" stroke-width="2"' : ' stroke="rgba(255,255,255,0.35)" stroke-width="0.6"';
+        out += '<circle cx="' + bx.toFixed(1) + '" cy="' + by.toFixed(1) + '" r="' + br.toFixed(1) + '" fill="url(#bf-' + gid + ')"' + sel + ' data-seq="' + idx + '" style="cursor:pointer"><title>#' + (idx + 1) + ' ' + esc(b.name) + ' (' + b.mm + ' mm)</title></circle>';
+        curMm += b.mm;
+      });
+      svg.innerHTML = out;
+    } else {
+      // Classic U-Channel Beading Board View (centered focal at 0 mm fanning left/right)
+      var out = defs;
+      // U-groove path
+      out += '<path d="M 85 46 L 85 185 A 235 98 0 0 0 555 185 L 555 46" fill="none" stroke="rgba(183,110,121,0.18)" stroke-width="34" stroke-linecap="round"/>';
+      out += '<path d="M 85 46 L 85 185 A 235 98 0 0 0 555 185 L 555 46" fill="none" stroke="rgba(243,226,179,0.28)" stroke-width="1.5"/>';
+
+      // Helper to map signed mm from center (0 at bottom center of U)
+      function mapU(offsetMm){
+        // Approximate U-channel curve length ~ 640 mm capacity mapped smoothly
+        var maxHalf = Math.max(120, (data.netSpanMm / 2) + 20);
+        var u = Math.max(-1, Math.min(1, offsetMm / maxHalf));
+        // Split bottom arc (|u| <= 0.65) and vertical arms (|u| > 0.65)
+        if (Math.abs(u) <= 0.65) {
+          var theta = (u / 0.65) * (Math.PI / 2); // -PI/2 .. +PI/2 from bottom
+          var rx = 235, ry = 98, ccy = 185;
+          return {
+            x: 320 + rx * Math.sin(theta),
+            y: ccy + ry * Math.cos(theta)
+          };
+        } else {
+          var arm = (Math.abs(u) - 0.65) / 0.35; // 0 .. 1
+          return {
+            x: u > 0 ? 555 : 85,
+            y: 185 - arm * 136
+          };
+        }
+      }
+
+      // Ruler ticks along the board every 20 mm
+      var maxTick = Math.ceil((data.netSpanMm / 2) / 20) * 20;
+      for (var t = -maxTick; t <= maxTick; t += 20) {
+        var pt = mapU(t);
+        out += '<circle cx="' + pt.x.toFixed(1) + '" cy="' + (pt.y + 18).toFixed(1) + '" r="1.2" fill="rgba(183,110,121,0.55)"/>';
+        if (t === 0 || Math.abs(t) % 40 === 0) {
+          out += '<text x="' + pt.x.toFixed(1) + '" y="' + (pt.y + 30).toFixed(1) + '" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="Jost,sans-serif">' + Math.abs(t) + '</text>';
+        }
+      }
+      out += '<text x="320" y="34" text-anchor="middle" fill="#b76e79" font-size="13" font-family="Cormorant Garamond,serif">0 mm Center Focal Point &middot; Span ' + data.netSpanMm + ' mm</text>';
+      out += '<text x="320" y="52" text-anchor="middle" fill="#94a3b8" font-size="10.5" font-family="Jost,sans-serif">Measured outward left &amp; right in millimeters (Target: ' + (data.targetMm / 10).toFixed(1) + ' cm)</text>';
+
+      // Clasp indicators at both ends
+      var leftEnd = mapU(-data.netSpanMm / 2 - 6);
+      var rightEnd = mapU(data.netSpanMm / 2 + 6);
+      if (data.effectiveClaspMm > 0) {
+        out += '<rect x="' + (leftEnd.x - 10).toFixed(1) + '" y="' + (leftEnd.y - 6).toFixed(1) + '" width="20" height="12" rx="5" fill="#d8ab4c" stroke="#fff" stroke-opacity="0.5"/>';
+        out += '<rect x="' + (rightEnd.x - 10).toFixed(1) + '" y="' + (rightEnd.y - 6).toFixed(1) + '" width="20" height="12" rx="5" fill="#d8ab4c" stroke="#fff" stroke-opacity="0.5"/>';
+      }
+
+      // Draw beads centered along the U channel
+      var startOffset = -data.usedMm / 2;
+      var pxScale = Math.min(2.6, Math.max(1.15, 580 / Math.max(120, data.netSpanMm)));
+      var acc = 0;
+      data.seq.forEach(function(b, idx){
+        var posMm = startOffset + acc + b.mm / 2;
+        var p = mapU(posMm);
+        var br = Math.max(3.0, (b.mm * pxScale) / 2);
+        var gid = seenColors[b.color];
+        var sel = state.selectedSeqIdx === idx ? ' stroke="#f3e2b3" stroke-width="2.2"' : ' stroke="rgba(255,255,255,0.4)" stroke-width="0.6"';
+        out += '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="' + br.toFixed(1) + '" fill="url(#bf-' + gid + ')"' + sel + ' data-seq="' + idx + '" style="cursor:pointer"><title>#' + (idx + 1) + ' ' + esc(b.name) + ' (' + b.mm + ' mm)</title></circle>';
+        acc += b.mm;
+      });
+      svg.innerHTML = out;
+    }
+
+    svg.querySelectorAll('[data-seq]').forEach(function(el){
+      el.onclick = function(){
+        var idx = parseInt(el.getAttribute('data-seq'), 10);
+        state.selectedSeqIdx = idx;
+        var b = data.seq[idx];
+        if (b) {
+          byId('bead-inspect').innerHTML =
+            '<span>Bead <b>#' + (idx + 1) + '</b>: <b class="gt">' + esc(b.name) + '</b> &middot; ' + b.mm.toFixed(1) + ' mm &Oslash; &middot; Hole ' + (b.hole || 1).toFixed(1) + ' mm &middot; Est. ' + fmtMoney(b.priceUsd) + '</span>' +
+            '<span class="font-medium gt">' + (state.mirror ? 'Mirrored symmetry' : 'Repeating motif') + '</span>';
+        }
+        renderBoardSvg(data);
+      };
+    });
+  }
+
+  function renderStatsAndDetails(data){
+    byId('stat-beads').textContent = data.seq.length;
+    byId('stat-repeats').textContent = data.motifRepeats.toFixed(1) + ' cycles';
+    byId('stat-span').textContent = data.usedMm.toFixed(1) + ' mm';
+    byId('stat-gap').textContent = data.gapMm.toFixed(1) + ' mm clearance';
+    byId('stat-cord').textContent = data.cutCordMm + ' mm';
+    byId('stat-cord-in').textContent = (data.cutCordMm / 25.4).toFixed(1) + ' in cut length';
+    byId('stat-cost').textContent = fmtMoney(data.totalCostUsd);
+    byId('stat-weight').textContent = 'Est. ' + data.totalWeightG.toFixed(1) + ' g beads';
+
+    byId('symmetry-status').textContent = state.mirror ? 'Mirrored (A-B-C-B-A)' : 'Standard Repeat (A-B-C)';
+    byId('target-length-line').innerHTML =
+      'Target finished length: <b class="gt">' + (data.targetMm / 10).toFixed(1) + ' cm (' + (data.targetMm / 25.4).toFixed(2) + ' in)</b> &middot; Net bead span: <b>' + data.netSpanMm + ' mm</b>';
+
+    // Fit & clearance advisories
+    var adv = [];
+    if (data.minHoleMm > 0 && data.minHoleMm < data.requiredHole) {
+      adv.push('<div class="p-3 rounded-xl border border-amber-400/40 bg-amber-500/10"><strong>Hole Clearance Notice:</strong> Smallest bead hole (' + data.minHoleMm.toFixed(1) + ' mm) is tight for ' + esc(data.cord.label) + ' double-pass crimping (recommended &ge; ' + data.requiredHole.toFixed(2) + ' mm). Consider thinner 0.38 mm wire or 8/0 seed spacers near crimps.</div>');
+    } else if (data.seq.length > 0) {
+      adv.push('<div class="p-3 rounded-xl border border-emerald-400/30 bg-emerald-500/10"><strong>Cord Clearance OK:</strong> Smallest bead hole (' + data.minHoleMm.toFixed(1) + ' mm) clears ' + esc(data.cord.label) + ' (' + data.cord.diamMm.toFixed(2) + ' mm) comfortably.</div>');
+    }
+
+    if (data.maxBeadMm >= 10) {
+      adv.push('<div class="p-3 rounded-xl border border-rose-300/30 bg-rose-400/10"><strong>Chunky Bead Fit Tip:</strong> Your pattern uses ' + data.maxBeadMm.toFixed(0) + ' mm beads. Because thick spheres curve inward on the wrist, consider stepping up +0.5 cm ease if you prefer a relaxed drape.</div>');
+    }
+    if (data.gapMm >= 4.0) {
+      adv.push('<div class="p-3 rounded-xl border border-rose-300/30 bg-rose-400/10"><strong>End Gap (' + data.gapMm.toFixed(1) + ' mm):</strong> You have room for two ' + (data.gapMm / 2).toFixed(1) + ' mm gold spacer or seed beads flanking the clasp so zero bare wire shows.</div>');
+    }
+    byId('fit-advisories').innerHTML = adv.join('');
+
+    // BOM Table
+    var rows = data.bomList.map(function(it){
+      return '<tr class="border-t border-rose-200/10">' +
+        '<td class="py-2.5 pr-3 flex items-center gap-2"><span class="w-3 h-3 rounded-full shrink-0 border border-white/40" style="background:' + it.color + '"></span><span class="font-medium">' + esc(it.name) + '</span></td>' +
+        '<td class="py-2.5 px-2 muted">' + esc(it.spec) + '</td>' +
+        '<td class="py-2.5 px-2 text-right font-medium">' + it.qty + '</td>' +
+        '<td class="py-2.5 px-2 text-right muted">' + it.spanMm.toFixed(1) + ' mm</td>' +
+        '<td class="py-2.5 pl-2 text-right font-medium gt">' + fmtMoney(it.costUsd) + '</td>' +
+      '</tr>';
+    });
+
+    if (data.effectiveClaspMm > 0) {
+      rows.push('<tr class="border-t border-rose-200/10">' +
+        '<td class="py-2.5 pr-3 font-medium">' + esc(data.clasp.label) + ' + 2 crimps &amp; wire guards</td>' +
+        '<td class="py-2.5 px-2 muted">' + data.effectiveClaspMm + ' mm span</td>' +
+        '<td class="py-2.5 px-2 text-right font-medium">1 set</td>' +
+        '<td class="py-2.5 px-2 text-right muted">' + data.effectiveClaspMm.toFixed(1) + ' mm</td>' +
+        '<td class="py-2.5 pl-2 text-right font-medium gt">' + fmtMoney(data.clasp.priceUsd + 0.40) + '</td>' +
+      '</tr>');
+    }
+    rows.push('<tr class="border-t border-rose-200/10">' +
+      '<td class="py-2.5 pr-3 font-medium">' + esc(data.cord.label) + '</td>' +
+      '<td class="py-2.5 px-2 muted">Includes ' + data.cord.tailMm + ' mm tail allowance</td>' +
+      '<td class="py-2.5 px-2 text-right font-medium">' + data.cutCordMm + ' mm</td>' +
+      '<td class="py-2.5 px-2 text-right muted">&mdash;</td>' +
+      '<td class="py-2.5 pl-2 text-right font-medium gt">' + fmtMoney(data.cord.priceUsd) + '</td>' +
+    '</tr>');
+
+    byId('bom-tbody').innerHTML = rows.join('');
+    byId('bom-summary-chip').textContent = data.bomList.length + ' bead types · ' + data.seq.length + ' beads';
+
+    // Formulas & Assumptions
+    byId('formula-breakdown').innerHTML =
+      '<p><strong class="text-inherit">1. Target Finished Length:</strong> Wrist (' + Math.round(state.bodyCm * 10) + ' mm) + Fit Ease (' + data.easeMm + ' mm) = <b>' + data.targetMm + ' mm</b> (' + (data.targetMm / 10).toFixed(1) + ' cm).</p>' +
+      '<p><strong class="text-inherit">2. Net Bead Span:</strong> Target Length (' + data.targetMm + ' mm) &minus; Clasp Allowance (' + data.effectiveClaspMm + ' mm) = <b>' + data.netSpanMm + ' mm</b>.</p>' +
+      '<p><strong class="text-inherit">3. Bead Count Fill:</strong> Sequential motif fill stops when adding the next bead exceeds Net Bead Span: &Sigma; bead diameters = <b>' + data.usedMm.toFixed(1) + ' mm</b> across <b>' + data.seq.length + ' beads</b> (residual clearance gap = <b>' + data.gapMm.toFixed(1) + ' mm</b>).</p>' +
+      '<p><strong class="text-inherit">4. Cut Stringing Length:</strong> Net Bead Span (' + data.netSpanMm + ' mm) + Finishing Tail (' + data.cord.tailMm + ' mm for crimps/knots) = <b>' + data.cutCordMm + ' mm</b> (' + (data.cutCordMm / 25.4).toFixed(1) + ' in).</p>' +
+      '<p><strong class="text-inherit">5. Material Cost Estimate:</strong> Beads (' + fmtMoney(data.beadsCostUsd) + ') + Findings/Cord (' + fmtMoney(data.findingsCostUsd) + ') = <b>' + fmtMoney(data.totalCostUsd) + '</b> in active display currency.</p>';
+
+    byId('print-meta').textContent =
+      'Project: ' + byId('proj-type').selectedOptions[0].text +
+      ' | Target: ' + (data.targetMm / 10).toFixed(1) + ' cm | Beads: ' + data.seq.length +
+      ' | Cut Cord: ' + data.cutCordMm + ' mm | Est. Cost: ' + fmtMoney(data.totalCostUsd);
+  }
+
+  function renderPresets(){
+    var listEl = byId('presets-list');
+    var items = [];
+    try { items = JSON.parse(localStorage.getItem(PRESET_KEY) || '[]'); } catch(e){}
+    if (!items.length) {
+      listEl.innerHTML = '<p class="muted italic">No saved pattern presets yet. Click &ldquo;Save Preset (Pro)&rdquo; to archive a design.</p>';
+      return;
+    }
+    listEl.innerHTML = items.map(function(p, idx){
+      return '<div class="slot-pill p-2.5 flex items-center justify-between gap-2">' +
+        '<div class="min-w-0">' +
+          '<p class="font-medium truncate">' + esc(p.name) + '</p>' +
+          '<p class="muted text-[11px] tabular-nums">' + p.bodyCm.toFixed(1) + ' cm · ' + p.motif.length + ' motif beads</p>' +
+        '</div>' +
+        '<div class="flex items-center gap-1 shrink-0">' +
+          '<button type="button" class="chip text-[11px] py-1 px-2.5" data-load-preset="' + idx + '">Load</button>' +
+          '<button type="button" class="chip text-[11px] py-1 px-2 text-red-400" data-del-preset="' + idx + '">&#10005;</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    listEl.querySelectorAll('[data-load-preset]').forEach(function(b){
+      b.onclick = function(){
+        var p = items[parseInt(b.dataset.loadPreset, 10)];
+        if (!p) return;
+        state.project = p.project;
+        state.bodyCm = p.bodyCm;
+        state.easeMm = p.easeMm;
+        state.mirror = !!p.mirror;
+        state.motif = p.motif.slice();
+        byId('proj-type').value = state.project;
+        byId('body-size-slider').value = state.bodyCm;
+        byId('fit-ease').value = String(state.easeMm);
+        byId('mirror-toggle').checked = state.mirror;
+        syncProjectSliderBounds();
+        renderAll();
+      };
+    });
+    listEl.querySelectorAll('[data-del-preset]').forEach(function(b){
+      b.onclick = function(){
+        items.splice(parseInt(b.dataset.delPreset, 10), 1);
+        localStorage.setItem(PRESET_KEY, JSON.stringify(items));
+        renderPresets();
+      };
+    });
+  }
+
+  function syncProjectSliderBounds(){
+    var slider = byId('body-size-slider');
+    var lbl = byId('body-size-label');
+    if (state.project === 'necklace') {
+      slider.min = '34'; slider.max = '65'; slider.step = '1';
+      if (state.bodyCm < 34) state.bodyCm = 42;
+      lbl.textContent = 'Necklace chain length';
+    } else if (state.project === 'anklet') {
+      slider.min = '19'; slider.max = '28'; slider.step = '0.5';
+      if (state.bodyCm < 19 || state.bodyCm > 28) state.bodyCm = 22.5;
+      lbl.textContent = 'Ankle circumference';
+    } else {
+      slider.min = '13'; slider.max = '23'; slider.step = '0.5';
+      if (state.bodyCm > 23 || state.bodyCm < 13) state.bodyCm = 16.0;
+      lbl.textContent = 'Wrist circumference';
+    }
+    slider.value = String(state.bodyCm);
+    byId('body-size-readout').textContent = state.bodyCm.toFixed(1) + ' cm (' + (state.bodyCm / 2.54).toFixed(2) + ' in)';
+  }
+
+  function renderAll(){
+    var badge = byId('beading-tier-badge');
+    if (badge) badge.textContent = isPro() ? '⭐ Pro Active · Presets & Exports Unlocked' : '1 Free Try · Pro Unlocks Presets & Exports';
+    renderMotif();
+    var data = computeLayout();
+    renderBoardSvg(data);
+    renderStatsAndDetails(data);
+    renderPresets();
+  }
+
+  // Event wiring
+  byId('proj-type').onchange = function(){
+    state.project = this.value;
+    if (state.project === 'bracelet_stretch') {
+      byId('clasp-select').selectedIndex = 0;
+      byId('cord-select').selectedIndex = 2;
+    } else if (byId('clasp-select').selectedIndex === 0) {
+      byId('clasp-select').selectedIndex = 2;
+      byId('cord-select').selectedIndex = 0;
+    }
+    syncProjectSliderBounds();
+    renderAll();
+  };
+  byId('fit-ease').onchange = function(){ state.easeMm = parseInt(this.value, 10) || 0; renderAll(); };
+  byId('body-size-slider').oninput = function(){
+    state.bodyCm = parseFloat(this.value) || 16;
+    byId('body-size-readout').textContent = state.bodyCm.toFixed(1) + ' cm (' + (state.bodyCm / 2.54).toFixed(2) + ' in)';
+    renderAll();
+  };
+  byId('clasp-select').onchange = renderAll;
+  byId('cord-select').onchange = renderAll;
+  byId('mirror-toggle').onchange = function(){ state.mirror = this.checked; state.selectedSeqIdx = -1; renderAll(); };
+  byId('btn-clear-motif').onclick = function(){ state.motif = []; state.selectedSeqIdx = -1; renderAll(); };
+
+  byId('view-board-btn').onclick = function(){
+    state.view = 'board';
+    this.setAttribute('aria-selected', 'true');
+    byId('view-loop-btn').setAttribute('aria-selected', 'false');
+    renderAll();
+  };
+  byId('view-loop-btn').onclick = function(){
+    state.view = 'loop';
+    this.setAttribute('aria-selected', 'true');
+    byId('view-board-btn').setAttribute('aria-selected', 'false');
+    renderAll();
+  };
+
+  document.querySelectorAll('#starter-motifs [data-motif]').forEach(function(btn){
+    btn.onclick = function(){ loadStarter(btn.dataset.motif); };
+  });
+
+  byId('custom-bead-form').onsubmit = function(e){
+    e.preventDefault();
+    if (state.motif.length >= 14) {
+      if (window.showMcGeeToast) window.showMcGeeToast('Motif unit capped at 14 beads.', true);
+      return;
+    }
+    var mm = Math.max(1.5, Math.min(20, parseFloat(byId('cb-mm').value) || 6));
+    state.motif.push({
+      id: 'custom-' + Date.now(),
+      name: byId('cb-name').value.trim() || 'Custom Bead',
+      mm: mm,
+      hole: Math.max(0.4, parseFloat(byId('cb-hole').value) || 1.0),
+      priceUsd: Math.max(0, parseFloat(byId('cb-price').value) || 0.45),
+      weightG: Number((0.0014 * Math.pow(mm, 3)).toFixed(2)),
+      color: byId('cb-color').value || '#b76e79',
+      finish: 'custom'
+    });
+    this.reset();
+    byId('cb-mm').value = '6';
+    byId('cb-hole').value = '1.0';
+    byId('cb-price').value = '0.45';
+    renderAll();
+  };
+
+  // Pro Actions (reuses existing openProModal paywall)
+  byId('btn-save-preset').onclick = function(){
+    requirePro(function(){
+      var items = [];
+      try { items = JSON.parse(localStorage.getItem(PRESET_KEY) || '[]'); } catch(e){}
+      var label = byId('proj-type').selectedOptions[0].text + ' · ' + state.bodyCm.toFixed(1) + ' cm (' + new Date().toLocaleDateString() + ')';
+      items.unshift({
+        name: label,
+        project: state.project,
+        bodyCm: state.bodyCm,
+        easeMm: state.easeMm,
+        mirror: state.mirror,
+        motif: state.motif.slice()
+      });
+      localStorage.setItem(PRESET_KEY, JSON.stringify(items.slice(0, 15)));
+      renderPresets();
+      if (window.showMcGeeToast) window.showMcGeeToast('Pattern preset saved to this browser.');
+    });
+  };
+
+  byId('btn-export-csv').onclick = function(){
+    requirePro(function(){
+      var data = computeLayout();
+      var lines = [['Component', 'Specification', 'Quantity', 'Span (mm)', 'Est Cost (Display)', 'Est Cost (USD)']];
+      data.bomList.forEach(function(it){
+        lines.push(['"' + it.name.replace(/"/g, '""') + '"', '"' + it.spec.replace(/"/g, '""') + '"', it.qty, it.spanMm.toFixed(1), '"' + fmtMoney(it.costUsd) + '"', it.costUsd.toFixed(2)]);
+      });
+      if (data.effectiveClaspMm > 0) {
+        lines.push(['"' + data.clasp.label + ' + 2 crimps"', '"' + data.effectiveClaspMm + ' mm"', 1, data.effectiveClaspMm.toFixed(1), '"' + fmtMoney(data.clasp.priceUsd + 0.40) + '"', (data.clasp.priceUsd + 0.40).toFixed(2)]);
+      }
+      lines.push(['"' + data.cord.label + '"', '"Cut length incl. ' + data.cord.tailMm + ' mm tails"', data.cutCordMm + ' mm', '0', '"' + fmtMoney(data.cord.priceUsd) + '"', data.cord.priceUsd.toFixed(2)]);
+      lines.push(['TOTAL', '"' + data.seq.length + ' beads"', data.seq.length, data.usedMm.toFixed(1), '"' + fmtMoney(data.totalCostUsd) + '"', data.totalCostUsd.toFixed(2)]);
+
+      var csv = lines.map(function(r){ return r.join(','); }).join('\n');
+      var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'mcgee-beading-bom-' + Math.round(data.targetMm) + 'mm.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+    });
+  };
+
+  byId('btn-print-blueprint').onclick = function(){
+    requirePro(function(){
+      window.print();
+    });
+  };
+
+  // Init
+  renderPalette();
+  syncProjectSliderBounds();
+  loadStarter('pearl_gold');
+  window.addEventListener('load', function(){ setTimeout(renderAll, 400); });
+})();
+</script>
+</body>
+</html>
