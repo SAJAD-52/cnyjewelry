@@ -31,11 +31,6 @@ var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 var STRIPE_BASE = 'https://buy.stripe.com/5kQ00kb7pgWc8p8c6Y0ZW00';
 var STRIPE_PORTAL = 'https://billing.stripe.com/p/login/';
 
-var PRO_EMAILS = [
-  'ibrahimihamid77@gmail.com',
-  'said.cpge24@gmail.com'
-];
-
 var ALL_TOOL_SLUGS = ['sizing', 'styling', 'care', 'gift', 'layering', 'anniversary', 'gold', 'diamond', 'earrings', 'wishlist', 'vault', 'planner'];
 
 /* ---------- CURRENCIES & MATCHING LANGUAGES ---------- */
@@ -99,20 +94,10 @@ function detectLocale() {
 
   if (tz.indexOf('Stockholm') >= 0 || navLang.indexOf('sv') >= 0) {
     cur = 'SEK'; lang = 'SV';
-  } else if (tz.indexOf('Oslo') >= 0 || navLang.indexOf('no') >= 0 || navLang.indexOf('nb') >= 0) {
+  } else if (tz.indexOf('Oslo') >= 0 || navLang.indexOf('no') >= 0 || navLang.indexOf('nb') >= 0 || navLang.indexOf('nn') >= 0) {
     cur = 'NOK'; lang = 'NO';
   } else if (tz.indexOf('Copenhagen') >= 0 || navLang.indexOf('da') >= 0) {
     cur = 'DKK'; lang = 'DA';
-  } else if (tz.indexOf('London') >= 0 || navLang.indexOf('gb') >= 0) {
-    cur = 'GBP'; lang = 'EN';
-  } else if (tz.indexOf('Zurich') >= 0) {
-    cur = 'CHF'; lang = 'FR';
-  } else if (tz.indexOf('Berlin') >= 0 || navLang.indexOf('de') >= 0) {
-    cur = 'EUR'; lang = 'DE';
-  } else if (tz.indexOf('Madrid') >= 0 || navLang.indexOf('es') >= 0) {
-    cur = 'EUR'; lang = 'ES';
-  } else if (tz.indexOf('Rome') >= 0 || navLang.indexOf('it') >= 0) {
-    cur = 'EUR'; lang = 'IT';
   } else if (tz.indexOf('Warsaw') >= 0 || navLang.indexOf('pl') >= 0) {
     cur = 'PLN'; lang = 'PL';
   } else if (tz.indexOf('Prague') >= 0 || navLang.indexOf('cs') >= 0) {
@@ -123,79 +108,53 @@ function detectLocale() {
     cur = 'RON'; lang = 'RO';
   } else if (tz.indexOf('Sofia') >= 0 || navLang.indexOf('bg') >= 0) {
     cur = 'BGN'; lang = 'BG';
+  } else if (tz.indexOf('Reykjavik') >= 0 || navLang.indexOf('is') >= 0) {
+    cur = 'ISK'; lang = 'EN';
   } else if (tz.indexOf('Istanbul') >= 0 || navLang.indexOf('tr') >= 0) {
     cur = 'TRY'; lang = 'TR';
   } else if (tz.indexOf('Kyiv') >= 0 || navLang.indexOf('uk') >= 0) {
     cur = 'UAH'; lang = 'UK';
-  } else if (tz.indexOf('Casablanca') >= 0 || navLang.indexOf('ma') >= 0) {
-    cur = 'MAD'; lang = navLang.indexOf('ar') >= 0 ? 'AR' : 'FR';
-  } else if (tz.indexOf('Dubai') >= 0 || tz.indexOf('Riyadh') >= 0 || navLang.indexOf('ar') >= 0) {
-    cur = tz.indexOf('Riyadh') >= 0 ? 'SAR' : 'AED'; lang = 'AR';
-  } else if (tz.indexOf('America') >= 0 || navLang.indexOf('us') >= 0) {
+  } else if (tz.indexOf('Belgrade') >= 0 || navLang.indexOf('sr') >= 0) {
+    cur = 'RSD'; lang = 'EN';
+  } else if (tz.indexOf('Casablanca') >= 0 || navLang.indexOf('ar-ma') >= 0) {
+    cur = 'MAD'; lang = 'FR';
+  } else if (tz.indexOf('Dubai') >= 0 || tz.indexOf('Muscat') >= 0) {
+    cur = 'AED'; lang = 'AR';
+  } else if (tz.indexOf('Riyadh') >= 0) {
+    cur = 'SAR'; lang = 'AR';
+  } else if (tz.indexOf('London') >= 0 || navLang.indexOf('en-gb') >= 0) {
+    cur = 'GBP'; lang = 'EN';
+  } else if (tz.indexOf('Zurich') >= 0 || tz.indexOf('Geneva') >= 0) {
+    cur = 'CHF'; lang = 'FR';
+  } else if (tz.indexOf('New_York') >= 0 || tz.indexOf('Los_Angeles') >= 0 || tz.indexOf('Chicago') >= 0 || navLang.indexOf('en-us') >= 0) {
     cur = 'USD'; lang = 'EN';
+  } else if (tz.indexOf('Toronto') >= 0 || tz.indexOf('Vancouver') >= 0 || navLang.indexOf('en-ca') >= 0) {
+    cur = 'CAD'; lang = 'EN';
+  } else if (tz.indexOf('Sydney') >= 0 || tz.indexOf('Melbourne') >= 0 || navLang.indexOf('en-au') >= 0) {
+    cur = 'AUD'; lang = 'EN';
+  } else if (navLang.indexOf('de') >= 0) {
+    cur = 'EUR'; lang = 'DE';
+  } else if (navLang.indexOf('es') >= 0) {
+    cur = 'EUR'; lang = 'ES';
+  } else if (navLang.indexOf('it') >= 0) {
+    cur = 'EUR'; lang = 'IT';
+  } else if (navLang.indexOf('nl') >= 0) {
+    cur = 'EUR'; lang = 'NL';
+  } else if (navLang.indexOf('pt') >= 0) {
+    cur = 'EUR'; lang = 'PT';
+  } else if (navLang.indexOf('el') >= 0) {
+    cur = 'EUR'; lang = 'EL';
+  } else if (navLang.indexOf('ar') >= 0) {
+    cur = 'EUR'; lang = 'AR';
   }
 
-  var detected = { currency: cur, lang: lang };
-  try { localStorage.setItem('koo_user_locale', JSON.stringify(detected)); } catch(e){}
-  return detected;
+  return { currency: cur, lang: lang };
 }
 
 var currentLocale = detectLocale();
+window.currentLocale = currentLocale;
 
-/* ---------- TRANSLATION ENGINE & RTL SETUP ---------- */
-function applyTranslation(langCode) {
-  var code = (langCode || 'EN').toLowerCase();
-  
-  // RTL for Arabic
-  if (code === 'ar') {
-    document.documentElement.setAttribute('dir', 'rtl');
-  } else {
-    document.documentElement.removeAttribute('dir');
-  }
-
-  // Set Google Translate cookie
-  var host = location.hostname;
-  var rootHost = host.replace(/^www\./, '');
-  if (code === 'en') {
-    document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=" + host + "; path=/;";
-    document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; domain=." + rootHost + "; path=/;";
-  } else {
-    var cookieVal = "/en/" + code;
-    document.cookie = "googtrans=" + cookieVal + "; path=/;";
-    document.cookie = "googtrans=" + cookieVal + "; domain=" + host + "; path=/;";
-    document.cookie = "googtrans=" + cookieVal + "; domain=." + rootHost + "; path=/;";
-  }
-}
-
-// Inject Google Translate script & hide its default banner
-(function() {
-  // Suppress Google Translate default top banner with luxury CSS
-  var st = document.createElement('style');
-  st.textContent = '.goog-te-banner-frame, .skiptranslate iframe { display:none !important; } body { top:0px !important; } #goog-gt-tt, .goog-te-balloon-frame { display:none !important; } .goog-text-highlight { background:none !important; box-shadow:none !important; }';
-  document.head.appendChild(st);
-
-  // Hidden translate element
-  var gDiv = document.createElement('div');
-  gDiv.id = 'google_translate_element';
-  gDiv.style.display = 'none';
-  document.body.appendChild(gDiv);
-
-  window.googleTranslateElementInit = function() {
-    new google.translate.TranslateElement({
-      pageLanguage: 'en',
-      autoDisplay: false
-    }, 'google_translate_element');
-  };
-
-  var gScript = document.createElement('script');
-  gScript.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
-  gScript.async = true;
-  document.head.appendChild(gScript);
-
-  applyTranslation(currentLocale.lang);
-})();
-
+/* ---------- LIVE CURRENCY FORMATTER ---------- */
 function formatPrice(usdAmount) {
   var c = CURRENCIES[currentLocale.currency] || CURRENCIES.USD;
   var converted = usdAmount * c.rate;
@@ -267,9 +226,7 @@ function openLocaleModal() {
       currentLocale.currency = newCur;
       currentLocale.lang = newLang;
       try { localStorage.setItem('koo_user_locale', JSON.stringify(currentLocale)); } catch(e){}
-      applyTranslation(newLang);
       dlg.remove();
-      // Reload to let translation apply cleanly
       location.reload();
     };
   }
@@ -307,29 +264,80 @@ var cleanSlug = rawPath.replace(/\.html$/, '');
 var here = (cleanSlug || 'index') + '.html';
 var isToolPage = ALL_TOOL_SLUGS.indexOf(cleanSlug) >= 0;
 
-var K='koo_wishlist';
-var KOO=window.KOO={
-  get:function(){try{return JSON.parse(localStorage.getItem(K))||[]}catch(e){return[]}},
-  set:function(a){try{localStorage.setItem(K,JSON.stringify(a))}catch(e){}},
-  has:function(id){return this.get().some(function(x){return x.id===id})},
-  toggle:function(it){var a=this.get();if(a.some(function(x){return x.id===it.id}))a=a.filter(function(x){return x.id!==it.id});else a.push(it);this.set(a);this.sync();return a},
-  btn:function(id,label,note){var e=function(s){return String(s||'').replace(/"/g,'&quot;')};return '<button class="save" data-save data-id="'+e(id)+'" data-label="'+e(label)+'" data-note="'+e(note)+'" aria-pressed="false">♡ Save</button>'},
-  sync:function(){var n=this.get().length;document.querySelectorAll('[data-count]').forEach(function(e){e.textContent=n;e.hidden=!n});
-  document.querySelectorAll('[data-save]').forEach(function(b){var on=KOO.has(b.dataset.id);b.setAttribute('aria-pressed',on);b.textContent=on?'♥ Saved':'♡ Save'})}
+/* ---------- CLOUD-AWARE WISHLIST ENGINE ---------- */
+var K = 'koo_wishlist';
+var KOO = window.KOO = {
+  get: function(){
+    try { return JSON.parse(localStorage.getItem(K)) || []; } catch(e){ return []; }
+  },
+  set: function(a){
+    try { localStorage.setItem(K, JSON.stringify(a)); } catch(e){}
+    if (currentUser && sb) {
+      if (a.length === 0) {
+        sb.from('wishlist').delete().eq('user_id', currentUser.id).then(function(){});
+      }
+    }
+  },
+  has: function(id){
+    return this.get().some(function(x){ return x.id === id; });
+  },
+  toggle: function(it){
+    var a = this.get();
+    var exists = a.some(function(x){ return x.id === it.id; });
+    if (exists) {
+      a = a.filter(function(x){ return x.id !== it.id; });
+      if (currentUser && sb) {
+        sb.from('wishlist').delete().eq('user_id', currentUser.id).filter('item->>id', 'eq', it.id).then(function(){});
+      }
+    } else {
+      a.push(it);
+      if (currentUser && sb) {
+        sb.from('wishlist').insert({ user_id: currentUser.id, item: it }).then(function(){});
+      }
+    }
+    try { localStorage.setItem(K, JSON.stringify(a)); } catch(e){}
+    this.sync();
+    return a;
+  },
+  btn: function(id, label, note){
+    var e = function(s){ return String(s||'').replace(/"/g,'&quot;'); };
+    return '<button class="save" data-save data-id="' + e(id) + '" data-label="' + e(label) + '" data-note="' + e(note) + '" aria-pressed="false">♡ Save</button>';
+  },
+  sync: function(){
+    var n = this.get().length;
+    document.querySelectorAll('[data-count]').forEach(function(e){ e.textContent = n; e.hidden = !n; });
+    document.querySelectorAll('[data-save]').forEach(function(b){
+      var on = KOO.has(b.dataset.id);
+      b.setAttribute('aria-pressed', on);
+      b.textContent = on ? '♥ Saved' : '♡ Save';
+    });
+  },
+  loadFromCloud: async function(){
+    if (!currentUser || !sb) return;
+    try {
+      var res = await sb.from('wishlist').select('id, item').eq('user_id', currentUser.id);
+      if (!res.error && res.data && res.data.length > 0) {
+        var cloudItems = res.data.map(function(r){ return r.item; });
+        localStorage.setItem(K, JSON.stringify(cloudItems));
+        this.sync();
+      }
+    } catch(e){}
+  }
 };
 
-function lk(p){return '<a class="l whitespace-nowrap" href="'+p[0]+'"'+(p[0]===here?' aria-current="page"':'')+'>'+p[1]+(p[0]==='wishlist.html'?' <span data-count hidden class="ml-1 rounded-full px-1.5 text-xs" style="background:#b76e79;color:#fff"></span>':'')+'</a>'}
+function lk(p){
+  return '<a class="l whitespace-nowrap" href="' + p[0] + '"' + (p[0] === here ? ' aria-current="page"' : '') + '>' + p[1] + (p[0] === 'wishlist.html' ? ' <span data-count hidden class="ml-1 rounded-full px-1.5 text-xs" style="background:#b76e79;color:#fff"></span>' : '') + '</a>';
+}
 
 var curInfo = CURRENCIES[currentLocale.currency] || CURRENCIES.EUR;
 var locBtnHtml = '<button id="nav-locale-btn" class="l whitespace-nowrap flex items-center gap-1 font-medium text-xs py-1 px-2.5 rounded-full" style="cursor:pointer;color:#b76e79;background:rgba(243,226,179,0.15);border:1px solid rgba(183,110,121,0.25)" title="Change Currency & Language"><span>📍 ' + currentLocale.currency + ' (' + curInfo.symbol + ') ▾</span></button>';
 
-// Desktop Menu: Jewelry Box | Look Planner | Size guide | Metal match | Currency Switch | Gift finder | More ▾
 var deskLinks = [
   pages[1], pages[2], pages[3], pages[4]
 ].map(lk).join('') + locBtnHtml + lk(pages[6]);
 
 var moreLinks = [pages[5], pages[7], pages[8], pages[9], pages[10], pages[11], pages[12], pages[13]].map(lk).join('');
-var desk = deskLinks + '<details class="more"><summary'+(here!=='index.html'&&['vault.html','planner.html','sizing.html','styling.html','gift.html'].indexOf(here)<0?' style="color:#f3e2b3"':'')+'>More</summary><div class="more-menu">'+moreLinks+'</div></details>';
+var desk = deskLinks + '<details class="more"><summary' + (here !== 'index.html' && ['vault.html','planner.html','sizing.html','styling.html','gift.html'].indexOf(here) < 0 ? ' style="color:#f3e2b3"' : '') + '>More</summary><div class="more-menu">' + moreLinks + '</div></details>';
 
 var mobLinks = pages.map(lk).join('') + 
   '<div class="pt-3 mt-2 border-t border-rose-200/20 flex flex-col gap-2">' +
@@ -337,8 +345,8 @@ var mobLinks = pages.map(lk).join('') +
   '<button id="m-th" class="btn btn-ghost text-xs w-full py-2">Switch Theme</button>' +
   '</div>';
 
-var nav=document.getElementById('nav');
-if(nav)nav.innerHTML='<header class="nav"><div class="mx-auto max-w-7xl px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2">' +
+var nav = document.getElementById('nav');
+if(nav) nav.innerHTML = '<header class="nav"><div class="mx-auto max-w-7xl px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2">' +
   brand('lg1') +
   '<nav class="hidden xl:flex gap-1 items-center" aria-label="Main">' + desk + '</nav>' +
   '<div class="flex items-center gap-1.5 sm:gap-2 shrink-0" id="nav-actions">' +
@@ -354,49 +362,88 @@ if(nav)nav.innerHTML='<header class="nav"><div class="mx-auto max-w-7xl px-3 sm:
 var bLocDesk = document.getElementById('nav-locale-btn'); if (bLocDesk) bLocDesk.onclick = openLocaleModal;
 var bLocMob = document.getElementById('m-nav-locale-btn'); if (bLocMob) bLocMob.onclick = openLocaleModal;
 
-var mb=document.getElementById('mb');
-if(mb)mb.onclick=function(){var m=document.getElementById('mm'),o=m.classList.toggle('hidden');m.classList.toggle('flex',!o);mb.setAttribute('aria-expanded',!o)};
+var mb = document.getElementById('mb');
+if(mb) mb.onclick = function(){ var m = document.getElementById('mm'), o = m.classList.toggle('hidden'); m.classList.toggle('flex', !o); mb.setAttribute('aria-expanded', !o); };
 
-var f=document.getElementById('foot');
-if(f)f.innerHTML='<footer class="mx-auto max-w-6xl px-5 py-12 border-t" style="border-color:rgba(243,226,179,.1)"><div class="flex flex-wrap justify-between gap-6"><div>'+brand('lg2')+'<p class="muted text-sm mt-2 max-w-sm">Fine jewelry tools and style guides. Upgrade to Pro for unlimited access.</p></div><nav class="flex flex-wrap gap-x-5 gap-y-1 text-sm muted" aria-label="Footer">'+pages.map(function(p){return '<a href="'+p[0]+'" class="hover:text-white">'+p[1]+'</a>'}).join('')+'<a href="privacy.html" class="hover:text-white">Privacy and ads</a></nav></div><nav class="flex flex-wrap gap-x-5 gap-y-1 text-sm muted mt-6" aria-label="Guides">'+guides.map(function(g){return '<a href="'+g[0]+'" class="hover:text-white">'+g[1]+'</a>'}).join('')+'</nav><p class="muted text-xs mt-8">© 2026 McGee Jewelry. Sizes and care advice are general guidance. For fine or antique pieces, check with a jeweler.</p></footer>';
+var f = document.getElementById('foot');
+if(f) f.innerHTML = '<footer class="mx-auto max-w-6xl px-5 py-12 border-t" style="border-color:rgba(243,226,179,.1)"><div class="flex flex-wrap justify-between gap-6"><div>' + brand('lg2') + '<p class="muted text-sm mt-2 max-w-sm">Fine jewelry tools and style guides. Upgrade to Pro for unlimited access.</p></div><nav class="flex flex-wrap gap-x-5 gap-y-1 text-sm muted" aria-label="Footer">' + pages.map(function(p){ return '<a href="' + p[0] + '" class="hover:text-white">' + p[1] + '</a>'; }).join('') + '<a href="privacy.html" class="hover:text-white">Privacy and ads</a></nav></div><nav class="flex flex-wrap gap-x-5 gap-y-1 text-sm muted mt-6" aria-label="Guides">' + guides.map(function(g){ return '<a href="' + g[0] + '" class="hover:text-white">' + g[1] + '</a>'; }).join('') + '</nav><p class="muted text-xs mt-8">© 2026 McGee Jewelry. Sizes and care advice are general guidance. For fine or antique pieces, check with a jeweler.</p></footer>';
 
 /* ---------- Theme switcher ---------- */
-function thNow(){return document.documentElement.dataset.theme||'light'}
+function thNow(){ return document.documentElement.dataset.theme || 'light'; }
 function thLab(){
-  var t=document.getElementById('th'),c=thNow(),r=TH.filter(function(x){return x[0]===c})[0]||TH[0];
-  if(t)t.textContent='Theme: '+r[1];
-  var mt=document.getElementById('m-th');
-  if(mt)mt.textContent='Theme: '+r[1];
-  var m=document.querySelector('meta[name="theme-color"]');
-  if(m)m.content=r[2];
+  var t = document.getElementById('th'), c = thNow(), r = TH.filter(function(x){ return x[0] === c; })[0] || TH[0];
+  if(t) t.textContent = 'Theme: ' + r[1];
+  var mt = document.getElementById('m-th');
+  if(mt) mt.textContent = 'Theme: ' + r[1];
+  var m = document.querySelector('meta[name="theme-color"]');
+  if(m) m.content = r[2];
 }
 function cycleTheme(){
-  var i=0;TH.forEach(function(x,j){if(x[0]===thNow())i=j});
-  var n=TH[(i+1)%TH.length][0];
-  if(n==='light')document.documentElement.removeAttribute('data-theme');
-  else document.documentElement.dataset.theme=n;
-  try{localStorage.setItem('koo_theme',n)}catch(e){}
+  var i = 0; TH.forEach(function(x, j){ if(x[0] === thNow()) i = j; });
+  var n = TH[(i+1)%TH.length][0];
+  if(n === 'light') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.dataset.theme = n;
+  try{ localStorage.setItem('koo_theme', n); }catch(e){}
   thLab();
 }
-var thb=document.getElementById('th'); if(thb) thb.onclick = cycleTheme;
-var mthb=document.getElementById('m-th'); if(mthb) mthb.onclick = cycleTheme;
+var thb = document.getElementById('th'); if(thb) thb.onclick = cycleTheme;
+var mthb = document.getElementById('m-th'); if(mthb) mthb.onclick = cycleTheme;
 thLab();
 KOO.sync();
 
-/* ---------- Pro Auth & 12 Free Tries Engine ---------- */
+/* ---------- Pro Auth, Unforgeable Pro Check, and Cloud Sync ---------- */
 var sb = null;
 var currentUser = null;
 var authMode = 'login';
 
-function isProUser() {
-  if (currentUser && currentUser.email) {
-    var em = currentUser.email.toLowerCase().trim();
-    if (PRO_EMAILS.indexOf(em) >= 0) return true;
-    if (currentUser.user_metadata && currentUser.user_metadata.is_pro === true) return true;
+window.__isPro = false;
+window.__isAdmin = false;
+
+// UNFORGEABLE PRO CHECK
+// Rule: Pro = active subscription in Supabase (status in 'active','trialing' and current_period_end > now())
+// or listed in 'admins' table. Reads only from Supabase via RLS.
+async function refreshProStatus() {
+  if (!sb || !currentUser) {
+    window.__isPro = false;
+    window.__isAdmin = false;
+    updateNavAuth();
+    return false;
   }
-  if (localStorage.getItem('koo_pro_active') === 'true') return true;
-  return false;
+  try {
+    var nowIso = new Date().toISOString();
+    var subRes = await sb
+      .from('subscriptions')
+      .select('status, current_period_end')
+      .eq('user_id', currentUser.id)
+      .in('status', ['active', 'trialing'])
+      .gt('current_period_end', nowIso)
+      .maybeSingle();
+
+    var isSubActive = !subRes.error && !!subRes.data;
+
+    var adminRes = await sb
+      .from('admins')
+      .select('user_id')
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+
+    var isAdmin = !adminRes.error && !!adminRes.data;
+
+    window.__isPro = isSubActive || isAdmin;
+    window.__isAdmin = isAdmin;
+  } catch (err) {
+    console.warn('Error refreshing pro subscription status:', err);
+    window.__isPro = false;
+  }
+  updateNavAuth();
+  return window.__isPro;
 }
+window.refreshProStatus = refreshProStatus;
+
+function isProUser() {
+  return !!window.__isPro;
+}
+window.isProUser = isProUser;
 
 function getUsedFeatures() {
   try { return JSON.parse(localStorage.getItem('koo_used_features')) || []; } catch(e){ return []; }
@@ -423,10 +470,16 @@ function getRemainingTries() {
 }
 
 function getStripeUrl() {
-  if (currentUser && currentUser.email) {
-    return STRIPE_BASE + '?prefilled_email=' + encodeURIComponent(currentUser.email);
+  var url = STRIPE_BASE;
+  var params = [];
+  if (currentUser) {
+    if (currentUser.email) params.push('prefilled_email=' + encodeURIComponent(currentUser.email));
+    if (currentUser.id) params.push('client_reference_id=' + encodeURIComponent(currentUser.id));
   }
-  return STRIPE_BASE;
+  if (params.length) {
+    url += (url.indexOf('?') >= 0 ? '&' : '?') + params.join('&');
+  }
+  return url;
 }
 
 function updateNavAuth() {
@@ -488,23 +541,177 @@ function updateNavAuth() {
   var mbOut = document.getElementById('m-btn-logout'); if (mbOut) mbOut.onclick = logoutUser;
 }
 
-function handleStripeSuccess() {
+function showToast(msg, isError) {
+  var old = document.getElementById('mcgee-toast');
+  if (old) old.remove();
+  var t = document.createElement('div');
+  t.id = 'mcgee-toast';
+  t.setAttribute('role', 'status');
+  t.style.cssText = 'position:fixed;bottom:1.5rem;right:1.5rem;z-index:100002;max-width:24rem;padding:.9rem 1.25rem;border-radius:1rem;box-shadow:0 20px 40px rgba(0,0,0,0.4);border:1px solid ' + (isError ? 'rgba(239,68,68,0.5)' : 'rgba(243,226,179,0.4)') + ';';
+  t.className = 'glass fade text-sm flex items-center justify-between gap-3';
+  t.innerHTML = '<span>' + msg + '</span><button type="button" onclick="this.parentElement.remove()" class="muted hover:text-white text-xs shrink-0" aria-label="Dismiss">✕</button>';
+  document.body.appendChild(t);
+  setTimeout(function(){ if (t && t.parentElement) t.remove(); }, 6000);
+}
+window.showMcGeeToast = showToast;
+
+// Global specular spotlight tracking for .glow cards
+document.addEventListener('pointermove', function(e) {
+  var card = e.target && e.target.closest ? e.target.closest('.glow') : null;
+  if (!card) return;
+  var r = card.getBoundingClientRect();
+  card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+  card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+}, { passive: true });
+
+// STRIPE RETURN HANDLING: Refetches DB subscription, does NOT grant Pro locally
+async function handleStripeSuccess() {
   if (location.search.indexOf('payment=success') >= 0) {
-    localStorage.setItem('koo_pro_active', 'true');
-    localStorage.setItem('koo_pending_pro', 'true');
-    if (sb && currentUser) {
-      sb.auth.updateUser({ data: { is_pro: true } }).catch(function(){});
-    }
-    alert('🎉 Payment confirmed! Your account is now upgraded to McGee Jewelry Pro.');
     try {
       var url = new URL(window.location);
       url.searchParams.delete('payment');
-      window.history.replaceState({}, document.title, url.pathname);
+      window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : ''));
     } catch(e){}
+
+    var attempts = 0;
+    var maxAttempts = 3;
+    var confirmed = false;
+
+    while (attempts < maxAttempts) {
+      attempts++;
+      confirmed = await refreshProStatus();
+      if (confirmed) break;
+      await new Promise(function(r){ setTimeout(r, 1500); });
+    }
+
+    if (confirmed) {
+      showToast('🎉 Payment confirmed! Your McGee Jewelry Pro membership is now active.');
+    } else {
+      showToast('Payment received! Your subscription is activating in Stripe — refresh in a few moments.');
+    }
+
     updateNavAuth();
     var m = document.getElementById('mcgee-pro-modal');
     if (m) m.remove();
   }
+}
+
+/* ---------- FIRST-LOGIN DATA MIGRATION PROMPT ---------- */
+async function checkAndPromptCloudSync(user) {
+  if (!user || !sb) return;
+  var migrationKey = 'koo_migrated_' + user.id;
+  if (localStorage.getItem(migrationKey)) return;
+
+  var vaultData = [];
+  var planData = {};
+  var wearData = [];
+  var wishData = [];
+  try { vaultData = JSON.parse(localStorage.getItem('koo_jewelry_vault')) || []; } catch(e){}
+  try { planData = JSON.parse(localStorage.getItem('koo_weekly_plan')) || {}; } catch(e){}
+  try { wearData = JSON.parse(localStorage.getItem('koo_wear_history')) || []; } catch(e){}
+  try { wishData = JSON.parse(localStorage.getItem('koo_wishlist')) || []; } catch(e){}
+
+  var hasLocalData = vaultData.length > 0 || Object.keys(planData).length > 0 || wearData.length > 0 || wishData.length > 0;
+  if (!hasLocalData) {
+    localStorage.setItem(migrationKey, 'true');
+    return;
+  }
+
+  var modal = document.createElement('div');
+  modal.id = 'cloud-migration-dialog';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(18,10,14,0.85);backdrop-filter:blur(12px);z-index:100001;display:flex;align-items:center;justify-content:center;padding:1.25rem;';
+  modal.innerHTML = '<div class="glass glow p-6 md:p-8 rounded-3xl max-w-md w-full text-center relative" style="border:1px solid rgba(243,226,179,0.3)">' +
+                    '<span class="text-4xl block mb-2">☁️</span>' +
+                    '<span class="chip text-xs">Cloud Backup Available</span>' +
+                    '<h3 class="serif text-3xl gt mt-2">Sync Local Data</h3>' +
+                    '<p class="muted text-sm mt-2 leading-relaxed">' +
+                    'We detected ' + (vaultData.length ? vaultData.length + ' jewelry piece(s), ' : '') +
+                    (wishData.length ? wishData.length + ' wishlist item(s), ' : '') +
+                    'and styling plans saved on this device. Would you like to import them to your secure cloud account?' +
+                    '</p>' +
+                    '<div class="flex flex-col gap-2 mt-6">' +
+                    '<button id="btn-sync-confirm" class="btn btn-gold w-full py-2.5 text-sm font-medium">Yes, Sync to Cloud Account</button>' +
+                    '<button id="btn-sync-skip" class="btn btn-ghost w-full py-2 text-xs">Keep On Device Only</button>' +
+                    '</div>' +
+                    '</div>';
+  document.body.appendChild(modal);
+
+  document.getElementById('btn-sync-skip').onclick = function(){
+    localStorage.setItem(migrationKey, 'declined');
+    modal.remove();
+  };
+
+  document.getElementById('btn-sync-confirm').onclick = async function(){
+    var btn = document.getElementById('btn-sync-confirm');
+    btn.disabled = true;
+    btn.textContent = 'Syncing...';
+
+    try {
+      // Sync pieces (respect limit if non-pro)
+      if (vaultData.length > 0) {
+        var piecesToInsert = vaultData.map(function(p){
+          return {
+            user_id: user.id,
+            name: p.name || 'Fine Jewelry',
+            category: p.cat || 'Other',
+            karat: p.karat || '14k',
+            weight_g: parseFloat(p.weight) || 0,
+            paid_price: parseFloat(p.price) || 0,
+            notes: p.notes || ''
+          };
+        });
+        if (!window.__isPro && piecesToInsert.length > 2) {
+          piecesToInsert = piecesToInsert.slice(0, 2);
+        }
+        await sb.from('pieces').insert(piecesToInsert);
+      }
+
+      // Sync weekly plan
+      var days = Object.keys(planData);
+      for (var i = 0; i < days.length; i++) {
+        var day = days[i];
+        if (!window.__isPro && ['Monday', 'Tuesday'].indexOf(day) < 0) continue;
+        await sb.from('weekly_plan').upsert({
+          user_id: user.id,
+          day: day,
+          piece_ids: [planData[day]]
+        }, { onConflict: 'user_id,day' });
+      }
+
+      // Sync wears
+      if (wearData.length > 0) {
+        var wearsToInsert = wearData.map(function(w){
+          return {
+            user_id: user.id,
+            piece_name: w.piece,
+            vibe: w.vibe || 'Everyday',
+            worn_on: w.date || new Date().toISOString().slice(0,10)
+          };
+        });
+        if (!window.__isPro && wearsToInsert.length > 3) {
+          wearsToInsert = wearsToInsert.slice(0, 3);
+        }
+        await sb.from('wear_log').insert(wearsToInsert);
+      }
+
+      // Sync wishlist
+      if (wishData.length > 0) {
+        var wishToInsert = wishData.map(function(it){
+          return { user_id: user.id, item: it };
+        });
+        await sb.from('wishlist').insert(wishToInsert);
+      }
+
+      localStorage.setItem(migrationKey, 'true');
+      modal.remove();
+      showToast('✨ Data successfully synced to your cloud account!');
+      setTimeout(function(){ location.reload(); }, 900);
+    } catch(err) {
+      console.error('Migration error:', err);
+      showToast('Some items could not be synced: ' + err.message, true);
+      modal.remove();
+    }
+  };
 }
 
 /* ---------- USER PROFILE & BILLING MODAL ---------- */
@@ -572,7 +779,7 @@ function openProfileModal() {
   dlg.onclick = function(e){ if (e.target === dlg) dlg.remove(); };
 }
 
-/* ---------- STYLISH PRO SUBSCRIPTION BANNER (BLUR / FLOU) ---------- */
+/* ---------- STYLISH PRO SUBSCRIPTION MODAL ---------- */
 function openProModal(isPageLock) {
   if (isProUser()) return;
   var old = document.getElementById('mcgee-pro-modal');
@@ -610,9 +817,11 @@ function openProModal(isPageLock) {
                 
                 '<div class="text-center">' +
                 '<span class="chip" style="font-size:0.75rem;padding:0.25rem 0.9rem;background:rgba(243,226,179,0.15);border-color:#b76e79;color:#f3e2b3">✨ MCGEE JEWELRY PRO</span>' +
-                '<h2 class="serif text-3xl md:text-5xl gt mt-3">Free Try Used For This Studio</h2>' +
+                '<h2 class="serif text-3xl md:text-5xl gt mt-3">' + (isPageLock ? 'Free Try Used For This Studio' : 'Unlock Your Complete Jewelry Studio') + '</h2>' +
                 '<p class="muted text-sm md:text-base mt-2 max-w-lg mx-auto">' +
-                'You have used your 1 free try for this feature (' + triesLeft + '/' + ALL_TOOL_SLUGS.length + ' total tries remaining). Subscribe for <b class="gt">' + priceLabel + '/month</b> to unlock all 12 tools with unlimited access.' +
+                (isPageLock
+                  ? 'You have used your 1 free try for this feature (' + triesLeft + '/' + ALL_TOOL_SLUGS.length + ' total tries remaining). Subscribe for <b class="gt">' + priceLabel + '/month</b> to unlock all 12 tools with unlimited access.'
+                  : 'Track unlimited fine gold pieces, export printable insurance sheets, and unlock all 12 interactive styling &amp; sizing tools for <b class="gt">' + priceLabel + '/month</b>.') +
                 '</p>' +
                 '</div>' +
 
@@ -658,7 +867,7 @@ function openProModal(isPageLock) {
 }
 window.openProModal = openProModal;
 
-/* ---------- DIRECT URL & GOOGLE PAGE-LOAD PAYWALL CHECK ---------- */
+/* ---------- DIRECT URL & PAGE-LOAD PAYWALL CHECK ---------- */
 function checkDirectPagePaywall() {
   if (!isToolPage) return;
   if (isProUser()) return;
@@ -801,20 +1010,16 @@ function handleFormSubmit(e) {
   st.textContent = authMode === 'signup' ? 'Creating your account...' : 'Logging in...';
   st.style.color = '';
 
-  var hadPendingPro = localStorage.getItem('koo_pending_pro') === 'true';
-
   if (authMode === 'signup') {
     sb.auth.signUp({
       email: email,
-      password: password,
-      options: { data: { is_pro: hadPendingPro || (PRO_EMAILS.indexOf(email.toLowerCase()) >= 0) } }
+      password: password
     }).then(function(res){
       btn.disabled = false;
       if (res.error) {
         st.textContent = res.error.message;
         st.style.color = '#ef4444';
       } else {
-        localStorage.removeItem('koo_pending_pro');
         st.textContent = 'Account created successfully!';
         st.style.color = '#10b981';
         setTimeout(function(){ location.reload(); }, 800);
@@ -831,10 +1036,6 @@ function handleFormSubmit(e) {
         st.textContent = res.error.message;
         st.style.color = '#ef4444';
       } else {
-        if (hadPendingPro && sb) {
-          sb.auth.updateUser({ data: { is_pro: true } }).catch(function(){});
-          localStorage.removeItem('koo_pending_pro');
-        }
         st.textContent = 'Logged in successfully!';
         st.style.color = '#10b981';
         setTimeout(function(){ location.reload(); }, 800);
@@ -860,31 +1061,42 @@ function loginWithGoogle() {
 function logoutUser() {
   if (sb) sb.auth.signOut();
   currentUser = null;
-  localStorage.removeItem('koo_pro_active');
+  window.__isPro = false;
+  window.__isAdmin = false;
   updateNavAuth();
   location.reload();
 }
 
-window.initMcGeeAuth = function() {
+window.initMcGeeAuth = async function() {
   if (!window.supabase) return;
   sb = window.supabase.createClient(SB_URL, SB_KEY);
+  window.sb = sb;
 
-  sb.auth.getSession().then(function(res){
+  try {
+    var res = await sb.auth.getSession();
     if (res.data && res.data.session) {
       currentUser = res.data.session.user;
-      if (currentUser && currentUser.email && PRO_EMAILS.indexOf(currentUser.email.toLowerCase()) >= 0) {
-        if (!currentUser.user_metadata || currentUser.user_metadata.is_pro !== true) {
-          sb.auth.updateUser({ data: { is_pro: true } }).catch(function(){});
-        }
-      }
+      window.currentUser = currentUser;
+      await refreshProStatus();
+      await KOO.loadFromCloud();
+      checkAndPromptCloudSync(currentUser);
     }
-    updateNavAuth();
-    handleStripeSuccess();
-    checkDirectPagePaywall();
-  });
+  } catch(e) {
+    console.error('Session retrieval error:', e);
+  }
 
-  sb.auth.onAuthStateChange(function(evt, session){
+  updateNavAuth();
+  handleStripeSuccess();
+  checkDirectPagePaywall();
+
+  sb.auth.onAuthStateChange(async function(evt, session){
     currentUser = session ? session.user : null;
+    window.currentUser = currentUser;
+    await refreshProStatus();
+    if (currentUser) {
+      await KOO.loadFromCloud();
+      checkAndPromptCloudSync(currentUser);
+    }
     updateNavAuth();
     handleStripeSuccess();
   });
@@ -892,7 +1104,6 @@ window.initMcGeeAuth = function() {
 
 if (window.supabase) window.initMcGeeAuth();
 updateNavAuth();
-handleStripeSuccess();
 
 setTimeout(function(){
   checkDirectPagePaywall();

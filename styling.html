@@ -1,12 +1,58 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Metal & undertone matcher | koojewelry</title><meta name="description" content="Choose your skin undertone to see the metals and gems that suit you best."><meta name="theme-color" content="#020617"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E💍%3C/text%3E%3C/svg%3E"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"><script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="style.css"></head><body><a class="skip" href="#main">Skip to content</a><div id="nav"></div><main id="main" class="mx-auto max-w-6xl px-5 pb-24 pt-10"><div class="max-w-2xl mb-10"><h1 class="text-5xl md:text-6xl gt">Metals that suit your skin</h1><p class="muted text-lg mt-4">Choose your undertone for tailored metals and gems. Save favorites to your wishlist.</p></div><div class="grid lg:grid-cols-3 gap-6"><div class="glass p-6"><h2 class="text-3xl">Your undertone</h2><p class="muted text-sm mt-1 mb-5">Pick the one closest to you. Not sure? Check the hint on each.</p><div id="ut" class="grid gap-3" role="group" aria-label="Skin undertone"></div></div><div id="out" class="lg:col-span-2 glass p-6"></div></div></main><div id="foot"></div><script src="layout.js"></script><script>var U={
-cool:{n:'Cool',sw:'#c9a0c8',hint:'Veins look blue or purple. Silver looks better than gold on you.',m:[['Silver','Crisp and bright against pink or blue tones.'],['White gold','The same clean glow, with more weight.'],['Platinum','Cool, durable, and never fades.']],g:['Sapphire','Amethyst','Aquamarine','Emerald','Diamond'],a:'Very yellow gold can look flat. Choose a pale or rose tone.'},
-warm:{n:'Warm',sw:'#e0a95e',hint:'Veins look green. Gold looks better than silver on you.',m:[['Yellow gold','Brings out the golden depth in your skin.'],['Rose gold','Soft and flattering across most warm tones.'],['Brass and copper','Earthy and relaxed for everyday wear.']],g:['Citrine','Garnet','Ruby','Amber','Topaz'],a:'High-shine silver can wash you out. Try oxidized or brushed finishes.'},
-neutral:{n:'Neutral',sw:'#d9b8a8',hint:'Veins look blue-green, and both metals suit you.',m:[['Rose gold','Sits between warm and cool, so it suits you best.'],['Yellow gold','Rich and classic.'],['Silver','Sharp and modern. Mix it with gold.']],g:['Morganite','Pearl','Opal','Blue topaz','Peridot'],a:'Almost nothing. Mix metals freely.'},
-olive:{n:'Olive',sw:'#a8a272',hint:'Skin has a green or golden cast, and tans easily.',m:[['Yellow gold','Warms the green in your skin tone.'],['Antique gold','Soft patina flatters olive tones.'],['Rose gold','A gentle blush against deeper skin.']],g:['Emerald','Garnet','Turquoise','Amethyst','Deep ruby'],a:'Icy, blue-white metals can look gray.'}};
-var cur='neutral';
-function show(k){cur=k;var u=U[k];
-document.getElementById('ut').innerHTML=Object.keys(U).map(function(x){return '<button class="chip" aria-pressed="'+(x===k)+'" data-k="'+x+'"><span class="inline-block w-3 h-3 rounded-full mr-2" style="background:'+U[x].sw+'"></span>'+U[x].n+'<span class="block muted text-xs mt-1">'+U[x].hint+'</span></button>'}).join('');
-document.getElementById('ut').querySelectorAll('button').forEach(function(b){b.onclick=function(){show(b.dataset.k)}});
-document.getElementById('out').innerHTML='<div class="fade"><h2 class="text-4xl gt">Best metals for '+u.n.toLowerCase()+' undertones</h2><div class="grid md:grid-cols-3 gap-3 mt-5">'+u.m.map(function(m){return '<div class="stat"><b class="gt">'+m[0]+'</b><p class="muted text-sm my-2">'+m[1]+'</p>'+KOO.btn('metal-'+k+'-'+m[0],m[0]+' ('+u.n+' undertone)','Metal match')+'</div>'}).join('')+'</div><h3 class="text-3xl mt-8">Gems to try</h3><div class="flex flex-wrap gap-2 mt-3">'+u.g.map(function(g){return '<span class="inline-flex items-center gap-2 stat" style="padding:.4rem .5rem .4rem 1rem">'+g+KOO.btn('gem-'+k+'-'+g,g+' ('+u.n+' undertone)','Gem match')+'</span>'}).join('')+'</div><h3 class="text-3xl mt-8">Go lightly with</h3><p class="muted mt-2">'+u.a+'</p></div>';
-KOO.sync()}
-show(cur);</script></body></html>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Metal & Skin Undertone Match | McGee Jewelry</title><meta name="description" content="Choose your undertone for tailored gold, silver, rose gold, and gemstone pairings."><meta name="theme-color" content="#fbf5f2"><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="canonical" href="https://mcgeejewelry.com/styling.html"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"><script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="style.css"></head><body><a class="skip" href="#main">Skip to content</a><div id="nav"></div><main id="main" class="mx-auto max-w-6xl px-5 pb-24 pt-10">
+<div class="max-w-2xl mb-10">
+<span class="chip text-xs mb-3 inline-block">Color Harmony Studio</span>
+<h1 class="text-5xl md:text-6xl gt">Metals that suit your skin</h1>
+<p class="muted text-lg mt-3">Choose your undertone for tailored metals, gemstone pairings, and styling recommendations.</p>
+</div>
+
+<div class="grid lg:grid-cols-3 gap-6">
+<div class="glass p-6 sm:p-7 rounded-3xl h-fit">
+<h2 class="serif text-3xl gt">Your undertone</h2>
+<p class="muted text-xs mt-1 mb-5">Pick the one closest to you. Check the hint for wrist vein color.</p>
+<div id="ut-btns" class="grid gap-3" role="group" aria-label="Skin undertone"></div>
+</div>
+
+<div id="ut-out" class="glass p-6 sm:p-8 rounded-3xl lg:col-span-2"></div>
+</div>
+
+<div data-ad="banner"></div>
+</main><div id="foot"></div>
+<script src="layout.js"></script><script src="ads.js"></script>
+<script>
+(function(){
+  var U = {
+    cool: { n: 'Cool', sw: '#c9a0c8', hint: 'Veins look blue or purple. Silver looks crisp and glowing on you.', m: [['Silver','Crisp and bright against pink or blue tones.'],['White gold','The same clean glow, with more heft and longevity.'],['Platinum','Cool, durable, dense and naturally hypoallergenic.']], g: ['Sapphire','Amethyst','Aquamarine','Emerald','Diamond'], a: 'Very yellow gold can look flat or brassy. Choose pale or rose tones if you love gold.' },
+    warm: { n: 'Warm', sw: '#e0a95e', hint: 'Veins look green. Gold brings out your natural sun-kissed warmth.', m: [['Yellow gold','Brings out rich golden undertones in your complexion.'],['Rose gold','Soft and flattering across almost all warm complexions.'],['Brass & bronze','Earthy, textured and relaxed for effortless daily wear.']], g: ['Citrine','Garnet','Ruby','Amber','Topaz'], a: 'High-shine icy silver can wash you out. Try brushed or antique finishes instead.' },
+    neutral: { n: 'Neutral', sw: '#d9b8a8', hint: 'Veins look blue-green, and both warm and cool metals look radiant.', m: [['Rose gold','Sits between warm and cool, so it flatters you effortlessly.'],['Yellow gold','Rich, luminous and classic.'],['Silver','Sharp and modern. Mix it freely with yellow gold stacks.']], g: ['Morganite','Pearl','Opal','Blue topaz','Peridot'], a: 'Almost nothing. You can wear and mix two-tone metals freely.' },
+    olive: { n: 'Olive', sw: '#a8a272', hint: 'Skin has a subtle green or golden cast and tans easily in summer.', m: [['Yellow gold','Harmonizes with and warms the greenish cast in olive skin.'],['Antique gold','Soft satin patina flatters deeper tones.'],['Rose gold','A gentle blush contrast that illuminates deeper skin.']], g: ['Emerald','Garnet','Turquoise','Amethyst','Deep ruby'], a: 'Icy, stark blue-white metals can look flat or grayish.' }
+  };
+  var cur = 'neutral';
+  function show(k){
+    cur = k;
+    var d = U[k];
+    document.getElementById('ut-btns').innerHTML = Object.keys(U).map(function(x){
+      var u = U[x];
+      return '<button type="button" class="chip p-4 rounded-2xl block text-left" aria-pressed="' + (x === k) + '" data-u="' + x + '">' +
+             '<div class="flex items-center gap-2.5"><span style="width:1rem;height:1rem;border-radius:50%;background:' + u.sw + ';display:inline-block;border:1px solid rgba(255,255,255,0.4)"></span><b class="serif text-xl">' + u.n + '</b></div>' +
+             '<span class="block muted text-xs mt-1">' + u.hint + '</span></button>';
+    }).join('');
+    document.querySelectorAll('#ut-btns button').forEach(function(b){ b.onclick = function(){ show(b.dataset.u); }; });
+
+    document.getElementById('ut-out').innerHTML = '<div class="fade">' +
+      '<h2 class="serif text-4xl gt">' + d.n + ' undertone recommendations</h2>' +
+      '<div class="grid sm:grid-cols-3 gap-3 mt-5">' +
+      d.m.map(function(r){
+        return '<div class="stat"><h3 class="serif text-2xl">' + r[0] + '</h3><p class="muted text-xs mt-1">' + r[1] + '</p>' +
+               '<div class="mt-3">' + (window.KOO ? window.KOO.btn('metal-' + k + '-' + r[0], r[0] + ' (' + d.n + ' undertone)', 'Metal Match') : '') + '</div></div>';
+      }).join('') +
+      '</div>' +
+      '<h3 class="serif text-2xl mt-7">Best gemstones</h3>' +
+      '<p class="muted text-sm mt-1">' + d.g.join(' &middot; ') + '</p>' +
+      '<h3 class="serif text-2xl mt-5">What to approach lightly</h3>' +
+      '<p class="muted text-sm mt-1">' + d.a + '</p>' +
+      '</div>';
+    if (window.KOO) window.KOO.sync();
+  }
+  show(cur);
+})();
+</script></body></html>

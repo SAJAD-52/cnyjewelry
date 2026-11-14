@@ -14,7 +14,7 @@
 <div class="max-w-3xl mb-10">
 <span class="chip text-xs mb-3">Styling & Capsule Studio</span>
 <h1 class="text-5xl md:text-6xl gt">Jewelry Lookbook & Wear Planner</h1>
-<p class="muted text-lg mt-3">Organize what jewelry you wear every day, track your 30-day wearing history, and discover your true Cost-Per-Wear.</p>
+<p class="muted text-lg mt-3">Organize what jewelry you wear every day, track your 30-day wearing history, and discover your true Cost-Per-Wear in real-time.</p>
 </div>
 
 <!-- STATS SUMMARY -->
@@ -63,7 +63,7 @@
 <option>Weekend Brunch</option>
 <option>Special Event / Gala</option>
 </select></label>
-<button type="submit" class="btn btn-gold w-full mt-3">+ Log Wear</button>
+<button id="btn-wear-submit" type="submit" class="btn btn-gold w-full mt-3">+ Log Wear</button>
 <p id="wear-msg" class="text-xs text-center mt-2 muted"></p>
 </form>
 
@@ -120,29 +120,87 @@ var PLAN_KEY = 'koo_weekly_plan';
 var WEAR_KEY = 'koo_wear_history';
 var VAULT_KEY = 'koo_jewelry_vault';
 
-function getVault(){ try { return JSON.parse(localStorage.getItem(VAULT_KEY)) || []; } catch(e){ return []; } }
-function getPlan(){ try { return JSON.parse(localStorage.getItem(PLAN_KEY)) || {}; } catch(e){ return {}; } }
-function setPlan(p){ try { localStorage.setItem(PLAN_KEY, JSON.stringify(p)); } catch(e){} }
-function getWears(){ try { return JSON.parse(localStorage.getItem(WEAR_KEY)) || []; } catch(e){ return []; } }
-function setWears(w){ try { localStorage.setItem(WEAR_KEY, JSON.stringify(w)); } catch(e){} }
+var currentPlan = {};
+var currentWears = [];
+var currentVault = [];
+
+function getVault(){
+  try { return JSON.parse(localStorage.getItem(VAULT_KEY)) || []; } catch(e){ return []; }
+}
 
 var todayStr = new Date().toISOString().slice(0,10);
 var dateInp = document.getElementById('w-date');
 if(dateInp) dateInp.value = todayStr;
 
-// Populate dropdown from Jewelry Box (vault.html)
+// Load Data from Supabase (if authenticated) or LocalStorage
+async function loadPlannerData(){
+  currentVault = getVault();
+
+  if (window.currentUser && window.sb) {
+    try {
+      // 1. Fetch weekly plan
+      var planRes = await window.sb
+        .from('weekly_plan')
+        .select('day, piece_ids')
+        .eq('user_id', window.currentUser.id);
+
+      if (!planRes.error && planRes.data) {
+        currentPlan = {};
+        planRes.data.forEach(function(row){
+          var pieceData = row.piece_ids && row.piece_ids[0] ? row.piece_ids[0] : null;
+          if (pieceData) currentPlan[row.day] = pieceData;
+        });
+        try { localStorage.setItem(PLAN_KEY, JSON.stringify(currentPlan)); } catch(e){}
+      }
+
+      // 2. Fetch wear log
+      var wearRes = await window.sb
+        .from('wear_log')
+        .select('*')
+        .eq('user_id', window.currentUser.id)
+        .order('worn_on', { ascending: false });
+
+      if (!wearRes.error && wearRes.data) {
+        currentWears = wearRes.data.map(function(r){
+          return {
+            id: r.id,
+            piece: r.piece_name,
+            vibe: r.vibe || 'Everyday',
+            date: r.worn_on
+          };
+        });
+        try { localStorage.setItem(WEAR_KEY, JSON.stringify(currentWears)); } catch(e){}
+      }
+
+      populateSelect();
+      renderWeekly();
+      renderAnalytics();
+      return;
+    } catch(err) {
+      console.warn('Could not load planner from cloud, reading local cache:', err);
+    }
+  }
+
+  // LocalStorage fallback
+  try { currentPlan = JSON.parse(localStorage.getItem(PLAN_KEY)) || {}; } catch(e){ currentPlan = {}; }
+  try { currentWears = JSON.parse(localStorage.getItem(WEAR_KEY)) || []; } catch(e){ currentWears = []; }
+
+  populateSelect();
+  renderWeekly();
+  renderAnalytics();
+}
+
+// Populate dropdown from Jewelry Box
 function populateSelect(){
   var sel = document.getElementById('w-piece-select');
   if(!sel) return;
-  var items = getVault();
   sel.innerHTML = '<option value="">-- Choose from your box --</option>' +
-    items.map(function(it, i){
+    currentVault.map(function(it, i){
       return '<option value="' + i + '">' + it.name + ' (' + (it.cat||'Piece') + ')' + '</option>';
     }).join('');
 }
 
 function renderWeekly(){
-  var plan = getPlan();
   var isPro = (typeof isProUser === 'function') && isProUser();
   var badge = document.getElementById('planner-tier-badge');
   if(badge) badge.textContent = isPro ? '⭐ Pro (Unlimited Days)' : 'Free Tier (2 days max)';
@@ -152,7 +210,7 @@ function renderWeekly(){
 
   var plannedCount = 0;
   grid.innerHTML = DAYS.map(function(d, idx){
-    var item = plan[d] || '';
+    var item = currentPlan[d] || '';
     if(item) plannedCount++;
     var isLockedDay = (!isPro && idx >= 2);
 
@@ -164,7 +222,7 @@ function renderWeekly(){
            '</div>' +
            '<div class="mt-3 min-h-[3.5rem]">' +
            (item ? 
-             '<p class="text-xs font-medium gt">' + item.piece + '</p><span class="chip text-[10px] mt-1" style="padding:0.15rem 0.5rem">' + item.vibe + '</span>' 
+             '<p class="text-xs font-medium gt">' + (typeof item === 'object' ? item.piece : item) + '</p><span class="chip text-[10px] mt-1" style="padding:0.15rem 0.5rem">' + (item.vibe || 'Everyday') + '</span>' 
              : 
              '<p class="muted text-xs italic">No piece set</p>'
            ) +
@@ -180,22 +238,41 @@ function renderWeekly(){
 
   // Wire day buttons
   document.querySelectorAll('[data-day]').forEach(function(btn){
-    btn.onclick = function(){
-      if(btn.dataset.locked === 'true'){
+    btn.onclick = async function(){
+      var isProNow = (typeof isProUser === 'function') && isProUser();
+      if(btn.dataset.locked === 'true' && !isProNow){
         if(typeof openProModal === 'function') openProModal(false);
         return;
       }
       var d = btn.dataset.day;
-      var cur = plan[d] ? plan[d].piece : '';
+      var cur = currentPlan[d] ? (typeof currentPlan[d] === 'object' ? currentPlan[d].piece : currentPlan[d]) : '';
       var pieceName = prompt('Enter jewelry piece for ' + d + ':', cur);
       if(pieceName !== null){
         if(pieceName.trim() === ''){
-          delete plan[d];
+          delete currentPlan[d];
+          if (window.currentUser && window.sb) {
+            await window.sb.from('weekly_plan').delete().eq('user_id', window.currentUser.id).eq('day', d);
+          }
         } else {
-          var vibe = prompt('Outfit vibe (e.g. Work, Casual, Date Night):', (plan[d] ? plan[d].vibe : 'Everyday')) || 'Everyday';
-          plan[d] = { piece: pieceName.trim(), vibe: vibe.trim() };
+          var vibe = prompt('Outfit vibe (e.g. Work, Casual, Date Night):', (currentPlan[d] ? currentPlan[d].vibe : 'Everyday')) || 'Everyday';
+          var lookObj = { piece: pieceName.trim(), vibe: vibe.trim() };
+          currentPlan[d] = lookObj;
+
+          if (window.currentUser && window.sb) {
+            var upsertRes = await window.sb.from('weekly_plan').upsert({
+              user_id: window.currentUser.id,
+              day: d,
+              piece_ids: [lookObj]
+            }, { onConflict: 'user_id,day' });
+
+            if (upsertRes.error) {
+              alert('Policy restriction: ' + upsertRes.error.message);
+              if (typeof openProModal === 'function') openProModal(false);
+              return;
+            }
+          }
         }
-        setPlan(plan);
+        try { localStorage.setItem(PLAN_KEY, JSON.stringify(currentPlan)); } catch(e){}
         renderWeekly();
       }
     };
@@ -203,14 +280,12 @@ function renderWeekly(){
 }
 
 function renderAnalytics(){
-  var wears = getWears();
-  var vault = getVault();
-  var isPro = (typeof isProUser === 'function') && isProUser();
+  var vault = currentVault;
 
   // Filter wears from last 30 days
   var thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  var recentWears = wears.filter(function(w){ return new Date(w.date) >= thirtyDaysAgo; });
+  var recentWears = currentWears.filter(function(w){ return new Date(w.date) >= thirtyDaysAgo; });
 
   document.getElementById('stat-wears').textContent = recentWears.length;
 
@@ -243,9 +318,8 @@ function renderAnalytics(){
   var totalCPW = 0, cpwCount = 0;
   tbody.innerHTML = pieceKeys.map(function(pk){
     var times = counts[pk];
-    // Find price in vault
     var matched = vault.filter(function(v){ return v.name.toLowerCase() === pk.toLowerCase(); })[0];
-    var price = matched && matched.price ? parseFloat(matched.price) : 250; // Fallback estimate
+    var price = matched && matched.price ? parseFloat(matched.price) : 250;
     var cpw = (price / times).toFixed(2);
     totalCPW += parseFloat(cpw);
     cpwCount++;
@@ -276,12 +350,11 @@ function renderAnalytics(){
 // Handle Log Wear Form
 var wearForm = document.getElementById('wear-form');
 if(wearForm){
-  wearForm.onsubmit = function(e){
+  wearForm.onsubmit = async function(e){
     e.preventDefault();
-    var wears = getWears();
     var isPro = (typeof isProUser === 'function') && isProUser();
 
-    if(wears.length >= 3 && !isPro){
+    if(currentWears.length >= 3 && !isPro){
       if(typeof openProModal === 'function') openProModal(false);
       var msg = document.getElementById('wear-msg');
       if(msg){
@@ -293,22 +366,57 @@ if(wearForm){
 
     var sel = document.getElementById('w-piece-select');
     var custom = document.getElementById('w-custom').value.trim();
-    var vault = getVault();
     var pieceName = custom;
+    var pieceId = null;
+
     if(!pieceName && sel.value !== ''){
-      pieceName = vault[+sel.value] ? vault[+sel.value].name : '';
+      var matchedPiece = currentVault[+sel.value];
+      if (matchedPiece) {
+        pieceName = matchedPiece.name;
+        pieceId = matchedPiece.id || null;
+      }
     }
     if(!pieceName){ alert('Please select a piece from your box or type one.'); return; }
 
-    var entry = {
-      date: document.getElementById('w-date').value,
-      piece: pieceName,
-      vibe: document.getElementById('w-vibe').value
-    };
+    var dateVal = document.getElementById('w-date').value;
+    var vibeVal = document.getElementById('w-vibe').value;
 
-    wears.unshift(entry);
-    setWears(wears);
+    var submitBtn = document.getElementById('btn-wear-submit');
+    submitBtn.disabled = true;
+
+    if (window.currentUser && window.sb) {
+      var insertRes = await window.sb.from('wear_log').insert({
+        user_id: window.currentUser.id,
+        piece_id: pieceId,
+        piece_name: pieceName,
+        vibe: vibeVal,
+        worn_on: dateVal
+      }).select().single();
+
+      if (insertRes.error) {
+        submitBtn.disabled = false;
+        alert('Database policy error: ' + insertRes.error.message);
+        if (typeof openProModal === 'function') openProModal(false);
+        return;
+      }
+
+      currentWears.unshift({
+        id: insertRes.data.id,
+        piece: insertRes.data.piece_name,
+        vibe: insertRes.data.vibe,
+        date: insertRes.data.worn_on
+      });
+    } else {
+      currentWears.unshift({
+        piece: pieceName,
+        vibe: vibeVal,
+        date: dateVal
+      });
+    }
+
+    try { localStorage.setItem(WEAR_KEY, JSON.stringify(currentWears)); } catch(e){}
     document.getElementById('w-custom').value = '';
+    submitBtn.disabled = false;
     renderAnalytics();
   };
 }
@@ -316,8 +424,15 @@ if(wearForm){
 // Clear History
 var btnClearH = document.getElementById('btn-clear-history');
 if(btnClearH){
-  btnClearH.onclick = function(){
-    if(confirm('Clear all 30-day wear history?')){ setWears([]); renderAnalytics(); }
+  btnClearH.onclick = async function(){
+    if(confirm('Clear all 30-day wear history?')){
+      if (window.currentUser && window.sb) {
+        await window.sb.from('wear_log').delete().eq('user_id', window.currentUser.id);
+      }
+      currentWears = [];
+      try { localStorage.setItem(WEAR_KEY, JSON.stringify([])); } catch(e){}
+      renderAnalytics();
+    }
   };
 }
 
@@ -327,8 +442,10 @@ if(btnPrintPlan){
   btnPrintPlan.onclick = function(){ window.print(); };
 }
 
-populateSelect();
-renderWeekly();
-renderAnalytics();
+loadPlannerData();
+
+window.addEventListener('load', function(){
+  setTimeout(loadPlannerData, 500);
+});
 })();
 </script></body></html>

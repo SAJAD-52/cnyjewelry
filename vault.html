@@ -5,6 +5,14 @@
   main { padding: 0 !important; }
   .glass { background: #fff !important; color: #000 !important; border: 1px solid #ccc !important; box-shadow: none !important; }
 }
+.piece-thumb {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 0.85rem;
+  object-fit: cover;
+  border: 1px solid rgba(243,226,179,0.3);
+  background: rgba(255,255,255,0.03);
+}
 </style>
 </head><body><a class="skip" href="#main">Skip to content</a><div id="nav"></div><main id="main" class="mx-auto max-w-6xl px-5 pb-24 pt-10">
 
@@ -12,7 +20,7 @@
 <div class="max-w-3xl mb-10">
 <span class="chip text-xs mb-3">Portfolio & Value Studio</span>
 <h1 class="text-5xl md:text-6xl gt">My Jewelry Box & Value Tracker</h1>
-<p class="muted text-lg mt-3">Catalog your fine pieces, track fine gold grams, and monitor your collection's estimated melt and replacement value privately on your device.</p>
+<p class="muted text-lg mt-3">Catalog your fine pieces, upload high-res photos, track pure gold grams, and monitor your collection's estimated melt and replacement value securely.</p>
 </div>
 
 <!-- PORTFOLIO STATS SUMMARY -->
@@ -59,7 +67,16 @@
 
 <label class="fld"><span>Notes or Gemstones</span><input id="v-notes" placeholder="e.g. Gift from 2024, 0.5ct diamond"></label>
 
-<button type="submit" class="btn btn-gold w-full mt-2 shadow-md">+ Add to My Box</button>
+<label class="fld">
+  <span>Piece Photo (optional, auto-compressed max 1200px)</span>
+  <input id="v-photo" type="file" accept="image/*" class="w-full">
+  <div id="v-preview-box" class="hidden mt-2 flex items-center gap-3">
+    <img id="v-preview-img" src="" alt="Thumbnail" class="piece-thumb">
+    <button type="button" id="v-clear-photo" class="text-xs text-red-400 hover:underline">Remove photo</button>
+  </div>
+</label>
+
+<button id="v-submit-btn" type="submit" class="btn btn-gold w-full mt-2 shadow-md">+ Add to My Box</button>
 <p id="v-msg" class="text-xs text-center mt-2 muted"></p>
 </form>
 
@@ -95,8 +112,8 @@
 <section class="mt-24 no-print">
 <h2 class="text-4xl gt mb-6">Frequently Asked Questions</h2>
 <div class="grid gap-3 max-w-3xl">
-<details class="faq"><summary>How is melt value calculated?</summary><p class="muted mt-3">Melt value is the pure weight of precious metal multiplied by the current spot market price. It represents the intrinsic scrap metal value without brand markups or gemstone value.</p></details>
-<details class="faq"><summary>Are my jewelry photos or prices saved to a public server?</summary><p class="muted mt-3">No. All data is saved inside your private browser storage. Nothing leaves your personal device.</p></details>
+<details class="faq"><summary>How is melt value calculated?</summary><p class="muted mt-3">Melt value is the pure weight of precious metal multiplied by current spot market prices. It represents scrap metal intrinsic value without retail markups.</p></details>
+<details class="faq"><summary>How is my collection data and photos secured?</summary><p class="muted mt-3">When logged out, data is saved locally on your device. When logged in, your pieces and photos sync to your private Supabase cloud account, secured by Row Level Security policies readable only by you.</p></details>
 <details class="faq"><summary>How do I unlock unlimited pieces?</summary><p class="muted mt-3">Upgrade to McGee Jewelry Pro for $6/month to store unlimited pieces and generate printable insurance dossiers.</p></details>
 </div></section>
 
@@ -123,11 +140,78 @@ var PURITY = {
   'plat': { name: 'Platinum 950', factor: 0.950, metal: 'plat' }
 };
 
-function getVault() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch(e){ return []; }
+var currentVault = [];
+var selectedPhotoBlob = null;
+var selectedPhotoDataUrl = null;
+
+// Photo Compression (max 1200px)
+async function compressPhoto(file) {
+  return new Promise(function(resolve, reject){
+    var reader = new FileReader();
+    reader.onload = function(e){
+      var img = new Image();
+      img.onload = function(){
+        var maxDim = 1200;
+        var w = img.width;
+        var h = img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+        var c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+        var ctx = c.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+
+        c.toBlob(function(blob){
+          var dataUrl = c.toDataURL('image/jpeg', 0.85);
+          resolve({ blob: blob, dataUrl: dataUrl });
+        }, 'image/jpeg', 0.85);
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
-function setVault(items) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch(e){}
+
+// Wire Photo Input & Preview
+var photoInput = document.getElementById('v-photo');
+var previewBox = document.getElementById('v-preview-box');
+var previewImg = document.getElementById('v-preview-img');
+var clearPhotoBtn = document.getElementById('v-clear-photo');
+
+if (photoInput) {
+  photoInput.onchange = async function(){
+    if (photoInput.files && photoInput.files[0]) {
+      try {
+        var comp = await compressPhoto(photoInput.files[0]);
+        selectedPhotoBlob = comp.blob;
+        selectedPhotoDataUrl = comp.dataUrl;
+        previewImg.src = comp.dataUrl;
+        previewBox.classList.remove('hidden');
+      } catch(err) {
+        console.error('Error compressing image:', err);
+      }
+    }
+  };
+}
+
+if (clearPhotoBtn) {
+  clearPhotoBtn.onclick = function(){
+    selectedPhotoBlob = null;
+    selectedPhotoDataUrl = null;
+    photoInput.value = '';
+    previewBox.classList.add('hidden');
+    previewImg.src = '';
+  };
 }
 
 function calcMelt(weight, karatKey) {
@@ -137,38 +221,94 @@ function calcMelt(weight, karatKey) {
   return { pureGrams: pureWeight, meltVal: pureWeight * rate };
 }
 
+// Load from Cloud (if logged in) or LocalStorage
+async function loadVault() {
+  if (window.currentUser && window.sb) {
+    try {
+      var res = await window.sb
+        .from('pieces')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!res.error && res.data) {
+        // Resolve signed URLs for photos
+        currentVault = await Promise.all(res.data.map(async function(p){
+          var signedUrl = null;
+          if (p.photo_path) {
+            var signRes = await window.sb.storage
+              .from('piece-photos')
+              .createSignedUrl(p.photo_path, 3600);
+            if (signRes.data) signedUrl = signRes.data.signedUrl;
+          }
+          return {
+            id: p.id,
+            name: p.name,
+            cat: p.category || 'Other',
+            karat: p.karat || '14k',
+            weight: parseFloat(p.weight_g) || 0,
+            price: parseFloat(p.paid_price) || 0,
+            notes: p.notes || '',
+            photo_path: p.photo_path,
+            photo_url: signedUrl
+          };
+        }));
+        // Update local offline cache
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(currentVault)); } catch(e){}
+        render();
+        return;
+      }
+    } catch(err) {
+      console.warn('Could not load pieces from cloud, reading local cache:', err);
+    }
+  }
+
+  // Fallback: LocalStorage
+  try {
+    currentVault = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+  } catch(e) {
+    currentVault = [];
+  }
+  render();
+}
+
 function render() {
-  var items = getVault();
   var isPro = (typeof isProUser === 'function') && isProUser();
   var badge = document.getElementById('tier-badge');
-  if (badge) badge.textContent = isPro ? '⭐ Pro (Unlimited)' : 'Free (' + items.length + '/2 items)';
+  if (badge) badge.textContent = isPro ? '⭐ Pro (Unlimited)' : 'Free (' + currentVault.length + '/2 items)';
 
   var totalPureGold = 0, totalMelt = 0, totalRetail = 0;
-  items.forEach(function(it){
+  currentVault.forEach(function(it){
     var c = calcMelt(it.weight, it.karat);
-    if (it.karat.indexOf('k') >= 0) totalPureGold += c.pureGrams;
+    if (it.karat && it.karat.indexOf('k') >= 0) totalPureGold += c.pureGrams;
     totalMelt += c.meltVal;
     totalRetail += (parseFloat(it.price) || 0);
   });
 
-  document.getElementById('stat-count').textContent = items.length;
+  document.getElementById('stat-count').textContent = currentVault.length;
   document.getElementById('stat-gold-grams').textContent = totalPureGold.toFixed(1) + ' g';
   document.getElementById('stat-melt-val').textContent = '$' + Math.round(totalMelt).toLocaleString();
   document.getElementById('stat-retail-val').textContent = '$' + Math.round(totalRetail).toLocaleString();
 
   var emptyBox = document.getElementById('vault-empty');
   var list = document.getElementById('vault-list');
-  if (items.length === 0) {
+  if (currentVault.length === 0) {
     if (emptyBox) emptyBox.style.display = 'block';
     if (list) list.innerHTML = '';
     return;
   }
   if (emptyBox) emptyBox.style.display = 'none';
 
-  list.innerHTML = items.map(function(it, idx){
+  list.innerHTML = currentVault.map(function(it, idx){
     var c = calcMelt(it.weight, it.karat);
     var pInfo = PURITY[it.karat] || PURITY['14k'];
+    var photoSrc = it.photo_url || it.photo_data || '';
+
     return '<div class="glass p-5 rounded-2xl flex flex-wrap items-center justify-between gap-4 tool-card">' +
+           '<div class="flex items-center gap-4">' +
+           (photoSrc ? 
+             '<img src="' + photoSrc + '" alt="' + it.name + '" class="piece-thumb shrink-0">' : 
+             '<div class="piece-thumb flex items-center justify-center text-xl shrink-0 opacity-70">💎</div>'
+           ) +
            '<div>' +
            '<div class="flex items-center gap-2">' +
            '<span class="chip text-xs">' + it.cat + '</span>' +
@@ -176,6 +316,7 @@ function render() {
            '</div>' +
            '<h3 class="serif text-2xl gt mt-1">' + it.name + '</h3>' +
            '<p class="muted text-xs mt-0.5">' + it.weight + 'g gross &middot; ' + c.pureGrams.toFixed(1) + 'g pure &middot; ' + (it.notes || 'No notes') + '</p>' +
+           '</div>' +
            '</div>' +
            '<div class="flex items-center gap-4">' +
            '<div class="text-right">' +
@@ -189,11 +330,20 @@ function render() {
   }).join('');
 
   document.querySelectorAll('[data-del]').forEach(function(b){
-    b.onclick = function(){
+    b.onclick = async function(){
       var id = +b.dataset.del;
-      var cur = getVault();
-      cur.splice(id, 1);
-      setVault(cur);
+      var itemToDelete = currentVault[id];
+
+      if (window.currentUser && window.sb && itemToDelete && itemToDelete.id) {
+        b.disabled = true;
+        await window.sb.from('pieces').delete().eq('id', itemToDelete.id).eq('user_id', window.currentUser.id);
+        if (itemToDelete.photo_path) {
+          await window.sb.storage.from('piece-photos').remove([itemToDelete.photo_path]);
+        }
+      }
+
+      currentVault.splice(id, 1);
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(currentVault)); } catch(e){}
       render();
     };
   });
@@ -202,13 +352,12 @@ function render() {
 // Handle Form Submission
 var form = document.getElementById('vault-form');
 if (form) {
-  form.onsubmit = function(e){
+  form.onsubmit = async function(e){
     e.preventDefault();
-    var items = getVault();
     var isPro = (typeof isProUser === 'function') && isProUser();
 
     // Check free trial limit
-    if (items.length >= 2 && !isPro) {
+    if (currentVault.length >= 2 && !isPro) {
       if (typeof openProModal === 'function') openProModal();
       var msg = document.getElementById('v-msg');
       if (msg) {
@@ -218,18 +367,96 @@ if (form) {
       return;
     }
 
-    var newItem = {
-      name: document.getElementById('v-name').value.trim(),
-      cat: document.getElementById('v-cat').value,
-      karat: document.getElementById('v-karat').value,
-      weight: parseFloat(document.getElementById('v-weight').value) || 0,
-      price: parseFloat(document.getElementById('v-price').value) || 0,
-      notes: document.getElementById('v-notes').value.trim()
-    };
+    var submitBtn = document.getElementById('v-submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving Piece...';
 
-    items.push(newItem);
-    setVault(items);
+    var nameVal = document.getElementById('v-name').value.trim();
+    var catVal = document.getElementById('v-cat').value;
+    var karatVal = document.getElementById('v-karat').value;
+    var weightVal = parseFloat(document.getElementById('v-weight').value) || 0;
+    var priceVal = parseFloat(document.getElementById('v-price').value) || 0;
+    var notesVal = document.getElementById('v-notes').value.trim();
+
+    var uploadedPath = null;
+    var signedUrl = null;
+
+    if (window.currentUser && window.sb) {
+      // Upload compressed photo to piece-photos bucket
+      if (selectedPhotoBlob) {
+        var cleanFileName = (Date.now() + '-' + nameVal.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase() + '.jpg');
+        var storagePath = window.currentUser.id + '/' + cleanFileName;
+
+        var uploadRes = await window.sb.storage
+          .from('piece-photos')
+          .upload(storagePath, selectedPhotoBlob, { contentType: 'image/jpeg', upsert: true });
+
+        if (!uploadRes.error) {
+          uploadedPath = storagePath;
+          var signRes = await window.sb.storage.from('piece-photos').createSignedUrl(storagePath, 3600);
+          if (signRes.data) signedUrl = signRes.data.signedUrl;
+        } else {
+          console.error('Storage upload error:', uploadRes.error);
+        }
+      }
+
+      // Insert piece into Supabase DB (enforces DB policy limit)
+      var insertRes = await window.sb.from('pieces').insert({
+        user_id: window.currentUser.id,
+        name: nameVal,
+        category: catVal,
+        karat: karatVal,
+        weight_g: weightVal,
+        paid_price: priceVal,
+        notes: notesVal,
+        photo_path: uploadedPath
+      }).select().single();
+
+      if (insertRes.error) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '+ Add to My Box';
+        var mEl = document.getElementById('v-msg');
+        if (mEl) {
+          mEl.textContent = 'Limit reached on database: ' + insertRes.error.message;
+          mEl.style.color = '#ef4444';
+        }
+        if (typeof openProModal === 'function') openProModal();
+        return;
+      }
+
+      var savedDbItem = insertRes.data;
+      currentVault.unshift({
+        id: savedDbItem.id,
+        name: savedDbItem.name,
+        cat: savedDbItem.category,
+        karat: savedDbItem.karat,
+        weight: parseFloat(savedDbItem.weight_g) || 0,
+        price: parseFloat(savedDbItem.paid_price) || 0,
+        notes: savedDbItem.notes,
+        photo_path: savedDbItem.photo_path,
+        photo_url: signedUrl
+      });
+    } else {
+      // LocalStorage mode
+      currentVault.unshift({
+        name: nameVal,
+        cat: catVal,
+        karat: karatVal,
+        weight: weightVal,
+        price: priceVal,
+        notes: notesVal,
+        photo_data: selectedPhotoDataUrl
+      });
+    }
+
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(currentVault)); } catch(e){}
+
     form.reset();
+    selectedPhotoBlob = null;
+    selectedPhotoDataUrl = null;
+    if (previewBox) previewBox.classList.add('hidden');
+    submitBtn.disabled = false;
+    submitBtn.textContent = '+ Add to My Box';
     render();
   };
 }
@@ -237,9 +464,13 @@ if (form) {
 // Clear All
 var btnClear = document.getElementById('btn-clear');
 if (btnClear) {
-  btnClear.onclick = function(){
+  btnClear.onclick = async function(){
     if (confirm('Clear all items from your Jewelry Box?')) {
-      setVault([]);
+      if (window.currentUser && window.sb) {
+        await window.sb.from('pieces').delete().eq('user_id', window.currentUser.id);
+      }
+      currentVault = [];
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify([])); } catch(e){}
       render();
     }
   };
@@ -250,7 +481,7 @@ var btnPrint = document.getElementById('btn-print');
 if (btnPrint) {
   btnPrint.onclick = function(){
     var isPro = (typeof isProUser === 'function') && isProUser();
-    if (!isPro && getVault().length > 1) {
+    if (!isPro && currentVault.length > 1) {
       if (typeof openProModal === 'function') openProModal();
       return;
     }
@@ -258,6 +489,12 @@ if (btnPrint) {
   };
 }
 
-render();
+// Initial load
+loadVault();
+
+// Listen to Supabase session change
+window.addEventListener('load', function(){
+  setTimeout(loadVault, 500);
+});
 })();
 </script></body></html>

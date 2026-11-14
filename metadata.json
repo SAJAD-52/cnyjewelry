@@ -1,0 +1,8 @@
+{
+  "name": "McGee Jewelry Studio",
+  "description": "All-in-One Fine Jewelry Tools & Luxury Studio: Ring & Bracelet Sizer, Jewelry Box Value Vault, Lookbook Planner, Gold Melt Calculator, Diamond Carat Visualizer, and Styling Guides.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
