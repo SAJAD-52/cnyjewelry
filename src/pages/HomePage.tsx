@@ -123,15 +123,15 @@ export const HomePage: React.FC = () => {
             className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] sm:text-xs mb-4 glass border border-rose-300/30"
             style={{ color: '#b76e79' }}
           >
-            <span className="w-2 h-2 rounded-full bg-rose-400 animate-ping" /> ✦ The All-in-One Jewelry Suite
+            <span className="w-2 h-2 rounded-full bg-rose-400 animate-ping" /> ✦ All-in-One Jewelry Box Suite &middot; 13 Studios
           </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal hero-title-shimmer leading-[1.08] tracking-tight">
-            All the jewelry tools you need, in one luxury studio.
+            All the tools you need for your jewelry box, in one studio.
           </h1>
 
           <p className="muted text-base sm:text-lg mt-4 sm:mt-5 max-w-lg leading-relaxed">
-            Calculate exact gold melt values, find your true ring size across 4 international scales, plan your weekly looks, and match fine metals to your skin tone &mdash; 100% free and on your device.
+            Catalog your fine collection, estimate 10k&ndash;24k gold melt value, size rings and design bead patterns, match flattering metals, and curate your daily looks.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 mt-7 sm:mt-8">
