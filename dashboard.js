@@ -291,10 +291,10 @@ return chain.then(function(){return tree})})})
 .then(function(tree){return gh('/git/trees',{method:'POST',body:{base_tree:baseTree,tree:tree}})})
 .then(function(t){return gh('/git/commits',{method:'POST',body:{message:'Publish article: '+a.title,tree:t.sha,parents:[base]}})})
 .then(function(c){newCommit=c.sha;return gh('/git/refs/heads/'+encodeURIComponent(S.branch),{method:'PATCH',body:{sha:newCommit}})})
-.then(function(){if(a.pinRaw){a.pinRaw=null;a.pinPub=true}if(a.img){a.img=null;a.imgPub=true}a.status='published';a.url='/'+a.slug;a.live=false;a.publishedAt=new Date().toISOString();save();busy=false;poll(a);render()})
+.then(function(){if(a.pinRaw){a.pinRaw=null;a.pinPub=true}if(a.img){a.img=null;a.imgPub=true}a.status='published';a.url='/'+a.slug;a.live='unknown';a.publishedAt=new Date().toISOString();save();busy=false;poll(a);render()})
 .catch(function(e){log('Failed: '+e.message);busy=false;render();alert('Publishing failed:\n'+e.message)})}
 
-function poll(a){if(polls[a.id])return;var n=0;polls[a.id]=setInterval(function(){n++;fetch(D()+'/'+a.slug+'?t='+Date.now(),{method:'HEAD',cache:'no-store'}).then(function(r){if(r.ok){a.live=true;save();clearInterval(polls[a.id]);delete polls[a.id];if(view==='blog')render()}},function(){a.live='unknown';clearInterval(polls[a.id]);delete polls[a.id];if(view==='blog')render()});if(n>40){clearInterval(polls[a.id]);delete polls[a.id]}},8000)}
+function poll(a){if(polls[a.id])return;var n=0;polls[a.id]=setInterval(function(){n++;fetch(D()+'/'+a.slug+'?t='+Date.now(),{method:'HEAD',cache:'no-store'}).then(function(r){if(r.ok){a.live=true;save();clearInterval(polls[a.id]);delete polls[a.id];if(view==='blog')render()}},function(){a.live='unknown';clearInterval(polls[a.id]);delete polls[a.id];if(view==='blog')render()});if(n>10){a.live='unknown';save();clearInterval(polls[a.id]);delete polls[a.id];if(view==='blog')render()}},8000)}
 function pinUrl(a){var link=D()+'/'+a.slug,media=D()+'/pins/'+a.slug+((a.pinPub||a.pinRaw)?'.jpg':'.png'),tags=(a.keywords||'').split(',').map(function(k){return k.trim().replace(/[^a-zA-Z0-9]+/g,'')}).filter(Boolean).slice(0,5).map(function(k){return '#'+k}).join(' ');
 return {href:'https://www.pinterest.com/pin/create/button/?url='+encodeURIComponent(link)+'&media='+encodeURIComponent(media)+'&description='+encodeURIComponent((a.title+'. '+a.description+' '+tags).slice(0,480)),text:a.title+'. '+a.description+' '+tags}}
 
