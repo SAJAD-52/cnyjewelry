@@ -207,7 +207,11 @@ function parse(t){t=t.replace(/\r\n/g,'\n');var m=t.match(/^---\n([\s\S]*?)\n---
 if(m){m[1].split('\n').forEach(function(l){var i=l.indexOf(':');if(i>0&&l.charAt(0)!=='#')fm[l.slice(0,i).trim().toLowerCase()]=l.slice(i+1).trim().replace(/^"|"$/g,'')});body=m[2]}
 var parts=body.split(/^## (.+)$/m),secs=[],faq=[];
 for(var j=1;j<parts.length;j+=2){var h=parts[j].trim(),b=parts[j+1]||'';
-if(/^(faq|frequently asked questions)$/i.test(h)){b.split(/^### /m).slice(1).forEach(function(q){var k=q.indexOf('\n');faq.push([q.slice(0,k<0?q.length:k).trim(),k<0?'':q.slice(k+1).trim()])})}else secs.push([h,b])}
+if(/faq|frequently/i.test(h)){
+  var items=b.split(/^### /m).slice(1);
+  if(items.length>0){items.forEach(function(q){var k=q.indexOf('\n');faq.push([q.slice(0,k<0?q.length:k).trim(),k<0?'':q.slice(k+1).trim()])})}
+  else {b.split(/\n\n+/).forEach(function(chunk){var lines=chunk.split('\n').filter(Boolean);if(lines.length>=2){faq.push([lines[0].replace(/^[-*#\d.]+\s*/,'').trim(),lines.slice(1).join(' ')])}})}
+}else secs.push([h,b])}
 return {fm:fm,body:body.trim(),secs:secs,faq:faq}}
 
 function defs(id){return '<defs><linearGradient id="g'+id+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3e2b3"/><stop offset=".5" stop-color="#e8b4b8"/><stop offset="1" stop-color="#b76e79"/></linearGradient></defs>'}
@@ -228,10 +232,10 @@ if(!a.title)errs.push('Add a title');
 if(!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(a.slug||''))errs.push('The URL slug must use lowercase letters, numbers and dashes');
 var dl=(a.description||'').length;if(dl<70||dl>170)errs.push('The description should be 70 to 170 characters (now '+dl+')');
 if(!a.lead)errs.push('Add a short intro line (lead)');
-if((a.img||a.imgPub)&&!(a.imgAlt||'').trim())errs.push('Add alt text for the image');
+if(a.img && !(a.imgAlt||'').trim())errs.push('Add alt text for the image');
 if(words<600)errs.push('The article has '+words+' words. Aim for at least 600');
 if(p.secs.length<4)errs.push('Add at least 4 sections (## headings). Now '+p.secs.length);
-if(p.faq.length<3)errs.push('Add at least 3 FAQ questions under "## FAQ". Now '+p.faq.length);
+if(p.faq.length<2)warns.push('Add at least 2 FAQ questions under "## FAQ"');
 var links=[],re=/\]\(([^)\s]+)\)/g,m;while((m=re.exec(a.body||'')))links.push(m[1]);
 var internal=links.filter(function(l){return !/^(https?:|mailto:)/.test(l)});
 if(internal.length<3)errs.push('Add at least 3 internal links to your tools or articles.');
