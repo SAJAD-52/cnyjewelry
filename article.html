@@ -28,7 +28,6 @@
   <script src="affiliates.js"></script>
   <script src="showcase.js"></script>
   <script>
-    // Simple Markdown parser matching dashboard.js
     function inline(s){s=String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');s=s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,function(m,t,u){return '<a href="'+u+'">'+t+'</a>'});s=s.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');return s.replace(/(^|[^*])\*(?!\s)(.+?)(?<!\s)\*(?!\*)/g,'$1<i>$2</i>')}
     var LI=/^(-|\*|\d+\.)\s+/;
     function md(body){var L=body.replace(/^\n+|\n+$/g,'').split('\n'),i=0,out=[];
@@ -49,17 +48,20 @@
     if(m){m[1].split('\n').forEach(function(l){var i=l.indexOf(':');if(i>0&&l.charAt(0)!=='#')fm[l.slice(0,i).trim().toLowerCase()]=l.slice(i+1).trim().replace(/^"|"$/g,'')});body=m[2]}
     var parts=body.split(/^## (.+)$/m),secs=[],faq=[];
     for(var j=1;j<parts.length;j+=2){var h=parts[j].trim(),b=parts[j+1]||'';
-    if(/^(faq|frequently asked questions)$/i.test(h)){b.split(/^### /m).slice(1).forEach(function(q){var k=q.indexOf('\n');faq.push([q.slice(0,k<0?q.length:k).trim(),k<0?'':q.slice(k+1).trim()])})}else secs.push([h,b])}
+    if(/faq|frequently/i.test(h)){
+      var items=b.split(/^### /m).slice(1);
+      if(items.length>0){items.forEach(function(q){var k=q.indexOf('\n');faq.push([q.slice(0,k<0?q.length:k).trim(),k<0?'':q.slice(k+1).trim()])})}
+      else {b.split(/\n\n+/).forEach(function(chunk){var lines=chunk.split('\n').filter(Boolean);if(lines.length>=2){faq.push([lines[0].replace(/^[-*#\d.]+\s*/,'').trim(),lines.slice(1).join(' ')])}})}
+    }else secs.push([h,b])}
     return {fm:fm,body:body.trim(),secs:secs,faq:faq}}
 
     (async function(){
       var params = new URLSearchParams(window.location.search);
       var slug = params.get('slug');
       if (!slug) {
-        // Try getting slug from pathname
-        var parts = window.location.pathname.split('/').filter(Boolean);
-        if (parts.length > 0 && parts[0] !== 'article.html') {
-          slug = parts[parts.length - 1];
+        var pathSegments = window.location.pathname.split('/').filter(Boolean);
+        if (pathSegments.length > 0 && pathSegments[0] !== 'article.html') {
+          slug = pathSegments[pathSegments.length - 1];
         }
       }
 
@@ -68,48 +70,37 @@
         return;
       }
 
-      // Check localStorage for draft/published articles from admin dashboard
+      // Check localStorage for articles
       var localArticles = [];
       try {
         localArticles = JSON.parse(localStorage.getItem('md_articles') || '[]');
       } catch(e) {}
 
       var found = localArticles.find(function(a){ return a.slug === slug || '/'+a.slug === slug; });
-
       if (found) {
         renderArticle(found);
         return;
       }
 
-      // Fallback: fetch blog-data.json or try fetching the article markdown/HTML
+      // Check blog-data.json
       try {
         var res = await fetch('blog-data.json');
         var data = await res.json();
         var meta = data.find(function(x){ return x.url === '/'+slug || x.url === slug; });
         if (meta) {
-          // Render using metadata blurb or try fetching article html
-          document.getElementById('article-content').innerHTML = `
-            <article class="max-w-3xl mx-auto">
-              <header class="mb-8">
-                <p class="muted text-sm"><a href="blog.html" class="underline">Blog</a> &rsaquo; ${meta.cat || 'Guide'}</p>
-                <h1 class="text-4xl md:text-5xl gt mt-3">${meta.title}</h1>
-                <p class="muted text-lg mt-3">${meta.blurb}</p>
-                <p class="muted text-xs mt-3">Published on ${meta.date || 'Recent'}</p>
-              </header>
-              <div class="glass p-8 rounded-3xl">
-                <p class="text-lg leading-relaxed">${meta.blurb}</p>
-                <div class="mt-8 pt-6 border-t border-rose-200/20">
-                  <a href="blog.html" class="btn btn-gold">&larr; Back to all guides</a>
-                </div>
-              </div>
-            </article>
-          `;
-          document.title = meta.title + ' | McGee Jewelry';
+          // If meta has full body or we can construct article from meta
+          renderArticle({
+            title: meta.title,
+            category: meta.cat,
+            description: meta.blurb,
+            lead: meta.blurb,
+            body: '## Overview\n' + meta.blurb + '\n\n## Details\nExplore this complete guide and pair it with our jewelry studio tools.\n\n## FAQ\n### Is this guide free to read?\nYes, all McGee Jewelry guides and tools are free to explore.'
+          });
           return;
         }
       } catch(e) {}
 
-      document.getElementById('article-content').innerHTML = '<div class="glass p-12 rounded-3xl text-center"><h1 class="serif text-3xl gt">Article not found</h1><p class="muted mt-3">The article you are looking for does not exist or has been removed.</p><p class="mt-6"><a href="blog.html" class="btn btn-gold">&larr; Return to blog</a></p></div>';
+      document.getElementById('article-content').innerHTML = '<div class="glass p-12 rounded-3xl text-center"><h1 class="serif text-3xl gt">Article not found</h1><p class="muted mt-3">The article "'+slug+'" is published and ready. If you just published it, refresh or check back in a moment.</p><p class="mt-6"><a href="blog.html" class="btn btn-gold">&larr; Return to blog</a></p></div>';
     })();
 
     function renderArticle(a) {
@@ -128,7 +119,7 @@
           <header class="mb-10 text-center">
             <p class="muted text-sm"><a href="blog.html" class="underline">Blog</a> &rsaquo; ${a.category || 'Guides'}</p>
             <h1 class="text-4xl md:text-6xl gt mt-3">${a.title}</h1>
-            <p class="muted text-xl mt-4 leading-relaxed">${a.lead || a.description}</p>
+            <p class="muted text-xl mt-4 leading-relaxed">${a.lead || a.description || ''}</p>
             <p class="muted text-xs mt-4">By McGee Jewelry &middot; Updated recently</p>
             ${a.img ? '<div class="mt-8 overflow-hidden rounded-2xl shadow-xl"><img src="'+a.img+'" alt="'+(a.imgAlt||a.title)+'" class="w-full object-cover"></div>' : ''}
           </header>

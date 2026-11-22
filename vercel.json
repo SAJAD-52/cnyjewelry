@@ -2,16 +2,7 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/how-to-clean-fine-jewelry-at-home", "destination": "/article.html?slug=how-to-clean-fine-jewelry-at-home" },
-    { "source": "/how-to-layer-necklaces", "destination": "/article.html?slug=how-to-layer-necklaces" },
-    { "source": "/how-to-measure-ring-size-at-home", "destination": "/article.html?slug=how-to-measure-ring-size-at-home" },
-    { "source": "/how-to-untangle-a-necklace", "destination": "/article.html?slug=how-to-untangle-a-necklace" },
-    { "source": "/how-to-clean-sterling-silver-at-home", "destination": "/article.html?slug=how-to-clean-sterling-silver-at-home" },
-    { "source": "/why-does-gold-turn-skin-green", "destination": "/article.html?slug=why-does-gold-turn-skin-green" },
-    { "source": "/what-earrings-are-trending-now", "destination": "/article.html?slug=what-earrings-are-trending-now" },
-    { "source": "/jewelry-to-wear-this-upcoming-fall", "destination": "/article.html?slug=jewelry-to-wear-this-upcoming-fall" },
-    { "source": "/is-it-worth-buying-gold-plated-jewelry", "destination": "/article.html?slug=is-it-worth-buying-gold-plated-jewelry" },
-    { "source": "/herringbone-chain-necklace-an-ultimate-guide", "destination": "/article.html?slug=herringbone-chain-necklace-an-ultimate-guide" }
+    { "source": "/((?!sizing|styling|care|gift|layering|anniversary|gold|diamond|earrings|wishlist|vault|blog|dashboard|privacy|shop|product-category|pins|images|article|favicon|robots|sitemap).*)", "destination": "/article.html" }
   ],
   "headers": [
     {"source": "/(.*)", "headers": [
