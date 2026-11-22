@@ -1,9 +1,6 @@
 {
   "cleanUrls": true,
   "trailingSlash": false,
-  "rewrites": [
-    { "source": "/((?!sizing|styling|care|gift|layering|anniversary|gold|diamond|earrings|wishlist|vault|blog|dashboard|privacy|shop|product-category|pins|images|article|favicon|robots|sitemap).*)", "destination": "/article.html" }
-  ],
   "headers": [
     {"source": "/(.*)", "headers": [
       {"key": "X-Content-Type-Options", "value": "nosniff"},
