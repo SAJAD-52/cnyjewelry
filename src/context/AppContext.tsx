@@ -85,6 +85,8 @@ interface AppContextType {
   isPro: boolean;
   login: (e: string, p: string) => Promise<{ error?: string }>;
   signup: (e: string, p: string) => Promise<{ error?: string; needsConfirmation?: boolean; alreadyExists?: boolean }>;
+  resetPassword: (email: string) => Promise<{ error?: string }>;
+  updatePassword: (newPassword: string) => Promise<{ error?: string }>;
   loginGoogle: () => void;
   logout: () => void;
   usedFeatures: string[];
@@ -96,8 +98,8 @@ interface AppContextType {
   openProModal: (isPageLock?: boolean) => void;
   closeProModal: () => void;
   isAuthModalOpen: boolean;
-  authMode: 'login' | 'signup';
-  openAuthModal: (mode?: 'login' | 'signup') => void;
+  authMode: 'login' | 'signup' | 'forgot' | 'recovery';
+  openAuthModal: (mode?: 'login' | 'signup' | 'forgot' | 'recovery') => void;
   closeAuthModal: () => void;
   isProfileModalOpen: boolean;
   openProfileModal: () => void;
@@ -266,7 +268,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         const u = session.user;
         const isProEmail = u.email && PRO_EMAILS.includes(u.email.toLowerCase().trim());
@@ -279,6 +281,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         });
       } else {
         setCurrentUser(null);
+      }
+      if (event === 'PASSWORD_RECOVERY') {
+        setAuthMode('recovery');
+        setIsAuthModalOpen(true);
       }
     });
 
@@ -352,6 +358,28 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
+  const resetPassword = async (email: string): Promise<{ error?: string }> => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin,
+      });
+      if (error) return { error: error.message };
+      return {};
+    } catch (err: any) {
+      return { error: err.message || 'Password reset error' };
+    }
+  };
+
+  const updatePassword = async (newPassword: string): Promise<{ error?: string }> => {
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) return { error: error.message };
+      return {};
+    } catch (err: any) {
+      return { error: err.message || 'Password update error' };
+    }
+  };
+
   const loginGoogle = async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -397,7 +425,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [isProModalOpen, setIsProModalOpen] = useState(false);
   const [isPageLock, setIsPageLock] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const [authMode, setAuthMode] = useState<'login' | 'signup' | 'forgot' | 'recovery'>('login');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isLocaleModalOpen, setIsLocaleModalOpen] = useState(false);
   const [bannerMessage, setBannerMessage] = useState<string | null>(null);
@@ -415,7 +443,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
-  const openAuthModal = (mode: 'login' | 'signup' = 'login') => {
+  const openAuthModal = (mode: 'login' | 'signup' | 'forgot' | 'recovery' = 'login') => {
     setAuthMode(mode);
     setIsAuthModalOpen(true);
   };
@@ -448,6 +476,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         isPro,
         login,
         signup,
+        resetPassword,
+        updatePassword,
         loginGoogle,
         logout,
         usedFeatures,

@@ -928,51 +928,100 @@ document.addEventListener('click', function(e) {
   }
 }, true);
 
-/* ---------- Auth Modal (Email + Password + Switch) ---------- */
+/* ---------- Auth Modal (Email + Password + Forgot/Recovery + Switch) ---------- */
 function openAuthModal() {
   var old = document.getElementById('mcgee-auth-dialog');
   if (old) old.remove();
 
   var isSignUp = authMode === 'signup';
+  var isForgot = authMode === 'forgot';
+  var isRecovery = authMode === 'recovery';
+
+  var heading = isRecovery ? 'Set a new password' : (isForgot ? 'Reset your password' : (isSignUp ? 'Create your account' : 'Welcome back'));
+  var sub = isRecovery
+    ? 'Enter a new password (at least 6 characters) for your McGee Jewelry account.'
+    : (isForgot
+      ? 'Enter your email address and we will send you a password reset link.'
+      : (isSignUp ? 'Instant free access — save your vault, planner, and wishlist across devices.' : 'Log in to access your McGee Jewelry tools.'));
+
   var dlg = document.createElement('div');
   dlg.id = 'mcgee-auth-dialog';
   dlg.style.cssText = 'position:fixed;inset:0;background:rgba(20,10,15,0.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:100000;display:flex;align-items:center;justify-content:center;padding:1rem;';
-  
+
+  var oauthBlock = (isForgot || isRecovery) ? '' : (
+    '<button id="btn-oauth-google" type="button" class="btn btn-ghost flex items-center justify-center gap-2 w-full" style="background:rgba(255,255,255,0.08)">' +
+    '<svg width="18" height="18" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.7-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/><path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.8s.2-2.1.4-2.8L1.9 6.3C.7 8.7 0 11.3 0 14s.7 5.3 1.9 7.7l3.7-2.9z"/><path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2-6.4-4.8L1.9 16.4C3.7 20.1 7.5 23 12 23z"/></svg>' +
+    'Continue with Google</button>' +
+    '<div class="flex items-center my-1"><div class="flex-1 border-t border-rose-200/20"></div><span class="px-3 text-xs muted">OR WITH EMAIL</span><div class="flex-1 border-t border-rose-200/20"></div></div>'
+  );
+
+  var formFields = '';
+  if (isRecovery) {
+    formFields = '<label class="fld text-left"><span>New password</span>' +
+      '<input id="auth-password" type="password" autocomplete="new-password" required minlength="6" placeholder="••••••••" class="w-full">' +
+      '</label>' +
+      '<label class="fld text-left mt-3"><span>Confirm new password</span>' +
+      '<input id="auth-password-confirm" type="password" autocomplete="new-password" required minlength="6" placeholder="••••••••" class="w-full">' +
+      '</label>' +
+      '<button id="btn-auth-submit" type="submit" class="btn btn-gold w-full mt-4">Update Password</button>';
+  } else if (isForgot) {
+    formFields = '<label class="fld text-left"><span>Email address</span>' +
+      '<input id="auth-email" type="email" name="username" autocomplete="username" required placeholder="you@example.com" class="w-full">' +
+      '</label>' +
+      '<button id="btn-auth-submit" type="submit" class="btn btn-gold w-full mt-4">Send Reset Email</button>';
+  } else {
+    formFields = '<label class="fld text-left"><span>Email address</span>' +
+      '<input id="auth-email" type="email" name="username" autocomplete="username" required placeholder="you@example.com" class="w-full">' +
+      '</label>' +
+      '<div class="mt-3">' +
+      '<div class="flex items-center justify-between mb-1">' +
+      '<label for="auth-password" class="text-sm">Password</label>' +
+      (!isSignUp ? '<button id="btn-auth-forgot" type="button" class="text-xs underline gt bg-transparent border-0 cursor-pointer">Forgot password?</button>' : '') +
+      '</div>' +
+      '<label class="fld text-left" style="margin-top:0">' +
+      '<input id="auth-password" type="password" name="password" ' + (isSignUp ? 'autocomplete="new-password"' : 'autocomplete="current-password"') + ' required minlength="6" placeholder="••••••••" class="w-full">' +
+      '</label>' +
+      '</div>' +
+      '<button id="btn-auth-submit" type="submit" class="btn btn-gold w-full mt-4">' + (isSignUp ? 'Create Account' : 'Log In') + '</button>';
+  }
+
+  var footerHtml = isRecovery ? '' : (
+    isForgot
+      ? '<div class="text-center mt-3 pt-3 border-t border-rose-200/10 text-xs">' +
+        '<button id="btn-auth-switch" type="button" class="underline gt font-semibold">&larr; Back to Log in</button>' +
+        '</div>'
+      : '<div class="text-center mt-3 pt-3 border-t border-rose-200/10 text-xs">' +
+        '<span id="auth-switch-text" class="muted">' + (isSignUp ? 'Already have an account?' : 'New to McGee Jewelry?') + '</span> ' +
+        '<button id="btn-auth-switch" type="button" class="underline gt font-semibold">' + (isSignUp ? 'Log in' : 'Create an account') + '</button>' +
+        '</div>'
+  );
+
   dlg.innerHTML = '<div class="glass p-6 md:p-8 rounded-2xl max-w-md w-full relative" style="box-shadow:0 25px 50px rgba(0,0,0,0.4)">' +
                   '<button id="auth-close" style="position:absolute;top:1rem;right:1rem;font-size:1.2rem;cursor:pointer" class="muted">✕</button>' +
-                  '<h2 id="auth-heading" class="serif text-3xl gt text-center">' + (isSignUp ? 'Create your account' : 'Welcome back') + '</h2>' +
-                  '<p id="auth-sub" class="muted text-sm text-center mt-1">' + (isSignUp ? 'Sign up to access Pro tools and save your wishlist.' : 'Log in to access your McGee Jewelry tools.') + '</p>' +
+                  '<h2 id="auth-heading" class="serif text-3xl gt text-center">' + heading + '</h2>' +
+                  '<p id="auth-sub" class="muted text-sm text-center mt-1">' + sub + '</p>' +
                   '<div class="mt-5 flex flex-col gap-3">' +
-                  '<button id="btn-oauth-google" type="button" class="btn btn-ghost flex items-center justify-center gap-2 w-full" style="background:rgba(255,255,255,0.08)">' +
-                  '<svg width="18" height="18" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.7-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/><path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.8s.2-2.1.4-2.8L1.9 6.3C.7 8.7 0 11.3 0 14s.7 5.3 1.9 7.7l3.7-2.9z"/><path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2-6.4-4.8L1.9 16.4C3.7 20.1 7.5 23 12 23z"/></svg>' +
-                  'Continue with Google</button>' +
-                  '<div class="flex items-center my-1"><div class="flex-1 border-t border-rose-200/20"></div><span class="px-3 text-xs muted">OR WITH EMAIL</span><div class="flex-1 border-t border-rose-200/20"></div></div>' +
-                  '<form id="auth-form" autocomplete="on">' +
-                  '<label class="fld text-left"><span>Email address</span>' +
-                  '<input id="auth-email" type="email" name="username" autocomplete="username" required placeholder="you@example.com" class="w-full">' +
-                  '</label>' +
-                  '<label class="fld text-left mt-3"><span>Password</span>' +
-                  '<input id="auth-password" type="password" name="password" ' + (isSignUp ? 'autocomplete="new-password"' : 'autocomplete="current-password"') + ' required minlength="6" placeholder="••••••••" class="w-full">' +
-                  '</label>' +
-                  '<button id="btn-auth-submit" type="submit" class="btn btn-gold w-full mt-4">' + (isSignUp ? 'Create Account' : 'Log In') + '</button>' +
-                  '</form>' +
+                  oauthBlock +
+                  '<form id="auth-form" autocomplete="on">' + formFields + '</form>' +
                   '<p id="auth-status" class="text-xs text-center mt-2 muted"></p>' +
-                  '<div class="text-center mt-3 pt-3 border-t border-rose-200/10 text-xs">' +
-                  '<span id="auth-switch-text" class="muted">' + (isSignUp ? 'Already have an account?' : 'New to McGee Jewelry?') + '</span> ' +
-                  '<button id="btn-auth-switch" type="button" class="underline gt font-semibold">' + (isSignUp ? 'Log in' : 'Create an account') + '</button>' +
-                  '</div>' +
+                  footerHtml +
                   '</div>' +
                   '</div>';
   document.body.appendChild(dlg);
 
   var cl = document.getElementById('auth-close'); if (cl) cl.onclick = function(){ dlg.remove(); };
   var bg = document.getElementById('btn-oauth-google'); if (bg) bg.onclick = loginWithGoogle;
+  var fg = document.getElementById('btn-auth-forgot'); if (fg) fg.onclick = function(){ authMode = 'forgot'; openAuthModal(); };
   var sw = document.getElementById('btn-auth-switch'); if (sw) sw.onclick = toggleAuthMode;
   var form = document.getElementById('auth-form'); if (form) form.onsubmit = handleFormSubmit;
 }
 
 function toggleAuthMode() {
-  authMode = authMode === 'signup' ? 'login' : 'signup';
+  if (authMode === 'forgot') {
+    authMode = 'login';
+  } else {
+    authMode = authMode === 'signup' ? 'login' : 'signup';
+  }
   openAuthModal();
 }
 
@@ -980,14 +1029,86 @@ function handleFormSubmit(e) {
   e.preventDefault();
   var em = document.getElementById('auth-email');
   var pw = document.getElementById('auth-password');
+  var pwc = document.getElementById('auth-password-confirm');
   var st = document.getElementById('auth-status');
   var btn = document.getElementById('btn-auth-submit');
 
-  if (!em || !pw || !st) return;
-  var email = em.value.trim();
-  var password = pw.value.trim();
+  if (!st) return;
+  if (!sb) {
+    st.textContent = 'Connecting to database, please wait a moment...';
+    return;
+  }
 
-  if (!email || !password) {
+  if (authMode === 'recovery') {
+    var newPass = pw ? pw.value : '';
+    var confirmPass = pwc ? pwc.value : '';
+    if (newPass.length < 6) {
+      st.textContent = 'Password must be at least 6 characters.';
+      st.style.color = '#ef4444';
+      return;
+    }
+    if (newPass !== confirmPass) {
+      st.textContent = 'Passwords do not match.';
+      st.style.color = '#ef4444';
+      return;
+    }
+    btn.disabled = true;
+    st.textContent = 'Updating password...';
+    st.style.color = '';
+    sb.auth.updateUser({ password: newPass }).then(function(res){
+      btn.disabled = false;
+      if (res.error) {
+        st.textContent = res.error.message;
+        st.style.color = '#ef4444';
+      } else {
+        st.textContent = 'Password updated! You are signed in.';
+        st.style.color = '#10b981';
+        setTimeout(function(){
+          var dlg = document.getElementById('mcgee-auth-dialog');
+          if (dlg) dlg.remove();
+          showToast('🔒 Password updated successfully!');
+        }, 700);
+      }
+    }).catch(function(err){
+      btn.disabled = false;
+      st.textContent = err.message;
+      st.style.color = '#ef4444';
+    });
+    return;
+  }
+
+  var email = em ? em.value.trim() : '';
+  if (!email) {
+    st.textContent = 'Please enter your email address.';
+    st.style.color = '#ef4444';
+    return;
+  }
+
+  if (authMode === 'forgot') {
+    btn.disabled = true;
+    st.textContent = 'Sending reset email...';
+    st.style.color = '';
+    sb.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin
+    }).then(function(res){
+      btn.disabled = false;
+      if (res.error) {
+        st.textContent = res.error.message;
+        st.style.color = '#ef4444';
+      } else {
+        st.textContent = 'Password reset link sent! Check your email inbox and spam folder.';
+        st.style.color = '#10b981';
+      }
+    }).catch(function(err){
+      btn.disabled = false;
+      st.textContent = err.message;
+      st.style.color = '#ef4444';
+    });
+    return;
+  }
+
+  var password = pw ? pw.value.trim() : '';
+  if (!password) {
     st.textContent = 'Please enter both email and password.';
     st.style.color = '#ef4444';
     return;
@@ -995,10 +1116,6 @@ function handleFormSubmit(e) {
   if (password.length < 6) {
     st.textContent = 'Password must be at least 6 characters.';
     st.style.color = '#ef4444';
-    return;
-  }
-  if (!sb) {
-    st.textContent = 'Connecting to database, please wait a moment...';
     return;
   }
 
@@ -1017,14 +1134,18 @@ function handleFormSubmit(e) {
         st.textContent = res.error.message;
         st.style.color = '#ef4444';
       } else if (res.data && res.data.session) {
-        st.textContent = 'Account created! Signing you in...';
+        st.textContent = 'Welcome! Signing you in...';
         st.style.color = '#10b981';
-        setTimeout(function(){ location.reload(); }, 800);
+        setTimeout(function(){
+          var dlg = document.getElementById('mcgee-auth-dialog');
+          if (dlg) dlg.remove();
+          showToast('✨ Welcome to McGee Jewelry! Your account is ready.');
+        }, 450);
       } else if (res.data && res.data.user && Array.isArray(res.data.user.identities) && res.data.user.identities.length === 0) {
         st.textContent = 'An account with this email already exists. Please log in instead.';
         st.style.color = '#f59e0b';
       } else {
-        st.innerHTML = 'Account created! Please check your email inbox (and spam folder) and click the confirmation link before logging in.';
+        st.innerHTML = 'Account created! Check your email inbox to confirm (or disable "Confirm email" in Supabase for instant entry).';
         st.style.color = '#10b981';
       }
     }).catch(function(err){
@@ -1066,7 +1187,11 @@ function handleFormSubmit(e) {
       } else {
         st.textContent = 'Logged in successfully!';
         st.style.color = '#10b981';
-        setTimeout(function(){ location.reload(); }, 600);
+        setTimeout(function(){
+          var dlg = document.getElementById('mcgee-auth-dialog');
+          if (dlg) dlg.remove();
+          showToast('✨ Signed in to McGee Jewelry.');
+        }, 450);
       }
     }).catch(function(err){
       btn.disabled = false;
@@ -1138,6 +1263,8 @@ window.initMcGeeAuth = async function() {
   sb = window.supabase.createClient(SB_URL, SB_KEY);
   window.sb = sb;
 
+  var isRecoveryUrl = (window.location.hash || '').indexOf('type=recovery') >= 0;
+
   try {
     var res = await sb.auth.getSession();
     if (res.data && res.data.session) {
@@ -1156,6 +1283,11 @@ window.initMcGeeAuth = async function() {
   checkDirectPagePaywall();
   notifyAuthReady();
 
+  if (isRecoveryUrl) {
+    authMode = 'recovery';
+    openAuthModal();
+  }
+
   sb.auth.onAuthStateChange(async function(evt, session){
     currentUser = session ? session.user : null;
     window.currentUser = currentUser;
@@ -1167,6 +1299,10 @@ window.initMcGeeAuth = async function() {
     updateNavAuth();
     handleStripeSuccess();
     notifyAuthReady();
+    if (evt === 'PASSWORD_RECOVERY') {
+      authMode = 'recovery';
+      openAuthModal();
+    }
   });
 };
 
