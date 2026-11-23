@@ -2,7 +2,7 @@
 <style>
 .dash.logged-in{display:grid;grid-template-columns:16rem 1fr;min-height:100vh}
 .dash.logged-out{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1.5rem}
-.side{padding:1.5rem 1rem;border-right:1px solid rgba(183,110,121,.25);position:sticky;top:0;height:100vh;background:rgba(255,255,255,.4);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);display:flex;flex-direction:column;justify-content:between}
+.side{padding:1.5rem 1rem;border-right:1px solid rgba(183,110,121,.25);position:sticky;top:0;height:100vh;background:rgba(255,255,255,.4);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);display:flex;flex-direction:column;justify-content:space-between}
 .side button.nv{display:flex;width:100%;gap:.7rem;align-items:center;text-align:left;padding:.75rem .95rem;border-radius:.85rem;border:1px solid transparent;background:none;color:inherit;font:inherit;cursor:pointer;margin-top:.35rem;transition:all .25s}
 .side button.nv:hover{background:rgba(183,110,121,.12)}
 .side button.nv[aria-current=true]{background:linear-gradient(110deg,rgba(243,226,179,.65),rgba(232,180,184,.65));border-color:#b76e79;font-weight:500}
@@ -11,12 +11,14 @@
 .fld input,.fld select,.fld textarea{width:100%;padding:.65rem .9rem;border-radius:.8rem;border:1px solid rgba(183,110,121,.35);background:rgba(255,255,255,.85);color:#3b2a2e;font:inherit}
 .fld textarea{min-height:22rem;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9rem;line-height:1.5}
 .pill{display:inline-block;padding:.15rem .7rem;border-radius:999px;font-size:.78rem;border:1px solid rgba(183,110,121,.4)}
-.pill.live{background:#dff3e3;color:#1d5e2f;border-color:#9fd4ab}.pill.dep{background:#fdf0cf;color:#7a5a05;border-color:#e6cd7a}.pill.dr{background:#eee;color:#555}.pill.pro{background:#fef3c7;color:#92400e;border-color:#f59e0b;font-weight:600}
+.pill.live{background:#dff3e3;color:#1d5e2f;border-color:#9fd4ab}.pill.dep{background:#fdf0cf;color:#7a5a05;border-color:#e6cd7a}.pill.dr{background:#eee;color:#555}.pill.pro{background:#fef3c7;color:#92400e;border-color:#f59e0b;font-weight:600}.pill.warn{background:#fef3c7;color:#92400e;border-color:#fbbf24}
 .ck li{margin:.25rem 0;list-style:none}.ck .ok{color:#1d7a3a}.ck .bad{color:#b3262e}.ck .warn{color:#8a6a05}
 #log{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85rem;white-space:pre-wrap}
 .btn[disabled]{opacity:.45;cursor:not-allowed;transform:none!important}
 @media(max-width:850px){.dash.logged-in{grid-template-columns:1fr}.side{position:static;height:auto;display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}.main{padding:1.25rem}}
 html[data-theme="plum"] .fld input,html[data-theme="plum"] .fld select,html[data-theme="plum"] .fld textarea{background:#3a1b33;color:#f3e8ee}
+html[data-theme="midnight"] .fld input,html[data-theme="midnight"] .fld select,html[data-theme="midnight"] .fld textarea{background:#0f172a;color:#e2e8f0;border-color:rgba(243,226,179,.25)}
+html[data-theme="midnight"] .side,html[data-theme="plum"] .side{background:rgba(15,10,20,.55)}
 </style></head><body>
 <div class="dash logged-out" id="dash-container">
 <aside class="side" id="admin-side" style="display:none">
@@ -30,7 +32,7 @@ html[data-theme="plum"] .fld input,html[data-theme="plum"] .fld select,html[data
 </nav>
 </div>
 <div class="pt-4 border-t border-rose-200/20 text-xs">
-<p class="muted font-mono truncate" id="admin-user-pill">said.cpge24@gmail.com</p>
+<p class="muted font-mono truncate" id="admin-user-pill"></p>
 <button id="admin-logout" class="text-red-400 hover:underline mt-1 block">Log out</button>
 </div>
 </aside>

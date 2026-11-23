@@ -37,10 +37,15 @@ export interface BlogPost {
 }
 
 export interface Subscriber {
+  user_id?: string;
   email: string;
   plan: 'pro' | 'free';
   date: string;
-  status: 'active' | 'cancelled';
+  status: string;
+  confirmed?: boolean;
+  lastSignIn?: string;
+  isAdmin?: boolean;
+  piecesCount?: number;
   amount: number;
 }
 

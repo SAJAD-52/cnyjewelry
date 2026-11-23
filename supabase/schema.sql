@@ -330,3 +330,167 @@ $$;
 revoke all on function public.get_user_id_by_email(text) from public;
 grant execute on function public.get_user_id_by_email(text) to service_role;
 
+-- 13. ADMIN DASHBOARD RPCs (Strictly gated to admins table / owner email)
+insert into public.admins (user_id, notes)
+select id, 'Primary Owner' from auth.users where lower(email) = 'said.cpge24@gmail.com'
+on conflict (user_id) do nothing;
+
+create or replace function public.is_admin_user()
+returns boolean
+language sql
+security definer
+stable
+set search_path = public, auth
+as $$
+  select auth.uid() is not null and (
+    exists (select 1 from public.admins where user_id = auth.uid())
+    or exists (
+      select 1 from auth.users
+      where id = auth.uid()
+        and lower(email) = 'said.cpge24@gmail.com'
+    )
+  );
+$$;
+
+create or replace function public.admin_list_accounts()
+returns table (
+  user_id uuid,
+  email text,
+  created_at timestamptz,
+  email_confirmed_at timestamptz,
+  last_sign_in_at timestamptz,
+  plan text,
+  sub_status text,
+  current_period_end timestamptz,
+  is_admin boolean,
+  pieces_count bigint
+)
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+begin
+  if not public.is_admin_user() then
+    raise exception 'Forbidden: admin access required';
+  end if;
+
+  return query
+  select
+    u.id as user_id,
+    u.email::text as email,
+    u.created_at,
+    u.email_confirmed_at,
+    u.last_sign_in_at,
+    case
+      when (s.status in ('active', 'trialing') and s.current_period_end > now())
+        or a.user_id is not null
+        or lower(u.email) = 'said.cpge24@gmail.com'
+      then 'pro'
+      else 'free'
+    end as plan,
+    coalesce(s.status, 'free')::text as sub_status,
+    s.current_period_end,
+    (a.user_id is not null or lower(u.email) = 'said.cpge24@gmail.com') as is_admin,
+    coalesce(p.cnt, 0)::bigint as pieces_count
+  from auth.users u
+  left join public.subscriptions s on s.user_id = u.id
+  left join public.admins a on a.user_id = u.id
+  left join (
+    select pc.user_id, count(*)::bigint as cnt
+    from public.pieces pc
+    group by pc.user_id
+  ) p on p.user_id = u.id
+  order by u.created_at desc;
+end;
+$$;
+
+create or replace function public.admin_set_user_plan(target_user_id uuid, new_plan text)
+returns void
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+begin
+  if not public.is_admin_user() then
+    raise exception 'Forbidden: admin access required';
+  end if;
+
+  if new_plan = 'pro' then
+    insert into public.subscriptions (user_id, status, current_period_end, updated_at)
+    values (target_user_id, 'active', now() + interval '1 year', now())
+    on conflict (user_id) do update
+      set status = 'active',
+          current_period_end = greatest(coalesce(public.subscriptions.current_period_end, now()), now() + interval '1 year'),
+          updated_at = now();
+  else
+    insert into public.subscriptions (user_id, status, current_period_end, updated_at)
+    values (target_user_id, 'canceled', now(), now())
+    on conflict (user_id) do update
+      set status = 'canceled',
+          current_period_end = now(),
+          updated_at = now();
+  end if;
+end;
+$$;
+
+create or replace function public.admin_grant_pro_by_email(target_email text, new_plan text default 'pro')
+returns uuid
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+declare
+  uid uuid;
+begin
+  if not public.is_admin_user() then
+    raise exception 'Forbidden: admin access required';
+  end if;
+
+  select id into uid
+  from auth.users
+  where lower(email) = lower(trim(target_email))
+  limit 1;
+
+  if uid is null then
+    raise exception 'No registered user found with email: %', target_email;
+  end if;
+
+  perform public.admin_set_user_plan(uid, new_plan);
+  return uid;
+end;
+$$;
+
+create or replace function public.admin_delete_user(target_user_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+begin
+  if not public.is_admin_user() then
+    raise exception 'Forbidden: admin access required';
+  end if;
+  if target_user_id = auth.uid() then
+    raise exception 'Cannot delete your own admin account';
+  end if;
+
+  delete from auth.users where id = target_user_id;
+end;
+$$;
+
+revoke all on function public.is_admin_user() from public;
+grant execute on function public.is_admin_user() to authenticated;
+
+revoke all on function public.admin_list_accounts() from public;
+grant execute on function public.admin_list_accounts() to authenticated;
+
+revoke all on function public.admin_set_user_plan(uuid, text) from public;
+grant execute on function public.admin_set_user_plan(uuid, text) to authenticated;
+
+revoke all on function public.admin_grant_pro_by_email(text, text) from public;
+grant execute on function public.admin_grant_pro_by_email(text, text) to authenticated;
+
+revoke all on function public.admin_delete_user(uuid) from public;
+grant execute on function public.admin_delete_user(uuid) to authenticated;
+
+

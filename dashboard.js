@@ -9,29 +9,102 @@ var sb = window.supabase ? window.supabase.createClient(SB_URL, SB_KEY) : null;
 var currentUser = null;
 var authChecked = false;
 
-var TOOLS=['sizing.html','styling.html','care.html','gift.html','layering.html','anniversary.html','gold.html','diamond.html','earrings.html','wishlist.html','vault.html','blog.html','index.html','privacy.html'];
+var TOOLS=['sizing.html','styling.html','care.html','gift.html','layering.html','anniversary.html','gold.html','diamond.html','earrings.html','wishlist.html','vault.html','planner.html','beading.html','blog.html','index.html','privacy.html'];
 var FONT='<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"><script src="https://cdn.tailwindcss.com"><\/script><link rel="stylesheet" href="style.css">';
 var GRADS=['linear-gradient(135deg,#f3e2b3,#e8b4b8 55%,#b76e79)','linear-gradient(135deg,#e8b4b8,#c9954f 70%,#7a4a2b)','linear-gradient(135deg,#d98e32,#9a3b2e 60%,#5a1d2a)','linear-gradient(135deg,#ffffff,#c7ccd6 45%,#b76e79)','linear-gradient(135deg,#f3e2b3,#e8b4b8 40%,#7b1e2b)','linear-gradient(135deg,#ffffff,#f3e2b3 45%,#b76e79)'];
 
 var LS={get:function(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}},set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+try{localStorage.removeItem('koo_subscribers')}catch(e){}
 var S=Object.assign({owner:'SAJAD-52',repo:'cnyjewelry',branch:'main',token:'',domain:'https://mcgeejewelry.com',gemKey:'',gemModel:'gemini-3.5-flash',imgModel:'gemini-3.1-flash-image',gemSearch:true,gemSearchArticle:false,niche:"women's jewelry: rings, necklaces, earrings, bracelets, gold and silver, diamonds, gemstones, care, sizing, gifts and styling"},LS.get('md_settings',{}));
 var A=LS.get('md_articles',[]);
 
-// Default Subscribers Dataset
-var DEFAULT_SUBS = [
-  { email: 'sarah.k@gmail.com', plan: 'pro', date: '2026-10-28', status: 'active', amount: 6.00 },
-  { email: 'elena.b@outlook.com', plan: 'pro', date: '2026-10-27', status: 'active', amount: 6.00 },
-  { email: 'chloe.m@yahoo.com', plan: 'free', date: '2026-10-25', status: 'active', amount: 0.00 },
-  { email: 'maya.jewelry@gmail.com', plan: 'pro', date: '2026-10-24', status: 'active', amount: 6.00 },
-  { email: 'jessica.w@gmail.com', plan: 'free', date: '2026-10-22', status: 'active', amount: 0.00 }
-];
-var SUBS = LS.get('koo_subscribers', DEFAULT_SUBS);
+// Live Subscribers State (loaded from Supabase via admin_list_accounts RPC)
+var SUBS = [];
+var subsLoading = false;
+var subsLoaded = false;
+var subsError = '';
+var subsNeedsSql = false;
+var subSearch = '';
+var subFilter = 'all';
+var subActionMsg = '';
+var subActionErr = false;
+var pendingDeleteId = null;
 
-var view='overview',editId=null,busy=false,polls={};
+var ADMIN_SQL_SETUP = [
+  "insert into public.admins (user_id, notes)",
+  "select id, 'Primary Owner' from auth.users where lower(email) = 'said.cpge24@gmail.com'",
+  "on conflict (user_id) do nothing;",
+  "",
+  "create or replace function public.is_admin_user()",
+  "returns boolean language sql security definer stable set search_path = public, auth as $$",
+  "  select auth.uid() is not null and (",
+  "    exists (select 1 from public.admins where user_id = auth.uid())",
+  "    or exists (select 1 from auth.users where id = auth.uid() and lower(email) = 'said.cpge24@gmail.com')",
+  "  );",
+  "$$;",
+  "",
+  "create or replace function public.admin_list_accounts()",
+  "returns table (user_id uuid, email text, created_at timestamptz, email_confirmed_at timestamptz, last_sign_in_at timestamptz, plan text, sub_status text, current_period_end timestamptz, is_admin boolean, pieces_count bigint)",
+  "language plpgsql security definer set search_path = public, auth as $$",
+  "begin",
+  "  if not public.is_admin_user() then raise exception 'Forbidden: admin access required'; end if;",
+  "  return query",
+  "  select u.id, u.email::text, u.created_at, u.email_confirmed_at, u.last_sign_in_at,",
+  "    case when (s.status in ('active','trialing') and s.current_period_end > now()) or a.user_id is not null or lower(u.email) = 'said.cpge24@gmail.com' then 'pro' else 'free' end,",
+  "    coalesce(s.status,'free')::text, s.current_period_end,",
+  "    (a.user_id is not null or lower(u.email) = 'said.cpge24@gmail.com'),",
+  "    coalesce(p.cnt, 0)::bigint",
+  "  from auth.users u",
+  "  left join public.subscriptions s on s.user_id = u.id",
+  "  left join public.admins a on a.user_id = u.id",
+  "  left join (select pc.user_id, count(*)::bigint as cnt from public.pieces pc group by pc.user_id) p on p.user_id = u.id",
+  "  order by u.created_at desc;",
+  "end; $$;",
+  "",
+  "create or replace function public.admin_set_user_plan(target_user_id uuid, new_plan text)",
+  "returns void language plpgsql security definer set search_path = public, auth as $$",
+  "begin",
+  "  if not public.is_admin_user() then raise exception 'Forbidden: admin access required'; end if;",
+  "  if new_plan = 'pro' then",
+  "    insert into public.subscriptions (user_id, status, current_period_end, updated_at) values (target_user_id, 'active', now() + interval '1 year', now())",
+  "    on conflict (user_id) do update set status = 'active', current_period_end = greatest(coalesce(public.subscriptions.current_period_end, now()), now() + interval '1 year'), updated_at = now();",
+  "  else",
+  "    insert into public.subscriptions (user_id, status, current_period_end, updated_at) values (target_user_id, 'canceled', now(), now())",
+  "    on conflict (user_id) do update set status = 'canceled', current_period_end = now(), updated_at = now();",
+  "  end if;",
+  "end; $$;",
+  "",
+  "create or replace function public.admin_grant_pro_by_email(target_email text, new_plan text default 'pro')",
+  "returns uuid language plpgsql security definer set search_path = public, auth as $$",
+  "declare uid uuid;",
+  "begin",
+  "  if not public.is_admin_user() then raise exception 'Forbidden: admin access required'; end if;",
+  "  select id into uid from auth.users where lower(email) = lower(trim(target_email)) limit 1;",
+  "  if uid is null then raise exception 'No registered user found with email: %', target_email; end if;",
+  "  perform public.admin_set_user_plan(uid, new_plan);",
+  "  return uid;",
+  "end; $$;",
+  "",
+  "create or replace function public.admin_delete_user(target_user_id uuid)",
+  "returns void language plpgsql security definer set search_path = public, auth as $$",
+  "begin",
+  "  if not public.is_admin_user() then raise exception 'Forbidden: admin access required'; end if;",
+  "  if target_user_id = auth.uid() then raise exception 'Cannot delete your own admin account'; end if;",
+  "  delete from auth.users where id = target_user_id;",
+  "end; $$;",
+  "",
+  "revoke all on function public.is_admin_user() from public; grant execute on function public.is_admin_user() to authenticated;",
+  "revoke all on function public.admin_list_accounts() from public; grant execute on function public.admin_list_accounts() to authenticated;",
+  "revoke all on function public.admin_set_user_plan(uuid, text) from public; grant execute on function public.admin_set_user_plan(uuid, text) to authenticated;",
+  "revoke all on function public.admin_grant_pro_by_email(text, text) from public; grant execute on function public.admin_grant_pro_by_email(text, text) to authenticated;",
+  "revoke all on function public.admin_delete_user(uuid) from public; grant execute on function public.admin_delete_user(uuid) to authenticated;"
+].join("\n");
+
+var view='overview',editId=null,busy=false,polls={},blogMsg='',blogErr=false;
 var $=function(s){return document.querySelector(s)};
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 function escA(s){return esc(s).replace(/"/g,'&quot;')}
-function save(){LS.set('md_articles',A);LS.set('md_settings',S);LS.set('koo_subscribers',SUBS)}
+function save(){LS.set('md_articles',A);LS.set('md_settings',S)}
 function slugify(t){return t.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')}
 function plain(h){return h.replace(/<[^>]+>/g,' ').replace(/&[a-z]+;/g,' ').replace(/\s+/g,' ').trim()}
 function today(){return new Date().toISOString().slice(0,10)}
@@ -45,6 +118,50 @@ function showSidebar(visible) {
   if (cont) cont.className = visible ? 'dash logged-in' : 'dash logged-out';
 }
 
+async function loadSubscribers(forceRender) {
+  if (!sb || !currentUser) return;
+  subsLoading = true;
+  subsError = '';
+  subsNeedsSql = false;
+  if (forceRender && (view === 'overview' || view === 'subscribers')) render();
+
+  try {
+    var res = await sb.rpc('admin_list_accounts');
+    if (res.error) {
+      var msg = res.error.message || '';
+      if (res.error.code === 'PGRST202' || res.error.code === '42883' || /Could not find the function/i.test(msg)) {
+        subsNeedsSql = true;
+        subsError = 'Supabase admin RPC functions are not installed yet. Run the SQL setup in Supabase SQL Editor to see live registered users.';
+      } else {
+        subsError = msg || 'Could not load accounts from Supabase.';
+      }
+      SUBS = [];
+    } else {
+      subsLoaded = true;
+      SUBS = (res.data || []).map(function(r){
+        return {
+          user_id: r.user_id,
+          email: r.email || 'Unknown',
+          plan: r.plan === 'pro' ? 'pro' : 'free',
+          date: r.created_at ? String(r.created_at).slice(0, 10) : '',
+          confirmed: !!r.email_confirmed_at,
+          lastSignIn: r.last_sign_in_at ? String(r.last_sign_in_at).slice(0, 10) : 'Never',
+          status: r.sub_status || (r.plan === 'pro' ? 'active' : 'free'),
+          isAdmin: !!r.is_admin,
+          piecesCount: Number(r.pieces_count) || 0,
+          amount: (r.plan === 'pro' && !r.is_admin) ? 6.00 : 0.00
+        };
+      });
+    }
+  } catch (err) {
+    subsError = (err && err.message) ? err.message : 'Network error loading accounts.';
+    SUBS = [];
+  } finally {
+    subsLoading = false;
+    if (view === 'overview' || view === 'subscribers') render();
+  }
+}
+
 function checkAdminAuth() {
   if (!sb) { renderAdminLogin('Connecting to Supabase...'); return; }
   sb.auth.getSession().then(function(res){
@@ -56,6 +173,7 @@ function checkAdminAuth() {
         if (pill) pill.textContent = currentUser.email;
         showSidebar(true);
         render();
+        loadSubscribers(true);
       } else {
         showSidebar(false);
         renderAdminLogin('Access denied. Log in with ' + ADMIN_EMAIL);
@@ -76,13 +194,15 @@ function renderAdminLogin(msg) {
     '<span class="chip text-xs">Restricted Access</span>' +
     '<h1 class="serif text-4xl gt mt-3">Admin Login</h1>' +
     '<p class="muted text-sm mt-1">This panel is strictly reserved for <b>' + ADMIN_EMAIL + '</b>.</p>' +
-    (msg ? '<p class="text-xs mt-3 p-2 rounded-xl bg-red-100 text-red-700">' + esc(msg) + '</p>' : '') +
+    '<p id="admin-login-err" class="text-xs mt-3 p-2 rounded-xl ' + (msg ? 'bg-red-100 text-red-700' : 'hidden') + '">' + esc(msg || '') + '</p>' +
     '<form id="admin-login-form" class="mt-6 flex flex-col gap-3 text-left">' +
     '<label class="fld"><span>Email</span><input id="adm_email" type="email" value="' + ADMIN_EMAIL + '" required></label>' +
     '<label class="fld"><span>Password</span><input id="adm_pass" type="password" required placeholder="••••••••"></label>' +
-    '<button type="submit" class="btn btn-gold w-full mt-4">Log in to Dashboard</button>' +
+    '<button id="adm_submit" type="submit" class="btn btn-gold w-full mt-4">Log in to Dashboard</button>' +
     '</form>' +
-    '<button id="btn-force-demo" class="text-xs muted hover:underline mt-6">Continue in Owner Offline Mode</button>' +
+    '<div class="mt-5 pt-4 border-t border-rose-200/15">' +
+    '<a href="index.html" class="text-xs muted hover:underline">&larr; Back to Public Studio</a>' +
+    '</div>' +
     '</div>';
 
   var form = $('#admin-login-form');
@@ -91,29 +211,50 @@ function renderAdminLogin(msg) {
       e.preventDefault();
       var em = $('#adm_email').value.trim();
       var pw = $('#adm_pass').value.trim();
-      if (em.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) { alert('Only ' + ADMIN_EMAIL + ' can log in here.'); return; }
+      var errEl = $('#admin-login-err');
+      var btn = $('#adm_submit');
+      if (em.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+        if (errEl) { errEl.textContent = 'Only ' + ADMIN_EMAIL + ' can log in here.'; errEl.className = 'text-xs mt-3 p-2 rounded-xl bg-red-100 text-red-700'; }
+        return;
+      }
+      if (btn) { btn.disabled = true; btn.textContent = 'Signing in...'; }
       sb.auth.signInWithPassword({ email: em, password: pw }).then(function(r){
-        if (r.error) alert(r.error.message);
-        else checkAdminAuth();
+        if (btn) { btn.disabled = false; btn.textContent = 'Log in to Dashboard'; }
+        if (r.error) {
+          if (errEl) { errEl.textContent = r.error.message; errEl.className = 'text-xs mt-3 p-2 rounded-xl bg-red-100 text-red-700'; }
+        } else {
+          checkAdminAuth();
+        }
       });
-    };
-  }
-
-  var forceBtn = $('#btn-force-demo');
-  if (forceBtn) {
-    forceBtn.onclick = function(){
-      currentUser = { email: ADMIN_EMAIL };
-      showSidebar(true);
-      render();
     };
   }
 }
 
+function renderSqlSetupBanner() {
+  if (!subsNeedsSql) return '';
+  return '<div class="glass p-6 rounded-3xl mt-6 border border-amber-400/40">' +
+    '<div class="flex flex-wrap items-start justify-between gap-3">' +
+    '<div>' +
+    '<span class="pill warn">One-Time Database Setup Required</span>' +
+    '<h3 class="serif text-2xl gt mt-2">Connect Live Customer Accounts</h3>' +
+    '<p class="muted text-sm mt-1">Supabase blocks reading <code>auth.users</code> from the browser until you install the secure admin RPC functions (<code>admin_list_accounts</code>, <code>admin_set_user_plan</code>, <code>admin_grant_pro_by_email</code>, <code>admin_delete_user</code>) in your Supabase SQL Editor.</p>' +
+    '</div>' +
+    '<div class="flex gap-2">' +
+    '<button class="btn btn-gold text-xs" data-act="copysql">Copy SQL Setup</button>' +
+    '<button class="btn btn-ghost text-xs" data-act="refreshsubs">Retry</button>' +
+    '</div>' +
+    '</div>' +
+    '<p id="sql-copy-msg" class="text-xs mt-2 muted"></p>' +
+    '</div>';
+}
+
 /* ---------- 1. OVERVIEW VIEW ---------- */
 function renderOverview() {
-  var proCount = SUBS.filter(function(s){ return s.plan === 'pro'; }).length;
-  var freeCount = SUBS.filter(function(s){ return s.plan === 'free'; }).length;
-  var totalSubs = SUBS.length;
+  var customers = SUBS.filter(function(s){ return !s.isAdmin; });
+  var proCount = customers.filter(function(s){ return s.plan === 'pro'; }).length;
+  var freeCount = customers.filter(function(s){ return s.plan === 'free'; }).length;
+  var pendingCount = customers.filter(function(s){ return !s.confirmed; }).length;
+  var totalSubs = customers.length;
   var mrr = proCount * 6.00;
   var arr = mrr * 12;
   var convRate = totalSubs ? Math.round((proCount / totalSubs) * 100) : 0;
@@ -125,29 +266,44 @@ function renderOverview() {
            '</div>';
   }).join('') || '<p class="muted text-sm py-2">No articles created yet.</p>';
 
-  var latestSubs = SUBS.slice(0, 4).map(function(s){
-    return '<div class="flex items-center justify-between py-2 border-b border-rose-200/10 text-sm">' +
-           '<div class="flex items-center gap-2"><span class="pill ' + (s.plan==='pro'?'pro':'dr') + '">' + (s.plan==='pro'?'$6 Pro':'Free') + '</span><span>' + esc(s.email) + '</span></div>' +
-           '<span class="muted text-xs">' + esc(s.date) + '</span>' +
-           '</div>';
-  }).join('');
+  var latestSubsHtml = '';
+  if (subsLoading) {
+    latestSubsHtml = '<p class="muted text-sm py-3">Loading live accounts from Supabase...</p>';
+  } else if (subsError && !subsNeedsSql) {
+    latestSubsHtml = '<p class="text-red-400 text-sm py-3">' + esc(subsError) + '</p>';
+  } else if (SUBS.length === 0) {
+    latestSubsHtml = '<p class="muted text-sm py-3">' + (subsNeedsSql ? 'Run the SQL setup below to display live customer signups.' : 'No registered accounts yet.') + '</p>';
+  } else {
+    latestSubsHtml = SUBS.slice(0, 5).map(function(s){
+      return '<div class="flex items-center justify-between py-2 border-b border-rose-200/10 text-sm gap-2">' +
+             '<div class="flex items-center gap-2 min-w-0">' +
+             '<span class="pill ' + (s.plan==='pro'?'pro':'dr') + '">' + (s.isAdmin ? 'Admin' : (s.plan==='pro'?'$6 Pro':'Free')) + '</span>' +
+             '<span class="truncate">' + esc(s.email) + '</span>' +
+             (!s.confirmed ? '<span class="pill warn" style="font-size:.68rem">Pending Email</span>' : '') +
+             '</div>' +
+             '<span class="muted text-xs shrink-0">' + esc(s.date) + '</span>' +
+             '</div>';
+    }).join('');
+  }
 
   $('#app').innerHTML = '<div class="flex flex-wrap items-center justify-between gap-3">' +
     '<div><span class="chip text-xs">SaaS Command Center</span><h1 class="text-4xl gt mt-1">Business Overview</h1></div>' +
-    '<div class="flex gap-2"><button class="btn btn-gold" data-act="view" data-id="blog">+ New Article</button><button class="btn btn-ghost" data-act="view" data-id="subscribers">View All Users</button></div>' +
+    '<div class="flex gap-2"><button class="btn btn-ghost" data-act="refreshsubs"' + (subsLoading?' disabled':'') + '>' + (subsLoading?'Syncing...':'↻ Refresh Live Data') + '</button><button class="btn btn-gold" data-act="view" data-id="blog">+ New Article</button></div>' +
     '</div>' +
+
+    renderSqlSetupBanner() +
 
     '<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">' +
     '<div class="glass p-5 rounded-2xl"><span class="muted text-xs uppercase tracking-wider">Monthly Revenue (MRR)</span><h2 class="serif text-4xl text-emerald-600 dark:text-emerald-400 mt-1">$' + mrr + '</h2><p class="muted text-xs mt-1">$' + arr + ' ARR run rate</p></div>' +
-    '<div class="glass p-5 rounded-2xl"><span class="muted text-xs uppercase tracking-wider">Pro Subscribers ($6)</span><h2 class="serif text-4xl gt mt-1">' + proCount + '</h2><p class="muted text-xs mt-1">Active paid members</p></div>' +
-    '<div class="glass p-5 rounded-2xl"><span class="muted text-xs uppercase tracking-wider">Total User Accounts</span><h2 class="serif text-4xl gt mt-1">' + totalSubs + '</h2><p class="muted text-xs mt-1">' + freeCount + ' free members</p></div>' +
-    '<div class="glass p-5 rounded-2xl"><span class="muted text-xs uppercase tracking-wider">Free &rarr; Pro Conversion</span><h2 class="serif text-4xl gt mt-1">' + convRate + '%</h2><p class="muted text-xs mt-1">Healthy SaaS target: 3-5%</p></div>' +
+    '<div class="glass p-5 rounded-2xl"><span class="muted text-xs uppercase tracking-wider">Pro Subscribers ($6)</span><h2 class="serif text-4xl gt mt-1">' + proCount + '</h2><p class="muted text-xs mt-1">Active paid customers</p></div>' +
+    '<div class="glass p-5 rounded-2xl"><span class="muted text-xs uppercase tracking-wider">Customer Accounts</span><h2 class="serif text-4xl gt mt-1">' + totalSubs + '</h2><p class="muted text-xs mt-1">' + freeCount + ' free &middot; ' + pendingCount + ' unconfirmed</p></div>' +
+    '<div class="glass p-5 rounded-2xl"><span class="muted text-xs uppercase tracking-wider">Free &rarr; Pro Conversion</span><h2 class="serif text-4xl gt mt-1">' + convRate + '%</h2><p class="muted text-xs mt-1">Live Supabase ratio</p></div>' +
     '</div>' +
 
     '<div class="grid md:grid-cols-2 gap-6 mt-8">' +
     '<div class="glass p-6 rounded-3xl">' +
-    '<div class="flex items-center justify-between mb-3"><h3 class="serif text-2xl gt">Recent Subscribers</h3><button class="text-xs gt underline" data-act="view" data-id="subscribers">Manage &rarr;</button></div>' +
-    latestSubs +
+    '<div class="flex items-center justify-between mb-3"><h3 class="serif text-2xl gt">Recent Signups</h3><button class="text-xs gt underline" data-act="view" data-id="subscribers">Manage &rarr;</button></div>' +
+    latestSubsHtml +
     '</div>' +
     '<div class="glass p-6 rounded-3xl">' +
     '<div class="flex items-center justify-between mb-3"><h3 class="serif text-2xl gt">Latest Blog Posts</h3><button class="text-xs gt underline" data-act="view" data-id="blog">Open Blog &rarr;</button></div>' +
@@ -158,32 +314,111 @@ function renderOverview() {
 
 /* ---------- 2. SUBSCRIBERS VIEW ---------- */
 function renderSubscribers() {
-  var rows = SUBS.map(function(s, idx){
+  var q = subSearch.toLowerCase().trim();
+  var filtered = SUBS.filter(function(s){
+    if (subFilter === 'pro' && s.plan !== 'pro') return false;
+    if (subFilter === 'free' && s.plan !== 'free') return false;
+    if (subFilter === 'pending' && s.confirmed) return false;
+    if (q && s.email.toLowerCase().indexOf(q) < 0) return false;
+    return true;
+  });
+
+  var rows = filtered.map(function(s){
+    var confirmBadge = s.confirmed
+      ? '<span class="text-xs text-emerald-600 font-semibold">✓ Confirmed</span>'
+      : '<span class="pill warn" style="font-size:.7rem">⏳ Pending Email</span>';
+
+    var actionsHtml = s.isAdmin
+      ? '<span class="muted text-xs">Admin Account</span>'
+      : (pendingDeleteId === s.user_id
+          ? '<span class="text-xs text-red-400 mr-2">Confirm?</span>' +
+            '<button class="btn btn-ghost text-xs text-red-400" data-act="confirmdelete" data-id="' + escA(s.user_id) + '">Yes, Delete</button> ' +
+            '<button class="text-xs muted hover:underline ml-1" data-act="canceldelete">Cancel</button>'
+          : '<button class="btn btn-ghost text-xs" data-act="toggleplan" data-id="' + escA(s.user_id) + '">' + (s.plan==='pro'?'Set Free':'Grant Pro') + '</button> ' +
+            '<button class="text-xs text-red-400 hover:underline ml-2" data-act="delsub" data-id="' + escA(s.user_id) + '">Delete</button>');
+
     return '<tr class="border-b border-rose-200/10 text-sm">' +
-           '<td class="py-3 px-3 font-medium">' + esc(s.email) + '</td>' +
+           '<td class="py-3 px-3 font-medium">' +
+             '<div>' + esc(s.email) + (s.isAdmin ? ' <span class="pill pro" style="font-size:.65rem">Admin</span>' : '') + '</div>' +
+             '<div class="muted text-xs">' + s.piecesCount + ' vault piece(s) &middot; Last login: ' + esc(s.lastSignIn) + '</div>' +
+           '</td>' +
            '<td class="py-3 px-3"><span class="pill ' + (s.plan==='pro'?'pro':'dr') + '">' + (s.plan==='pro'?'⭐ Pro ($6/mo)':'Free Tier') + '</span></td>' +
            '<td class="py-3 px-3 muted">' + esc(s.date) + '</td>' +
-           '<td class="py-3 px-3"><span class="text-xs text-emerald-600 font-semibold">' + esc(s.status || 'Active') + '</span></td>' +
-           '<td class="py-3 px-3 text-right space-x-2">' +
-           '<button class="btn btn-ghost text-xs" data-act="toggleplan" data-id="' + idx + '">' + (s.plan==='pro'?'Set Free':'Grant Pro') + '</button>' +
-           '<button class="text-xs text-red-400 hover:underline" data-act="delsub" data-id="' + idx + '">Delete</button>' +
-           '</td>' +
+           '<td class="py-3 px-3">' + confirmBadge + '</td>' +
+           '<td class="py-3 px-3 text-right whitespace-nowrap">' + actionsHtml + '</td>' +
            '</tr>';
   }).join('');
 
+  var emptyRow = '<tr><td colspan="5" class="py-10 text-center muted text-sm">' +
+    (subsLoading ? 'Loading registered accounts from Supabase...' : (subsError ? esc(subsError) : 'No matching accounts found.')) +
+    '</td></tr>';
+
   $('#app').innerHTML = '<div class="flex flex-wrap items-center justify-between gap-3">' +
-    '<div><span class="chip text-xs">Customer Vault</span><h1 class="text-4xl gt mt-1">Subscribers & Accounts</h1></div>' +
-    '<button class="btn btn-gold" data-act="newsub">+ Add Subscriber</button>' +
+    '<div><span class="chip text-xs">Live Supabase Customer Vault</span><h1 class="text-4xl gt mt-1">Subscribers & Accounts</h1></div>' +
+    '<button class="btn btn-ghost text-xs" data-act="refreshsubs"' + (subsLoading?' disabled':'') + '>' + (subsLoading?'Syncing...':'↻ Refresh Accounts') + '</button>' +
     '</div>' +
 
-    '<div class="glass p-6 rounded-3xl mt-6 overflow-x-auto">' +
+    renderSqlSetupBanner() +
+
+    (subActionMsg ? '<div class="mt-4 p-3 rounded-2xl text-xs ' + (subActionErr ? 'bg-red-500/15 text-red-400 border border-red-400/30' : 'bg-emerald-500/15 text-emerald-400 border border-emerald-400/30') + '">' + esc(subActionMsg) + '</div>' : '') +
+
+    '<form id="grant-email-form" class="glass p-4 rounded-2xl mt-5 flex flex-wrap items-end gap-3">' +
+    '<label class="fld flex-1 min-w-[220px]" style="margin-top:0"><span class="text-xs">Grant or Revoke Pro by Registered Email</span><input id="grant-email-input" type="email" required placeholder="customer@example.com"></label>' +
+    '<label class="fld w-36" style="margin-top:0"><span class="text-xs">Plan</span><select id="grant-plan-select"><option value="pro">Grant Pro</option><option value="free">Set Free</option></select></label>' +
+    '<button id="grant-email-btn" type="submit" class="btn btn-gold text-xs py-2.5 px-4">Update Customer Plan</button>' +
+    '</form>' +
+
+    '<div class="flex flex-wrap items-center justify-between gap-3 mt-5">' +
+    '<div class="flex flex-wrap gap-1.5">' +
+    [['all','All ('+SUBS.length+')'],['pro','Pro ('+SUBS.filter(function(x){return x.plan==='pro'}).length+')'],['free','Free ('+SUBS.filter(function(x){return x.plan==='free'}).length+')'],['pending','Pending Email ('+SUBS.filter(function(x){return !x.confirmed}).length+')']].map(function(f){
+      return '<button class="btn ' + (subFilter===f[0]?'btn-gold':'btn-ghost') + ' text-xs py-1.5 px-3" data-act="setsubfilter" data-id="' + f[0] + '">' + f[1] + '</button>';
+    }).join('') +
+    '</div>' +
+    '<input id="sub-search-input" type="search" value="' + escA(subSearch) + '" placeholder="Search email..." class="px-3 py-1.5 rounded-xl text-xs border border-rose-200/30 bg-white/70 text-slate-900">' +
+    '</div>' +
+
+    '<div class="glass p-6 rounded-3xl mt-4 overflow-x-auto">' +
     '<table class="w-full text-left">' +
     '<thead><tr class="text-xs muted uppercase tracking-wider border-b border-rose-200/20">' +
-    '<th class="pb-3 px-3">Subscriber Email</th><th class="pb-3 px-3">Plan</th><th class="pb-3 px-3">Subscribed On</th><th class="pb-3 px-3">Status</th><th class="pb-3 px-3 text-right">Actions</th>' +
+    '<th class="pb-3 px-3">Customer Email</th><th class="pb-3 px-3">Plan</th><th class="pb-3 px-3">Joined On</th><th class="pb-3 px-3">Email Status</th><th class="pb-3 px-3 text-right">Actions</th>' +
     '</tr></thead>' +
-    '<tbody>' + rows + '</tbody>' +
+    '<tbody>' + (rows || emptyRow) + '</tbody>' +
     '</table>' +
     '</div>';
+
+  var searchEl = $('#sub-search-input');
+  if (searchEl) {
+    searchEl.oninput = function(){
+      subSearch = searchEl.value;
+      var pos = searchEl.selectionStart;
+      renderSubscribers();
+      var next = $('#sub-search-input');
+      if (next) { next.focus(); try{ next.setSelectionRange(pos, pos); }catch(e){} }
+    };
+  }
+
+  var grantForm = $('#grant-email-form');
+  if (grantForm) {
+    grantForm.onsubmit = async function(e){
+      e.preventDefault();
+      var em = ($('#grant-email-input') && $('#grant-email-input').value || '').trim();
+      var pl = ($('#grant-plan-select') && $('#grant-plan-select').value) || 'pro';
+      var btn = $('#grant-email-btn');
+      if (!em || !sb) return;
+      if (btn) { btn.disabled = true; btn.textContent = 'Updating...'; }
+      var res = await sb.rpc('admin_grant_pro_by_email', { target_email: em, new_plan: pl });
+      if (btn) { btn.disabled = false; btn.textContent = 'Update Customer Plan'; }
+      if (res.error) {
+        subActionMsg = res.error.message;
+        subActionErr = true;
+        renderSubscribers();
+      } else {
+        subActionMsg = 'Updated ' + em + ' to ' + pl.toUpperCase() + '.';
+        subActionErr = false;
+        await loadSubscribers(true);
+      }
+    };
+  }
 }
 
 /* ---------- 3. BLOG MANAGER (ORIGINAL GEMINI / GITHUB ENGINE) ---------- */
@@ -272,9 +507,9 @@ function readFile(p){return gh('/contents/'+encodeURI(p)+'?ref='+encodeURICompon
 function log(m){var el=$('#log');if(el){el.textContent+=m+'\n'}}
 
 function publish(id){var a=A.filter(function(x){return x.id===id})[0];if(!a||busy)return;
-if(!S.token){alert('Add your GitHub token in Settings first.');view='settings';render();return}
-var r=analyse(a);if(r.errs.length){alert('Fix these first:\n- '+r.errs.join('\n- '));return}
-busy=true;render();log('Publishing "'+a.title+'"...');var reg,files={},base,baseTree,newCommit;
+if(!S.token){blogMsg='Add your GitHub token in Settings first.';blogErr=true;view='settings';render();return}
+var r=analyse(a);if(r.errs.length){blogMsg='Fix these before publishing: '+r.errs.join(' · ');blogErr=true;render();return}
+blogMsg='';blogErr=false;busy=true;render();log('Publishing "'+a.title+'"...');var reg,files={},base,baseTree,newCommit;
 gh('/git/ref/heads/'+encodeURIComponent(S.branch)).then(function(ref){base=ref.object.sha;log('Connected to '+S.owner+'/'+S.repo);return gh('/git/commits/'+base)})
 .then(function(c){baseTree=c.tree.sha;return Promise.all([readFile('blog-data.json'),readFile('layout.js'),readFile('sitemap.xml')])})
 .then(function(f){return (a.img?(log('Preparing the image sizes...'),makeVariants(a)):Promise.resolve(null)).then(function(V){if(V)a.imgExt=V.ext;var data=f[0]?JSON.parse(f[0]):window.LEGACY.slice();reg=data.filter(function(x){return x.url!=='/'+a.slug});
@@ -291,8 +526,8 @@ return chain.then(function(){return tree})})})
 .then(function(tree){return gh('/git/trees',{method:'POST',body:{base_tree:baseTree,tree:tree}})})
 .then(function(t){return gh('/git/commits',{method:'POST',body:{message:'Publish article: '+a.title,tree:t.sha,parents:[base]}})})
 .then(function(c){newCommit=c.sha;return gh('/git/refs/heads/'+encodeURIComponent(S.branch),{method:'PATCH',body:{sha:newCommit}})})
-.then(function(){if(a.pinRaw){a.pinRaw=null;a.pinPub=true}if(a.img){a.img=null;a.imgPub=true}a.status='published';a.url='/'+a.slug;a.live=false;a.publishedAt=new Date().toISOString();save();busy=false;poll(a);render()})
-.catch(function(e){log('Failed: '+e.message);busy=false;render();alert('Publishing failed:\n'+e.message)})}
+.then(function(){if(a.pinRaw){a.pinRaw=null;a.pinPub=true}if(a.img){a.img=null;a.imgPub=true}a.status='published';a.url='/'+a.slug;a.live=false;a.publishedAt=new Date().toISOString();save();busy=false;blogMsg='Published "'+a.title+'" to GitHub!';blogErr=false;poll(a);render()})
+.catch(function(e){log('Failed: '+e.message);busy=false;blogMsg='Publishing failed: '+e.message;blogErr=true;render()})}
 
 function poll(a){if(polls[a.id])return;var n=0;polls[a.id]=setInterval(function(){n++;fetch(D()+'/'+a.slug+'?t='+Date.now(),{method:'HEAD',cache:'no-store'}).then(function(r){if(r.ok){a.live=true;save();clearInterval(polls[a.id]);delete polls[a.id];if(view==='blog')render()}},function(){a.live='unknown';clearInterval(polls[a.id]);delete polls[a.id];if(view==='blog')render()});if(n>40){clearInterval(polls[a.id]);delete polls[a.id]}},8000)}
 function pinUrl(a){var link=D()+'/'+a.slug,media=D()+'/pins/'+a.slug+((a.pinPub||a.pinRaw)?'.jpg':'.png'),tags=(a.keywords||'').split(',').map(function(k){return k.trim().replace(/[^a-zA-Z0-9]+/g,'')}).filter(Boolean).slice(0,5).map(function(k){return '#'+k}).join(' ');
@@ -301,8 +536,8 @@ return {href:'https://www.pinterest.com/pin/create/button/?url='+encodeURICompon
 function chip(a){if(a.status!=='published')return '<span class="pill dr">Draft</span>';if(a.live===true)return '<span class="pill live">Live</span>';if(a.live==='unknown')return '<span class="pill dep">Published</span>';return '<span class="pill dep">Deploying...</span>'}
 
 function renderBlog(){var rows=A.slice().sort(function(x,y){return (y.updated||'')>(x.updated||'')?1:-1}).map(function(a){var w=analyse(a).words,pub=a.status==='published';
-return '<div class="glass p-5 rounded-2xl"><div class="flex flex-wrap items-start justify-between gap-3"><div><h3 class="serif text-2xl">'+esc(a.title||'Untitled')+'</h3><p class="muted text-sm">/'+esc(a.slug)+' &middot; '+w+' words &middot; '+chip(a)+'</p></div><div class="flex flex-wrap gap-2"><button class="btn btn-ghost" style="padding:.35rem 1rem" data-act="edit" data-id="'+a.id+'">Edit</button><button class="btn btn-gold" style="padding:.35rem 1rem" data-act="publish" data-id="'+a.id+'"'+(busy?' disabled':'')+'>'+(pub?'Update on site':'Publish to site')+'</button><button class="btn btn-ghost" style="padding:.35rem 1rem" data-act="pin" data-id="'+a.id+'"'+(pub?'':' disabled')+'>Pinterest</button>'+(pub?'':'<button class="btn btn-ghost" style="padding:.35rem 1rem" data-act="del" data-id="'+a.id+'">Delete</button>')+'</div></div></div>'}).join('');
-$('#app').innerHTML='<div class="flex flex-wrap items-center justify-between gap-3"><h1 class="text-4xl gt">Blog Manager</h1><button class="btn btn-gold" data-act="new">+ Add article</button></div><p class="muted mt-2">Write with Gemini AI, publish to your GitHub repository, and generate Pinterest pins.</p><div class="grid gap-4 mt-6">'+(rows||'<div class="glass p-8 text-center rounded-2xl"><h3 class="serif text-3xl gt">No articles yet</h3><p class="muted mt-2">Click <b>+ Add article</b> to write your first SEO guide.</p></div>')+'</div>'+'<div class="glass p-5 rounded-2xl mt-6"><h3 class="serif text-2xl">Publish Activity</h3><div id="log" class="muted mt-2">'+esc(LOG)+'</div></div>'}
+return '<div class="glass p-5 rounded-2xl"><div class="flex flex-wrap items-start justify-between gap-3"><div><h3 class="serif text-2xl">'+esc(a.title||'Untitled')+'</h3><p class="muted text-sm">/'+esc(a.slug)+' &middot; '+w+' words &middot; '+chip(a)+'</p></div><div class="flex flex-wrap gap-2"><button class="btn btn-ghost" style="padding:.35rem 1rem" data-act="edit" data-id="'+a.id+'">Edit</button><button class="btn btn-gold" style="padding:.35rem 1rem" data-act="publish" data-id="'+a.id+'"'+(busy?' disabled':'')+'>'+(pub?'Update on site':'Publish to site')+'</button>'+(pub?'<a class="btn btn-ghost" style="padding:.35rem 1rem" href="'+escA(pinUrl(a).href)+'" target="_blank" rel="noopener noreferrer">Pinterest</a>':'<button class="btn btn-ghost" style="padding:.35rem 1rem" disabled>Pinterest</button>')+(pub?'':'<button class="btn btn-ghost" style="padding:.35rem 1rem" data-act="del" data-id="'+a.id+'">Delete</button>')+'</div></div></div>'}).join('');
+$('#app').innerHTML='<div class="flex flex-wrap items-center justify-between gap-3"><h1 class="text-4xl gt">Blog Manager</h1><button class="btn btn-gold" data-act="new">+ Add article</button></div><p class="muted mt-2">Write with Gemini AI, publish to your GitHub repository, and generate Pinterest pins.</p>'+(blogMsg?'<div class="mt-4 p-3 rounded-2xl text-xs '+(blogErr?'bg-red-500/15 text-red-400 border border-red-400/30':'bg-emerald-500/15 text-emerald-400 border border-emerald-400/30')+'">'+esc(blogMsg)+'</div>':'')+'<div class="grid gap-4 mt-6">'+(rows||'<div class="glass p-8 text-center rounded-2xl"><h3 class="serif text-3xl gt">No articles yet</h3><p class="muted mt-2">Click <b>+ Add article</b> to write your first SEO guide.</p></div>')+'</div>'+'<div class="glass p-5 rounded-2xl mt-6"><h3 class="serif text-2xl">Publish Activity</h3><div id="log" class="muted mt-2">'+esc(LOG)+'</div></div>'}
 
 var LOG='';var _log=log;log=function(m){LOG+=m+'\n';_log(m)};
 
@@ -402,14 +637,15 @@ x.fillStyle='rgba(251,245,242,.85)';x.fillRect(0,0,1000,450);x.fillStyle='#3b1a2
 var lines=[];headline.split(' ').reduce(function(cur,w){var t=(cur+' '+w).trim();if(x.measureText(t).width>840){lines.push(cur);return w}return t},'');lines.push(headline.split(' ').pop());
 lines.slice(0,3).forEach(function(l,i){x.fillText(l,500,150+i*75)});x.fillStyle='#8a4b57';x.font='32px '+F;x.fillText('McGee Jewelry',500,1430);return c})}
 
+function pinMsg(m,bad){var e=$('#pin_msg');if(e){e.textContent=m;e.style.color=bad?'#b3262e':''}}
 function renderPin(){var el=$('#pin_prev');if(!el)return;if(PIN.raw)composePin(PIN.raw,$('#f_pinText').value||'Jewelry Guide').then(function(c){el.innerHTML='<img src="'+c.toDataURL('image/jpeg',0.8)+'" style="max-width:14rem;border-radius:1rem;margin-top:.8rem">'})}
-function genPin(){var t=($('#f_title').value||'').trim();if(!t)return;aiBusy=true;
+function genPin(){var t=($('#f_title').value||'').trim();if(!t){pinMsg('Enter a title first.',true);return}aiBusy=true;pinMsg('Generating 2:3 Pinterest pin...');
 gemImg('Tall 2:3 editorial still life of fine jewelry related to "'+t+'", calm ivory background, empty space on top, no text.','2:3')
 .then(function(r){return loadImg('data:'+r.mime+';base64,'+r.data)}).then(function(img){return crop(img,1000,1500).toDataURL('image/jpeg',0.86)})
-.then(function(m){PIN.raw=m;renderPin();live()},function(e){alert(e.message)}).then(function(){aiBusy=false})}
+.then(function(m){PIN.raw=m;renderPin();live();pinMsg('Pin ready!')},function(e){pinMsg(e.message,true)}).then(function(){aiBusy=false})}
 
 function pinPanel(a){return '<div class="glass p-5 mt-5 rounded-2xl"><h3 class="serif text-2xl">Pinterest Pin (2:3)</h3><label class="fld"><span>Pin headline text</span><input id="f_pinText" value="'+escA(a.pinText||a.title||'')+'"></label>'
-+'<div class="flex gap-2 mt-3"><button class="btn btn-gold" data-act="genpin">Generate AI Pin</button><button class="btn btn-ghost" data-act="rmpin">Remove</button></div><div id="pin_prev"></div></div>'}
++'<div class="flex gap-2 mt-3"><button class="btn btn-gold" data-act="genpin">Generate AI Pin</button><button class="btn btn-ghost" data-act="rmpin">Remove</button></div><p id="pin_msg" class="mt-2 text-xs"></p><div id="pin_prev"></div></div>'}
 
 function form(){var g=function(k){return $('#f_'+k)?$('#f_'+k).value.trim():''};return {title:g('title'),slug:g('slug'),description:g('description'),lead:g('lead'),category:g('category')||'Guides',short:g('short'),keywords:g('keywords'),hero:g('hero'),aff:g('aff'),pick:g('pick'),body:$('#f_body')?$('#f_body').value.replace(/\s+$/,''):'',imgAlt:g('imgAlt'),img:IMG.master,imgPub:IMG.pub,imgExt:IMG.ext,pinText:g('pinText'),pinRaw:PIN.raw,pinPub:PIN.pub}}
 function live(){var a=form(),r=analyse(a);if($('#dl'))$('#dl').textContent='('+a.description.length+')';if($('#ck'))$('#ck').innerHTML=(r.errs.length?r.errs.map(function(e){return '<li class="bad">&#10007; '+esc(e)+'</li>'}):['<li class="ok">&#10003; Ready to publish</li>']).join('')+'<li class="muted">'+r.words+' words, '+r.parsed.secs.length+' sections</li>'}
@@ -441,34 +677,72 @@ function render(){
   else if(view==='settings') renderSettings();
 }
 
-function act(k,id){
-  if(k==='view'){ view=id; render(); }
+async function act(k,id){
+  if(k==='view'){ subActionMsg=''; blogMsg=''; pendingDeleteId=null; view=id; render(); }
   else if(k==='new'){ editId=null; view='editor'; render(); }
   else if(k==='edit'){ editId=id; view='editor'; render(); }
-  else if(k==='del'){ if(confirm('Delete article?')){ A=A.filter(function(x){return x.id!==id}); save(); render(); } }
+  else if(k==='del'){ A=A.filter(function(x){return x.id!==id}); save(); render(); }
   else if(k==='savedraft'){ saveForm(); view='blog'; render(); }
   else if(k==='savepub'){ var b=saveForm(); view='blog'; render(); publish(b.id); }
   else if(k==='publish'){ publish(id); }
-  else if(k==='pin'){ var a=A.filter(function(x){return x.id===id})[0]; window.open(pinUrl(a).href,'_blank'); }
   else if(k==='suggest') suggest();
   else if(k==='generate') generate();
   else if(k==='genimg') genImage();
   else if(k==='rmimg'){ IMG.master=null; IMG.pub=false; renderImg(); live(); }
   else if(k==='genpin') genPin();
   else if(k==='rmpin'){ PIN.raw=null; PIN.pub=false; renderPin(); live(); }
-  else if(k==='newsub'){
-    var em = prompt('Enter customer email:');
-    if(em && em.includes('@')){
-      SUBS.unshift({ email: em.trim(), plan: 'pro', date: today(), status: 'active', amount: 6.00 });
-      save(); renderSubscribers();
+  else if(k==='refreshsubs'){ subActionMsg=''; pendingDeleteId=null; await loadSubscribers(true); }
+  else if(k==='setsubfilter'){ subFilter=id||'all'; renderSubscribers(); }
+  else if(k==='copysql'){
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(ADMIN_SQL_SETUP).then(function(){
+        var m = $('#sql-copy-msg');
+        if (m) { m.textContent = '✓ SQL copied! Paste and run it in Supabase → SQL Editor, then click Retry.'; m.style.color = '#10b981'; }
+      }, function(){
+        var m = $('#sql-copy-msg');
+        if (m) { m.textContent = 'Copy blocked by browser. Copy Section 13 from supabase/schema.sql.'; m.style.color = '#f59e0b'; }
+      });
     }
   }
   else if(k==='toggleplan'){
-    var s = SUBS[+id];
-    if(s){ s.plan = s.plan==='pro' ? 'free' : 'pro'; save(); renderSubscribers(); }
+    var target = SUBS.filter(function(x){ return x.user_id === id; })[0];
+    if(!target || !sb) return;
+    var nextPlan = target.plan === 'pro' ? 'free' : 'pro';
+    subActionMsg = 'Updating ' + target.email + '...';
+    subActionErr = false;
+    renderSubscribers();
+    var tRes = await sb.rpc('admin_set_user_plan', { target_user_id: target.user_id, new_plan: nextPlan });
+    if (tRes.error) {
+      subActionMsg = tRes.error.message;
+      subActionErr = true;
+      renderSubscribers();
+    } else {
+      subActionMsg = 'Updated ' + target.email + ' to ' + nextPlan.toUpperCase() + '.';
+      subActionErr = false;
+      await loadSubscribers(true);
+    }
   }
   else if(k==='delsub'){
-    if(confirm('Remove this subscriber?')){ SUBS.splice(+id,1); save(); renderSubscribers(); }
+    pendingDeleteId = id;
+    renderSubscribers();
+  }
+  else if(k==='canceldelete'){
+    pendingDeleteId = null;
+    renderSubscribers();
+  }
+  else if(k==='confirmdelete'){
+    if(!sb || !id) return;
+    var delRes = await sb.rpc('admin_delete_user', { target_user_id: id });
+    pendingDeleteId = null;
+    if (delRes.error) {
+      subActionMsg = delRes.error.message;
+      subActionErr = true;
+      renderSubscribers();
+    } else {
+      subActionMsg = 'Account deleted from Supabase.';
+      subActionErr = false;
+      await loadSubscribers(true);
+    }
   }
   else if(k==='savesettings'){
     S.owner=$('#s_owner').value.trim(); S.repo=$('#s_repo').value.trim(); S.branch=$('#s_branch').value.trim()||'main';
@@ -484,8 +758,12 @@ function act(k,id){
 }
 
 document.addEventListener('change',function(e){if(e.target&&e.target.name==='ttl')pickTitle(+e.target.value)});
-document.addEventListener('click',function(e){
-  if(e.target&&e.target.id==='admin-logout'){ if(sb)sb.auth.signOut(); location.reload(); return; }
+document.addEventListener('click',async function(e){
+  if(e.target&&e.target.id==='admin-logout'){
+    try{ if(sb) await sb.auth.signOut(); }catch(err){}
+    location.reload();
+    return;
+  }
   var b=e.target.closest('[data-act]');
   if(b&&!b.disabled)act(b.dataset.act,b.dataset.id);
 });
