@@ -35,7 +35,8 @@ export const BLOG_POSTS: BlogPost[] = [
     short: "Measure Ring Size at Home",
     read: "4 min read",
     date: "2026-10-26",
-    grad: "linear-gradient(135deg,#d98e32,#9a3b2e 60%,#5a1d2a)"
+    grad: "linear-gradient(135deg,#d98e32,#9a3b2e 60%,#5a1d2a)",
+    img: "/images/how-to-measure-ring-size-at-home/how-to-measure-ring-size-at-home-16x9.webp"
   },
   {
     url: "how-to-untangle-a-necklace",
@@ -45,7 +46,8 @@ export const BLOG_POSTS: BlogPost[] = [
     short: "Untangle Fine Gold Chains",
     read: "5 min read",
     date: "2026-10-26",
-    grad: "linear-gradient(135deg,#d98e32,#9a3b2e 60%,#5a1d2a)"
+    grad: "linear-gradient(135deg,#d98e32,#9a3b2e 60%,#5a1d2a)",
+    img: "/images/how-to-untangle-a-necklace/how-to-untangle-a-necklace-16x9.webp"
   },
   {
     url: "shop/necklaces/14k-yellow-gold-necklace-with-devil-emoji-symbol",
@@ -55,7 +57,8 @@ export const BLOG_POSTS: BlogPost[] = [
     short: "Devil emoji necklace",
     read: "5 min read",
     date: "2026-10-25",
-    grad: "linear-gradient(135deg,#f7e6b0,#e2b24f 55%,#7a4a2b)"
+    grad: "linear-gradient(135deg,#f7e6b0,#e2b24f 55%,#7a4a2b)",
+    hero: "devil"
   },
   {
     url: "how-to-clean-sterling-silver-at-home",
@@ -65,7 +68,8 @@ export const BLOG_POSTS: BlogPost[] = [
     short: "Clean Sterling Silver Guide",
     read: "5 min read",
     date: "2026-10-25",
-    grad: "linear-gradient(135deg,#f3e2b3,#e8b4b8 55%,#b76e79)"
+    grad: "linear-gradient(135deg,#f3e2b3,#e8b4b8 55%,#b76e79)",
+    hero: "chain"
   },
   {
     url: "why-does-gold-turn-skin-green",
@@ -75,7 +79,8 @@ export const BLOG_POSTS: BlogPost[] = [
     short: "Gold Turning Skin Green",
     read: "4 min read",
     date: "2026-10-25",
-    grad: "linear-gradient(135deg,#ffffff,#f3e2b3 45%,#b76e79)"
+    grad: "linear-gradient(135deg,#ffffff,#f3e2b3 45%,#b76e79)",
+    hero: "ringsPair"
   },
   {
     url: "product-category/rings",
@@ -85,7 +90,8 @@ export const BLOG_POSTS: BlogPost[] = [
     short: "Rings guide",
     read: "5 min read",
     date: "2026-10-24",
-    grad: "linear-gradient(135deg,#ffffff,#f3e2b3 45%,#b76e79)"
+    grad: "linear-gradient(135deg,#ffffff,#f3e2b3 45%,#b76e79)",
+    hero: "rings"
   },
   {
     url: "what-earrings-are-trending-now",
@@ -95,7 +101,8 @@ export const BLOG_POSTS: BlogPost[] = [
     short: "Earring trends",
     read: "5 min read",
     date: "2026-10-23",
-    grad: "linear-gradient(135deg,#f3e2b3,#e8b4b8 40%,#7b1e2b)"
+    grad: "linear-gradient(135deg,#f3e2b3,#e8b4b8 40%,#7b1e2b)",
+    hero: "earrings"
   },
   {
     url: "shop/rings/14k-white-and-rose-gold-doulbe-diamond-infinity-design-band-3-8-cttw",
@@ -105,7 +112,8 @@ export const BLOG_POSTS: BlogPost[] = [
     short: "Diamond infinity band",
     read: "5 min read",
     date: "2026-10-21",
-    grad: "linear-gradient(135deg,#ffffff,#c7ccd6 45%,#b76e79)"
+    grad: "linear-gradient(135deg,#ffffff,#c7ccd6 45%,#b76e79)",
+    hero: "infinity"
   },
   {
     url: "jewelry-to-wear-this-upcoming-fall",
@@ -115,7 +123,8 @@ export const BLOG_POSTS: BlogPost[] = [
     short: "Fall jewelry guide",
     read: "4 min read",
     date: "2026-10-20",
-    grad: "linear-gradient(135deg,#d98e32,#9a3b2e 60%,#5a1d2a)"
+    grad: "linear-gradient(135deg,#d98e32,#9a3b2e 60%,#5a1d2a)",
+    hero: "fallGems"
   },
   {
     url: "is-it-worth-buying-gold-plated-jewelry",
@@ -125,7 +134,8 @@ export const BLOG_POSTS: BlogPost[] = [
     short: "Gold-plated jewelry",
     read: "6 min read",
     date: "2026-10-19",
-    grad: "linear-gradient(135deg,#e8b4b8,#c9954f 70%,#7a4a2b)"
+    grad: "linear-gradient(135deg,#e8b4b8,#c9954f 70%,#7a4a2b)",
+    hero: "plated"
   },
   {
     url: "herringbone-chain-necklace-an-ultimate-guide",
@@ -135,7 +145,8 @@ export const BLOG_POSTS: BlogPost[] = [
     short: "Herringbone chain guide",
     read: "5 min read",
     date: "2026-10-18",
-    grad: "linear-gradient(135deg,#f3e2b3,#e8b4b8 55%,#b76e79)"
+    grad: "linear-gradient(135deg,#f3e2b3,#e8b4b8 55%,#b76e79)",
+    hero: "herringbone"
   }
 ];
 

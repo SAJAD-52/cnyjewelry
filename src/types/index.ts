@@ -34,6 +34,8 @@ export interface BlogPost {
   read: string;
   date: string;
   grad: string;
+  img?: string;
+  hero?: string;
 }
 
 export interface Subscriber {
