@@ -9,7 +9,7 @@ const WEAR_KEY = 'koo_wear_history';
 const VAULT_KEY = 'koo_jewelry_vault';
 
 export const PlannerPage: React.FC = () => {
-  const { isPro, openProModal, formatPrice, markFeatureUsed, navigate } = useApp();
+  const { isPro, openProModal, formatPrice, markFeatureUsed, navigate, t } = useApp();
 
   useEffect(() => {
     markFeatureUsed('planner');
@@ -44,6 +44,9 @@ export const PlannerPage: React.FC = () => {
   const [customPiece, setCustomPiece] = useState('');
   const [vibe, setVibe] = useState('Casual Everyday');
   const [wearMsg, setWearMsg] = useState('');
+  const [editingDay, setEditingDay] = useState<string | null>(null);
+  const [modalInput, setModalInput] = useState('');
+  const [confirmClearLog, setConfirmClearLog] = useState(false);
 
   const savePlan = (newPlan: WeeklyPlan) => {
     setPlan(newPlan);
@@ -60,11 +63,48 @@ export const PlannerPage: React.FC = () => {
       openProModal(false);
       return;
     }
-    const current = plan[day] || '';
-    const input = window.prompt(`Assign jewelry for ${day}:`, current);
-    if (input !== null) {
-      savePlan({ ...plan, [day]: input.trim() });
-    }
+    setModalInput(plan[day] || '');
+    setEditingDay(day);
+  };
+
+  const handleSaveModalPlan = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingDay) return;
+    savePlan({ ...plan, [editingDay]: modalInput.trim() });
+    setEditingDay(null);
+  };
+
+  const handleDownloadSundayIcs = () => {
+    const now = new Date();
+    const diff = (7 - now.getDay()) % 7 || 7;
+    const sun = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diff, 10, 0, 0);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const stamp =
+      sun.getFullYear() + pad(sun.getMonth() + 1) + pad(sun.getDate()) + 'T' + pad(sun.getHours()) + '0000';
+    const ics = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//McGee Jewelry//Planner//EN',
+      'BEGIN:VEVENT',
+      `UID:mcgee-sunday-plan-${Date.now()}@mcgeejewelry.com`,
+      `DTSTAMP:${stamp}Z`,
+      `DTSTART:${stamp}`,
+      'RRULE:FREQ=WEEKLY;BYDAY=SU',
+      'SUMMARY:McGee Jewelry Weekly Lookbook Reset',
+      'DESCRIPTION:Clean jewelry and set Monday-Sunday outfits at https://mcgeejewelry.com/planner',
+      'DURATION:PT15M',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'mcgee-weekly-lookbook-reset.ics';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   };
 
   const handleLogWear = (e: React.FormEvent) => {
@@ -98,12 +138,6 @@ export const PlannerPage: React.FC = () => {
     setSelectedVaultIndex('');
     setWearMsg('Wear logged successfully!');
     setTimeout(() => setWearMsg(''), 3000);
-  };
-
-  const handleClearHistory = () => {
-    if (window.confirm('Clear all 30-day wear history?')) {
-      saveWears([]);
-    }
   };
 
   // Stats calculation
@@ -154,14 +188,14 @@ export const PlannerPage: React.FC = () => {
       {/* HEADER */}
       <div className="max-w-3xl mb-10">
         <span className="chip text-xs mb-3 inline-block">Styling & Capsule Studio</span>
-        <h1 className="text-4xl sm:text-5xl md:text-6xl gt">Jewelry Lookbook & Wear Planner</h1>
+        <h1 className="text-4xl sm:text-5xl md:text-6xl gt">{t('planner.title', 'Jewelry Lookbook & Wear Planner')}</h1>
         <p className="muted text-base sm:text-lg mt-3">
           Organize what jewelry you wear every day, track your 30-day wearing history, and discover your true Cost-Per-Wear.
         </p>
       </div>
 
       {/* STATS SUMMARY */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 tabular-nums">
         <div className="glass p-5 rounded-2xl">
           <span className="muted text-xs uppercase tracking-wider">Days Planned</span>
           <p className="serif text-3xl gt mt-1">{plannedCount} / 7</p>
@@ -189,10 +223,13 @@ export const PlannerPage: React.FC = () => {
             <h2 className="serif text-3xl gt">This Week's Styling Plan</h2>
             <p className="muted text-xs mt-0.5">Assign your rings, necklaces, and earrings to your outfits this week.</p>
           </div>
-          <div className="flex gap-2 no-print">
+          <div className="flex flex-wrap gap-2 no-print">
             <span className="chip text-xs">
               {isPro ? '⭐ Pro (Unlimited Days)' : 'Free Tier (2 days max)'}
             </span>
+            <button onClick={handleDownloadSundayIcs} className="btn btn-ghost text-xs">
+              📅 Sunday Reset (.ics)
+            </button>
             <button onClick={() => window.print()} className="btn btn-ghost text-xs">
               🖨️ Print Week
             </button>
@@ -306,10 +343,20 @@ export const PlannerPage: React.FC = () => {
         <div className="lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <h3 className="serif text-3xl gt">30-Day Wear & Cost-Per-Wear (CPW)</h3>
-            {wears.length > 0 && (
-              <button onClick={handleClearHistory} className="btn btn-ghost text-xs text-red-400 no-print">
+            {wears.length > 0 && !confirmClearLog && (
+              <button onClick={() => setConfirmClearLog(true)} className="btn btn-ghost text-xs text-red-400 no-print">
                 Clear Log
               </button>
+            )}
+            {wears.length > 0 && confirmClearLog && (
+              <span className="inline-flex gap-2 no-print">
+                <button onClick={() => { saveWears([]); setConfirmClearLog(false); }} className="btn btn-ghost text-xs text-red-400">
+                  Confirm Clear
+                </button>
+                <button onClick={() => setConfirmClearLog(false)} className="btn btn-ghost text-xs">
+                  Cancel
+                </button>
+              </span>
             )}
           </div>
 
@@ -361,6 +408,51 @@ export const PlannerPage: React.FC = () => {
           )}
         </div>
       </section>
+
+      {editingDay && (
+        <div
+          className="fixed inset-0 z-[100000] flex items-center justify-center p-4"
+          style={{ background: 'rgba(18,10,14,0.82)', backdropFilter: 'blur(12px)' }}
+          onClick={(e) => { if (e.target === e.currentTarget) setEditingDay(null); }}
+        >
+          <form onSubmit={handleSaveModalPlan} className="glass glow p-6 sm:p-7 rounded-3xl max-w-md w-full space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="serif text-2xl gt">Assign Jewelry for {editingDay}</h3>
+              <button type="button" onClick={() => setEditingDay(null)} className="muted hover:text-white bg-transparent border-0 cursor-pointer">✕</button>
+            </div>
+            {vaultItems.length > 0 && (
+              <div>
+                <span className="text-xs muted block mb-1.5">Tap to add from your Jewelry Box:</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {vaultItems.map((it) => (
+                    <button
+                      key={it.id}
+                      type="button"
+                      onClick={() => setModalInput((prev) => (prev ? `${prev} + ${it.name}` : it.name))}
+                      className="chip text-xs py-1 px-2.5 cursor-pointer"
+                    >
+                      + {it.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            <label className="fld">
+              <span>Pieces / Look Notes</span>
+              <input
+                autoFocus
+                value={modalInput}
+                onChange={(e) => setModalInput(e.target.value)}
+                placeholder="e.g. 14K Herringbone + Pearl Huggies"
+              />
+            </label>
+            <div className="flex justify-end gap-2 pt-2">
+              <button type="button" onClick={() => setEditingDay(null)} className="btn btn-ghost text-xs py-2 px-4">Cancel</button>
+              <button type="submit" className="btn btn-gold text-xs py-2 px-5">Save Look</button>
+            </div>
+          </form>
+        </div>
+      )}
 
       <AdPromoBanner />
     </main>

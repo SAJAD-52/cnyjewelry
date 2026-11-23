@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext';
 import { AdPromoBanner } from '../components/shared/AdPromoBanner';
 
 export const HomePage: React.FC = () => {
-  const { navigate, openProModal } = useApp();
+  const { navigate, openProModal, formatPrice, t } = useApp();
 
   // Widget 1: Interactive Ring Sizer
   const [usSize, setUsSize] = useState<number>(7);
@@ -119,49 +119,52 @@ export const HomePage: React.FC = () => {
       {/* HERO SECTION */}
       <section className="grid md:grid-cols-2 gap-8 md:gap-12 items-center pt-2 sm:pt-6 md:pt-12 pb-14 md:pb-20 relative">
         <div className="relative z-10 text-left">
-          <div
+          <p
             className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] sm:text-xs mb-4 glass border border-rose-300/30"
             style={{ color: '#b76e79' }}
           >
-            <span className="w-2 h-2 rounded-full bg-rose-400 animate-ping" /> ✦ All-in-One Jewelry Box Suite &middot; 13 Studios
-          </div>
+            ✦ {t('hero.eyebrow', 'Daily Jewelry Ritual · Live Gold Vault · 14 Studios')}
+          </p>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal hero-title-shimmer leading-[1.08] tracking-tight">
-            All the tools you need for your jewelry box, in one studio.
+            {t('hero.title', 'Your daily jewelry ritual & value vault, in one studio.')}
           </h1>
 
           <p className="muted text-base sm:text-lg mt-4 sm:mt-5 max-w-lg leading-relaxed">
-            Catalog your fine collection, estimate 10k&ndash;24k gold melt value, size rings and design bead patterns, match flattering metals, and curate your daily looks.
+            {t('hero.sub', 'Pick your morning jewelry stack in 10 seconds, protect pieces from tarnish, track live 10k–24k gold melt value, and share your exact size passport.')}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 mt-7 sm:mt-8">
-            <a className="btn btn-gold text-center py-3.5 sm:py-3 shadow-lg text-sm sm:text-base font-medium justify-center" href="#suite">
-              Explore Free Studios &rarr;
-            </a>
+            <button
+              onClick={() => navigate('ritual')}
+              className="btn btn-gold text-center py-3.5 sm:py-3 shadow-lg text-sm sm:text-base font-medium justify-center cursor-pointer"
+            >
+              {t('hero.cta_ritual', 'Start Today’s 10s Ritual →')}
+            </button>
             <button
               onClick={() => navigate('vault')}
               className="btn btn-ghost text-center py-3.5 sm:py-3 text-sm justify-center cursor-pointer"
             >
-              👑 My Jewelry Box
+              👑 {t('hero.cta_vault', 'Open My Jewelry Box')}
             </button>
             <button
-              onClick={() => navigate('planner')}
+              onClick={() => openProModal(false)}
               className="btn btn-ghost text-center py-3.5 sm:py-3 text-sm justify-center cursor-pointer"
             >
-              🗓️ Look Planner
+              ✨ Pro ({formatPrice(0.20)}/day)
             </button>
           </div>
 
           {/* TRUST TICKER */}
           <div className="grid grid-cols-3 gap-2 mt-8 pt-6 border-t border-rose-200/15 text-[11px] sm:text-xs muted text-center sm:text-left">
             <div>
-              <b className="gt text-base sm:text-lg block serif leading-tight">13 Studios</b> Zero guesswork
+              <b className="gt text-base sm:text-lg block serif leading-tight">14 Studios</b> Daily · Weekly · Monthly
             </div>
             <div>
-              <b className="gt text-base sm:text-lg block serif leading-tight">100% Private</b> On-device vault
+              <b className="gt text-base sm:text-lg block serif leading-tight">Cloud Synced</b> Multi-device vault
             </div>
             <div>
-              <b className="gt text-base sm:text-lg block serif leading-tight">Live Gold</b> Spot scrap rates
+              <b className="gt text-base sm:text-lg block serif leading-tight">Live Gold</b> Local currency rates
             </div>
           </div>
         </div>
@@ -207,12 +210,33 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* FLAGSHIP SPOTLIGHT (VAULT & PLANNER) */}
+      {/* FLAGSHIP SPOTLIGHT (RITUAL, VAULT & PLANNER) */}
       <section className="mb-14 sm:mb-18">
-        <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
+        <div className="grid md:grid-cols-3 gap-4 sm:gap-6">
+          <button
+            onClick={() => navigate('ritual')}
+            className="glass glow p-6 sm:p-7 rounded-2xl sm:rounded-3xl block text-left no-underline text-inherit tool-card relative cursor-pointer"
+            style={{ border: '1px solid rgba(243,226,179,0.28)' }}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-3xl">✨</span>
+              <span className="chip text-[11px] sm:text-xs" style={{ background: 'rgba(243,226,179,0.2)', color: '#b76e79' }}>
+                DAILY HABIT
+              </span>
+            </div>
+            <h2 className="serif text-2xl sm:text-3xl gt mt-3">Daily Ritual &amp; Size Passport</h2>
+            <p className="muted mt-2 text-xs sm:text-sm leading-relaxed">
+              10-second morning look &amp; tarnish safety check-in, Sunday cleaning radar, and 1-tap gift card for your partner.
+            </p>
+            <div className="mt-5 flex items-center justify-between pt-3.5 border-t border-rose-200/10 text-xs">
+              <span className="muted text-[11px] sm:text-xs">10s Check-In &amp; Streak</span>
+              <b className="gt text-xs sm:text-sm font-semibold">Open Ritual &rarr;</b>
+            </div>
+          </button>
+
           <button
             onClick={() => navigate('vault')}
-            className="glass glow p-6 sm:p-7 md:p-8 rounded-2xl sm:rounded-3xl block text-left no-underline text-inherit tool-card relative cursor-pointer"
+            className="glass glow p-6 sm:p-7 rounded-2xl sm:rounded-3xl block text-left no-underline text-inherit tool-card relative cursor-pointer"
             style={{ border: '1px solid rgba(243,226,179,0.28)' }}
           >
             <div className="flex items-center justify-between">
@@ -221,9 +245,9 @@ export const HomePage: React.FC = () => {
                 PORTFOLIO STUDIO
               </span>
             </div>
-            <h2 className="serif text-2xl sm:text-3xl md:text-4xl gt mt-3">My Jewelry Box & Value Vault</h2>
+            <h2 className="serif text-2xl sm:text-3xl gt mt-3">My Jewelry Box & Value Vault</h2>
             <p className="muted mt-2 text-xs sm:text-sm leading-relaxed">
-              Catalog your rings, chains and bracelets. Calculates pure gold grams, real-time scrap melt values, and creates printable insurance records.
+              Catalog rings, chains and bracelets. Calculates pure gold grams, real-time melt values, and insurance records.
             </p>
             <div className="mt-5 flex items-center justify-between pt-3.5 border-t border-rose-200/10 text-xs">
               <span className="muted text-[11px] sm:text-xs">10k&ndash;24k Melt Engine</span>
@@ -233,7 +257,7 @@ export const HomePage: React.FC = () => {
 
           <button
             onClick={() => navigate('planner')}
-            className="glass glow p-6 sm:p-7 md:p-8 rounded-2xl sm:rounded-3xl block text-left no-underline text-inherit tool-card relative cursor-pointer"
+            className="glass glow p-6 sm:p-7 rounded-2xl sm:rounded-3xl block text-left no-underline text-inherit tool-card relative cursor-pointer"
             style={{ border: '1px solid rgba(243,226,179,0.28)' }}
           >
             <div className="flex items-center justify-between">
@@ -242,9 +266,9 @@ export const HomePage: React.FC = () => {
                 STYLING STUDIO
               </span>
             </div>
-            <h2 className="serif text-2xl sm:text-3xl md:text-4xl gt mt-3">Jewelry Lookbook & Planner</h2>
+            <h2 className="serif text-2xl sm:text-3xl gt mt-3">Jewelry Lookbook & Planner</h2>
             <p className="muted mt-2 text-xs sm:text-sm leading-relaxed">
-              Plan jewelry outfits from Monday to Sunday. Log your 30-day wear diary, calculate your true Cost-Per-Wear, and get reminders for forgotten pieces.
+              Plan jewelry outfits Monday to Sunday, log your 30-day wear diary, and uncover your true Cost-Per-Wear.
             </p>
             <div className="mt-5 flex items-center justify-between pt-3.5 border-t border-rose-200/10 text-xs">
               <span className="muted text-[11px] sm:text-xs">7-Day Planner & Diary</span>
@@ -254,7 +278,7 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* ALL 13 FEATURES IN ONE PLACE */}
+      {/* ALL 14 FEATURES IN ONE PLACE */}
       <section id="suite" className="mt-12 sm:mt-16" aria-labelledby="suite-heading">
         <div className="flex flex-wrap items-end justify-between mb-6 sm:mb-8 gap-2">
           <div>
@@ -263,10 +287,10 @@ export const HomePage: React.FC = () => {
               The McGee Jewelry Studio
             </h2>
             <p className="muted text-xs sm:text-sm mt-1">
-              Thirteen specialized interactive tools and guides built exclusively for jewelry.
+              Fourteen specialized interactive tools and rituals built exclusively for jewelry lovers.
             </p>
           </div>
-          <span className="chip text-[11px] sm:text-xs">13 Active Tools</span>
+          <span className="chip text-[11px] sm:text-xs">14 Active Tools</span>
         </div>
 
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-5">

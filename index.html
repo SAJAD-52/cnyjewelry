@@ -123,33 +123,33 @@
 <!-- HERO SECTION -->
 <section class="grid lg:grid-cols-12 gap-8 lg:gap-10 items-center pt-2 sm:pt-4 md:pt-8 pb-14 md:pb-20 relative">
 <div class="lg:col-span-6 relative z-10 text-left">
-<p class="text-xs sm:text-sm tracking-wide muted mb-3">
-All-in-One Jewelry Box Suite &middot; 13 Interactive Studios &middot; Cloud Vault
+<p class="text-xs sm:text-sm tracking-wide muted mb-3" data-i18n="hero.eyebrow">
+Daily Jewelry Ritual &middot; Live Gold Vault &middot; 14 Studios
 </p>
 
-<h1 class="hero-headline font-normal hero-title-shimmer tracking-tight">
-All the tools you need for your jewelry box, in one studio.
+<h1 class="hero-headline font-normal hero-title-shimmer tracking-tight" data-i18n="hero.title">
+Your daily jewelry ritual &amp; value vault, in one studio.
 </h1>
 
-<p class="muted text-base sm:text-lg mt-4 sm:mt-5 max-w-lg leading-relaxed">
-Catalog your fine collection, estimate 10k&ndash;24k gold melt value, size rings and design bead patterns, match flattering metals, and curate your daily looks.
+<p class="muted text-base sm:text-lg mt-4 sm:mt-5 max-w-lg leading-relaxed" data-i18n="hero.sub">
+Pick your morning jewelry stack in 10 seconds, protect pieces from tarnish, track live 10k&ndash;24k gold melt value, and share your exact size passport.
 </p>
 
 <div class="flex flex-wrap items-center gap-3 mt-7">
-<button type="button" id="hero-cta-pro" class="btn btn-gold py-3.5 px-6 text-sm sm:text-base font-medium shadow-lg">
-Unlock Full Studio &mdash; <span data-pro-price>$6</span>/mo &rarr;
-</button>
-<a class="btn btn-ghost py-3.5 px-5 text-sm" href="vault.html">
+<a class="btn btn-gold py-3.5 px-6 text-sm sm:text-base font-medium shadow-lg" href="ritual.html" data-i18n="hero.cta_ritual">
+Start Today&rsquo;s 10s Ritual &rarr;
+</a>
+<a class="btn btn-ghost py-3.5 px-5 text-sm" href="vault.html" data-i18n="hero.cta_vault">
 Open My Jewelry Box
 </a>
-<a class="text-xs sm:text-sm muted hover:underline px-2 py-2 whitespace-nowrap" href="#suite">
-Try 13 Free Previews &darr;
+<a class="text-xs sm:text-sm muted hover:underline px-2 py-2 whitespace-nowrap" href="#suite" data-i18n="hero.cta_explore">
+Explore All 14 Studios &darr;
 </a>
 </div>
 
 <div class="grid grid-cols-3 gap-4 mt-8 pt-6 border-t border-rose-200/20 text-xs muted tabular-nums">
 <div>
-<b class="gt text-xl sm:text-2xl block serif leading-tight" data-countup="13">13</b>
+<b class="gt text-xl sm:text-2xl block serif leading-tight" data-countup="14">14</b>
 Interactive studios
 </div>
 <div>
@@ -157,7 +157,7 @@ Interactive studios
 Live melt engine
 </div>
 <div>
-<b class="gt text-xl sm:text-2xl block serif leading-tight">$0.20/day</b>
+<b class="gt text-xl sm:text-2xl block serif leading-tight"><span data-daily-price>$0.20</span>/day</b>
 All tools unlocked
 </div>
 </div>
@@ -188,6 +188,43 @@ All tools unlocked
 </div>
 </div>
 </div>
+</div>
+</section>
+
+<!-- DAILY · WEEKLY · MONTHLY HABIT LOOP -->
+<section class="mb-14 sm:mb-16 reveal" aria-labelledby="habit-heading">
+<div class="flex flex-wrap items-end justify-between gap-3 mb-6">
+<div>
+<p class="text-xs muted uppercase tracking-wider mb-1">High-Utility Routine</p>
+<h2 id="habit-heading" class="serif text-3xl sm:text-4xl gt" data-i18n="habit.title">Built for every day, every week &amp; every month</h2>
+</div>
+<button type="button" id="hero-cta-pro" class="btn btn-gold text-xs py-2.5 px-5 shrink-0">Unlock Unlimited Pro &mdash; <span data-pro-price>$6</span>/mo</button>
+</div>
+<div class="grid md:grid-cols-3 gap-5">
+<a href="ritual.html" class="glass glow p-6 rounded-3xl block no-underline text-inherit tool-card flex flex-col justify-between">
+<div>
+<span class="text-[11px] uppercase tracking-wider gt font-medium" data-i18n="habit.d_tag">EVERY MORNING &middot; 10 SECONDS</span>
+<h3 class="serif text-2xl gt mt-2" data-i18n="habit.d_title">Morning Look &amp; Care Check</h3>
+<p class="muted text-xs sm:text-sm mt-2 leading-relaxed" data-i18n="habit.d_desc">Pick your neckline and occasion to get instant chain lengths, tarnish safety reminders, and 1-tap wear streak logging.</p>
+</div>
+<div class="mt-5 pt-3 border-t border-rose-200/15 flex items-center justify-between text-xs"><span class="muted">Streak + Care Rules</span><b class="gt font-medium">Open Ritual &rarr;</b></div>
+</a>
+<a href="planner.html" class="glass glow p-6 rounded-3xl block no-underline text-inherit tool-card flex flex-col justify-between">
+<div>
+<span class="text-[11px] uppercase tracking-wider gt font-medium" data-i18n="habit.w_tag">EVERY SUNDAY &middot; 2 MINUTES</span>
+<h3 class="serif text-2xl gt mt-2" data-i18n="habit.w_title">7-Day Lookbook &amp; Cleaning Radar</h3>
+<p class="muted text-xs sm:text-sm mt-2 leading-relaxed" data-i18n="habit.w_desc">Plan Monday&ndash;Sunday looks without typing, spot pieces due for cleaning, and add a Sunday care alert to your phone calendar.</p>
+</div>
+<div class="mt-5 pt-3 border-t border-rose-200/15 flex items-center justify-between text-xs"><span class="muted">CPW + .ics Calendar</span><b class="gt font-medium">Open Planner &rarr;</b></div>
+</a>
+<a href="ritual.html#passport" class="glass glow p-6 rounded-3xl block no-underline text-inherit tool-card flex flex-col justify-between">
+<div>
+<span class="text-[11px] uppercase tracking-wider gt font-medium" data-i18n="habit.m_tag">EVERY MONTH &middot; ASSET &amp; GIFTS</span>
+<h3 class="serif text-2xl gt mt-2" data-i18n="habit.m_title">Gold Melt Vault &amp; Gift Passport</h3>
+<p class="muted text-xs sm:text-sm mt-2 leading-relaxed" data-i18n="habit.m_desc">Watch your collection&rsquo;s bullion value in your local currency, print insurance sheets, and copy your ring &amp; wrist size card for your partner.</p>
+</div>
+<div class="mt-5 pt-3 border-t border-rose-200/15 flex items-center justify-between text-xs"><span class="muted">Partner Share Card</span><b class="gt font-medium">Open Passport &rarr;</b></div>
+</a>
 </div>
 </section>
 
@@ -234,28 +271,28 @@ All tools unlocked
 </div>
 </section>
 
-<!-- ALL 13 FEATURES IN AN EDITORIAL MOTION GALLERY -->
+<!-- ALL 14 FEATURES IN AN EDITORIAL MOTION GALLERY -->
 <section id="suite" class="mt-12 sm:mt-16 reveal" aria-labelledby="th">
 <div class="flex flex-wrap items-end justify-between mb-6 gap-4">
 <div>
 <p class="text-xs muted mb-1">Complete Atelier Collection</p>
-<h2 id="th" class="text-3xl sm:text-4xl md:text-5xl gt">13 Specialized Jewelry Studios</h2>
+<h2 id="th" class="text-3xl sm:text-4xl md:text-5xl gt">14 Specialized Jewelry Studios</h2>
 <p class="muted text-xs sm:text-sm mt-1">Explore every fine-jewelry studio below, or unlock unlimited access across all devices.</p>
 </div>
 <button type="button" id="suite-pro-btn" class="btn btn-ghost text-xs py-2 px-4 shrink-0">
-Unlock All 13 (<span data-pro-price>$6</span>/mo) &rarr;
+Unlock All 14 (<span data-pro-price>$6</span>/mo) &rarr;
 </button>
 </div>
 
 <!-- Segmented Filter Controls -->
 <div class="flex flex-wrap items-center justify-between gap-3 mb-7">
 <div id="studio-filters" class="inline-flex flex-wrap gap-1.5 p-1 rounded-2xl glass" role="tablist" aria-label="Filter jewelry studios">
-<button type="button" class="chip text-xs py-2 px-4" role="tab" aria-selected="true" data-cat="all">All 13 Studios</button>
+<button type="button" class="chip text-xs py-2 px-4" role="tab" aria-selected="true" data-cat="all">All 14 Studios</button>
 <button type="button" class="chip text-xs py-2 px-4" role="tab" aria-selected="false" data-cat="vault">Vault &amp; Valuation</button>
 <button type="button" class="chip text-xs py-2 px-4" role="tab" aria-selected="false" data-cat="fit">Fit &amp; Precision</button>
 <button type="button" class="chip text-xs py-2 px-4" role="tab" aria-selected="false" data-cat="styling">Styling &amp; Gifting</button>
 </div>
-<p id="studio-count" class="text-xs muted tabular-nums">Showing 13 studios</p>
+<p id="studio-count" class="text-xs muted tabular-nums">Showing 14 studios</p>
 </div>
 
 <div id="studio-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6"></div>
@@ -384,7 +421,7 @@ Go Pro &mdash; <span data-pro-price>$6</span>/mo &rarr;
 <p class="text-xs muted mb-2">McGee Pro Atelier &middot; Unforgeable Cloud Membership</p>
 <h2 class="text-3xl sm:text-4xl md:text-5xl gt" style="text-wrap:balance">Protect your collection &amp; unlock every studio</h2>
 <p class="muted text-sm sm:text-base mt-3 max-w-xl leading-relaxed">
-One private appraisal at a jeweler costs $75&ndash;$150. With McGee Pro, catalog your entire jewelry collection with compressed cloud photos, track live 10k&ndash;24k melt value, and unlock all 13 tools for <b class="gt"><span data-pro-price>$6</span>/month</b>.
+One private appraisal at a jeweler costs $75&ndash;$150. With McGee Pro, catalog your entire jewelry collection with compressed cloud photos, track live 10k&ndash;24k melt value, and unlock all 14 tools for <b class="gt"><span data-pro-price>$6</span>/month</b> (<span data-daily-price>$0.20/day</span>).
 </p>
 
 <div class="grid sm:grid-cols-2 gap-4 mt-6">
@@ -404,7 +441,7 @@ One private appraisal at a jeweler costs $75&ndash;$150. With McGee Pro, catalog
 <li>&middot; Unlimited pieces &amp; cloud photo backup</li>
 <li>&middot; Printable insurance valuation sheets</li>
 <li>&middot; Full 7-day planner &amp; 30-day CPW diary</li>
-<li>&middot; Unlimited access to all 13 studios</li>
+<li>&middot; Unlimited access to all 14 studios</li>
 </ul>
 </div>
 </div>
@@ -460,8 +497,8 @@ Upgrade to Pro (<span data-pro-price>$6</span>/mo) &rarr;
 <div id="sticky-pro-bar" class="sticky-pro-bar no-print" aria-hidden="true">
 <div class="glass px-4 py-2.5 rounded-2xl flex items-center justify-between gap-3 shadow-2xl" style="border:1px solid rgba(243,226,179,0.38)">
 <div class="min-w-0">
-<p class="serif text-base sm:text-lg gt leading-tight truncate">Unlock All 13 Studios &amp; Unlimited Vault</p>
-<p class="muted text-[11px] truncate">Only <span data-pro-price>$6</span>/mo &middot; Cancel anytime</p>
+<p class="serif text-base sm:text-lg gt leading-tight truncate">Unlock All 14 Studios &amp; Unlimited Vault</p>
+<p class="muted text-[11px] truncate">Only <span data-pro-price>$6</span>/mo (<span data-daily-price>$0.20/day</span>) &middot; Cancel anytime</p>
 </div>
 <div class="flex items-center gap-2 shrink-0">
 <button type="button" id="sticky-cta-btn" class="btn btn-gold text-xs py-2 px-4">Go Pro &rarr;</button>
@@ -478,10 +515,15 @@ Upgrade to Pro (<span data-pro-price>$6</span>/mo) &rarr;
 
 <script>
 /* ---------- Localized Pro Price Sync ---------- */
-if (window.formatPrice) {
+function syncIndexPrices() {
+  if (!window.formatPrice) return;
   var lp = window.formatPrice(6);
+  var dp = window.formatPrice(0.20);
   document.querySelectorAll('[data-pro-price]').forEach(function(el){ el.textContent = lp; });
+  document.querySelectorAll('[data-daily-price]').forEach(function(el){ el.textContent = dp + '/day'; });
 }
+syncIndexPrices();
+window.addEventListener('mcgee:config-ready', syncIndexPrices);
 
 /* ---------- Wire Pro Checkout CTAs ---------- */
 ['hero-cta-pro', 'suite-pro-btn', 'suite-bottom-cta', 'offer-cta-pro', 'sticky-cta-btn'].forEach(function(id){
@@ -495,9 +537,10 @@ if (window.formatPrice) {
   };
 });
 
-/* ---------- 13 Specialized Jewelry Studios Gallery ---------- */
+/* ---------- 14 Specialized Jewelry Studios Gallery ---------- */
 (function(){
   var STUDIOS = [
+    { num: '00', cat: 'styling', label: 'Daily Habit', title: 'Daily Ritual, Cleaning & Size Passport', desc: '10-second morning stack recipe, tarnish safety shield, wear streak tracker, Sunday cleaning radar, and partner size card.', href: 'ritual.html', img: 'images/home/card-styling.jpg', alt: 'Daily jewelry ritual and styling studio' },
     { num: '01', cat: 'vault', label: 'Portfolio Studio', title: 'My Jewelry Box & Value Vault', desc: 'Catalog pieces, back up compressed photos, calculate pure gold weight, and print insurance records.', href: 'vault.html', img: 'images/home/card-vault.jpg', alt: 'Graphic editorial illustration of fine gold rings and golden padlock on a blueprint jewelry vault grid' },
     { num: '02', cat: 'styling', label: 'Styling Studio', title: 'Lookbook & Wear Planner', desc: 'Map out 7 days of jewelry outfits, log daily wears, and uncover your true Cost-Per-Wear.', href: 'planner.html', img: 'images/home/card-planner.jpg', alt: 'Graphic editorial illustration of modular rose and champagne weekly jewelry lookbook tiles' },
     { num: '03', cat: 'fit', label: 'Sizing Studio', title: 'Ring & Bracelet Size Guide', desc: 'Convert US, UK, EU, and Japan scales simultaneously with a live millimeter diameter circle.', href: 'sizing.html', img: 'images/home/card-sizing.jpg', alt: 'Graphic editorial illustration of concentric gold rings inside a radial millimeter caliper gauge' },
@@ -592,25 +635,41 @@ if (window.formatPrice) {
 
 /* ---------- Live Cycling Vault Sample Card ---------- */
 (function(){
-  var samples = [
-    { name: '14K Herringbone Chain · 12.2 g', val: '$608' },
-    { name: '18K Diamond Solitaire · 4.8 g', val: '$312' },
-    { name: '22K Heirloom Signet · 8.1 g', val: '$634' }
-  ];
+  function getSamples(){
+    var gPerG = window.getMcGeeGoldPerGramUsd ? window.getMcGeeGoldPerGramUsd() : 85.2;
+    var fmt = window.formatPrice ? window.formatPrice : function(n){ return '$' + Math.round(n); };
+    return [
+      { name: '14K Herringbone Chain · 12.2 g', val: fmt(12.2 * 0.583 * gPerG) },
+      { name: '18K Diamond Solitaire · 4.8 g', val: fmt(4.8 * 0.75 * gPerG) },
+      { name: '22K Heirloom Signet · 8.1 g', val: fmt(8.1 * 0.916 * gPerG) }
+    ];
+  }
   var idx = 0;
   var box = document.getElementById('hero-live-sample');
   var valEl = document.getElementById('hero-live-val');
   if (!box || !valEl) return;
-  setInterval(function(){
-    idx = (idx + 1) % samples.length;
+  function updateSample(animate){
+    var samples = getSamples();
+    var s = samples[idx % samples.length];
+    if (!animate) {
+      box.innerHTML = '<p class="text-[11px] uppercase tracking-wider text-amber-200/80">Live Vault Preview</p><p class="serif text-lg sm:text-xl text-white truncate">' + s.name + '</p>';
+      valEl.textContent = s.val;
+      return;
+    }
     box.style.opacity = '0';
     box.style.transform = 'translateY(4px)';
     setTimeout(function(){
-      box.innerHTML = '<p class="text-[11px] uppercase tracking-wider text-amber-200/80">Live Vault Preview</p><p class="serif text-lg sm:text-xl text-white truncate">' + samples[idx].name + '</p>';
-      valEl.textContent = samples[idx].val;
+      box.innerHTML = '<p class="text-[11px] uppercase tracking-wider text-amber-200/80">Live Vault Preview</p><p class="serif text-lg sm:text-xl text-white truncate">' + s.name + '</p>';
+      valEl.textContent = s.val;
       box.style.opacity = '1';
       box.style.transform = 'translateY(0)';
     }, 240);
+  }
+  updateSample(false);
+  window.addEventListener('mcgee:config-ready', function(){ updateSample(false); });
+  setInterval(function(){
+    idx++;
+    updateSample(true);
   }, 4200);
 })();
 

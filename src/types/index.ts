@@ -49,6 +49,27 @@ export interface Subscriber {
   isAdmin?: boolean;
   piecesCount?: number;
   amount: number;
+  currency?: string;
+  language?: string;
+  utmSource?: string;
+  utmCampaign?: string;
+  countryHint?: string;
+}
+
+export interface RitualCheckin {
+  id?: string;
+  checkedOn: string;
+  occasion: string;
+  neckline: string;
+  metalMood: string;
+  pieceNames: string[];
+}
+
+export interface StylePassport {
+  ringSizeUs: number;
+  wristCm: number;
+  undertone: string;
+  preferredMetal: string;
 }
 
 export interface CurrencyConfig {

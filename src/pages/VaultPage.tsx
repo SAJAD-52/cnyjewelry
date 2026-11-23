@@ -4,7 +4,7 @@ import { VaultItem } from '../types';
 import { AdPromoBanner } from '../components/shared/AdPromoBanner';
 
 const STORAGE_KEY = 'koo_jewelry_vault';
-const GOLD_24K_PER_GRAM = 85.0;
+const WEAR_KEY = 'koo_wear_history';
 const SILVER_PER_GRAM = 1.05;
 const PLATINUM_PER_GRAM = 32.0;
 
@@ -19,7 +19,7 @@ const PURITY: Record<string, { name: string; factor: number; metal: string }> = 
 };
 
 export const VaultPage: React.FC = () => {
-  const { isPro, openProModal, formatPrice, markFeatureUsed } = useApp();
+  const { isPro, openProModal, formatPrice, markFeatureUsed, goldPerGramUsd, t } = useApp();
 
   useEffect(() => {
     markFeatureUsed('vault');
@@ -49,9 +49,11 @@ export const VaultPage: React.FC = () => {
   const calcMelt = (w: number, k: string) => {
     const p = PURITY[k] || PURITY['14k'];
     const pureWeight = w * p.factor;
-    const rate = p.metal === 'gold' ? GOLD_24K_PER_GRAM : p.metal === 'silver' ? SILVER_PER_GRAM : PLATINUM_PER_GRAM;
+    const rate = p.metal === 'gold' ? goldPerGramUsd : p.metal === 'silver' ? SILVER_PER_GRAM : PLATINUM_PER_GRAM;
     return { pureGrams: pureWeight, meltVal: pureWeight * rate };
   };
+
+  const [confirmClear, setConfirmClear] = useState(false);
 
   const handleAddItem = (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,10 +89,42 @@ export const VaultPage: React.FC = () => {
     saveVault(items.filter((it) => it.id !== id));
   };
 
-  const handleClearAll = () => {
-    if (window.confirm('Are you sure you want to clear your entire jewelry box?')) {
-      saveVault([]);
-    }
+  const handleWoreToday = (it: VaultItem) => {
+    try {
+      const wears = JSON.parse(localStorage.getItem(WEAR_KEY) || '[]');
+      const today = new Date().toISOString().slice(0, 10);
+      wears.unshift({ id: Date.now().toString(), date: today, pieceName: it.name, vibe: 'Everyday' });
+      localStorage.setItem(WEAR_KEY, JSON.stringify(wears));
+      setMsg(`✓ Logged "${it.name}" worn today!`);
+      setTimeout(() => setMsg(''), 2500);
+    } catch {}
+  };
+
+  const handleMarkCleaned = (id: string) => {
+    const today = new Date().toISOString().slice(0, 10);
+    saveVault(items.map((it) => (it.id === id ? ({ ...it, lastCleanedAt: today } as any) : it)));
+    setMsg('✨ Marked piece cleaned today.');
+    setTimeout(() => setMsg(''), 2500);
+  };
+
+  const handleExportCsv = () => {
+    const rows = [
+      ['Name', 'Category', 'Purity', 'Weight (g)', 'Pure Grams', 'Melt Value', 'Paid Price', 'Notes'],
+      ...items.map((it) => {
+        const c = calcMelt(it.weight, it.karat);
+        return [it.name, it.cat, it.karat, String(it.weight), c.pureGrams.toFixed(2), formatPrice(c.meltVal), formatPrice(it.price || 0), it.notes || ''];
+      }),
+    ];
+    const csv = rows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'mcgee-jewelry-vault.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   };
 
   let totalPureGold = 0;
@@ -109,7 +143,7 @@ export const VaultPage: React.FC = () => {
       {/* HEADER */}
       <div className="max-w-3xl mb-10">
         <span className="chip text-xs mb-3 inline-block">Portfolio & Value Studio</span>
-        <h1 className="text-4xl sm:text-5xl md:text-6xl gt">My Jewelry Box & Value Tracker</h1>
+        <h1 className="text-4xl sm:text-5xl md:text-6xl gt">{t('vault.title', 'My Jewelry Box & Value Tracker')}</h1>
         <p className="muted text-base sm:text-lg mt-3">
           Catalog your fine pieces, track pure gold grams, and monitor your collection's estimated melt and replacement value privately on your device.
         </p>
@@ -229,22 +263,40 @@ export const VaultPage: React.FC = () => {
           {/* SPOT PRICE REFERENCE */}
           <div className="mt-6 pt-5 border-t border-rose-200/10 text-xs muted flex items-center justify-between">
             <span>Gold Reference Rate:</span>
-            <span className="font-mono gt font-semibold">$85.00 / gram (24k)</span>
+            <span className="font-mono gt font-semibold tabular-nums">{formatPrice(goldPerGramUsd)} / gram (24k)</span>
           </div>
         </div>
 
         {/* INVENTORY LIST */}
         <div className="lg:col-span-2">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
             <h2 className="serif text-3xl gt">Your Collection Inventory</h2>
-            <div className="flex gap-2 no-print">
+            <div className="flex flex-wrap gap-2 no-print">
+              {items.length > 0 && (
+                <button onClick={handleExportCsv} className="btn btn-ghost text-xs">
+                  ⬇ Export CSV
+                </button>
+              )}
               <button onClick={() => window.print()} className="btn btn-ghost text-xs">
                 🖨️ Print Dossier
               </button>
-              {items.length > 0 && (
-                <button onClick={handleClearAll} className="btn btn-ghost text-xs text-red-400">
+              {items.length > 0 && !confirmClear && (
+                <button onClick={() => setConfirmClear(true)} className="btn btn-ghost text-xs text-red-400">
                   Clear All
                 </button>
+              )}
+              {items.length > 0 && confirmClear && (
+                <span className="inline-flex items-center gap-2">
+                  <button
+                    onClick={() => { saveVault([]); setConfirmClear(false); }}
+                    className="btn btn-ghost text-xs text-red-400"
+                  >
+                    Confirm Clear
+                  </button>
+                  <button onClick={() => setConfirmClear(false)} className="btn btn-ghost text-xs">
+                    Cancel
+                  </button>
+                </span>
               )}
             </div>
           </div>
@@ -261,19 +313,27 @@ export const VaultPage: React.FC = () => {
                         <span className="serif text-2xl gt font-semibold">{it.name}</span>
                         <span className="chip text-[10px] py-0.5 px-2">{it.cat}</span>
                       </div>
-                      <p className="muted text-xs mt-1">
-                        {pInfo.name} &middot; {it.weight}g &middot; {c.pureGrams.toFixed(1)}g pure {pInfo.metal}
+                      <p className="muted text-xs mt-1 tabular-nums">
+                        {pInfo.name} · {it.weight}g · {c.pureGrams.toFixed(1)}g pure {pInfo.metal}
                       </p>
                       {it.notes && <p className="text-xs text-rose-300/80 mt-1">{it.notes}</p>}
+                      <div className="flex flex-wrap gap-1.5 mt-2.5 no-print">
+                        <button onClick={() => handleWoreToday(it)} className="chip text-[11px] py-0.5 px-2.5 cursor-pointer">
+                          ✓ Wore Today
+                        </button>
+                        <button onClick={() => handleMarkCleaned(it.id)} className="chip text-[11px] py-0.5 px-2.5 cursor-pointer">
+                          ✨ Cleaned
+                        </button>
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-5">
-                      <div className="text-right">
+                      <div className="text-right tabular-nums">
                         <span className="text-xs muted block">Melt Scrap Value</span>
                         <b className="serif text-xl text-emerald-500">{formatPrice(c.meltVal)}</b>
                       </div>
                       {it.price > 0 && (
-                        <div className="text-right">
+                        <div className="text-right tabular-nums">
                           <span className="text-xs muted block">Retail / Paid</span>
                           <b className="serif text-xl gt">{formatPrice(it.price)}</b>
                         </div>
@@ -321,7 +381,7 @@ export const VaultPage: React.FC = () => {
           <details className="faq">
             <summary>How do I unlock unlimited pieces?</summary>
             <p className="muted mt-3">
-              Upgrade to McGee Jewelry Pro for $6/month to store unlimited pieces and generate printable insurance dossiers.
+              Upgrade to McGee Jewelry Pro for {formatPrice(6)}/month to store unlimited pieces across devices and generate printable insurance dossiers.
             </p>
           </details>
         </div>

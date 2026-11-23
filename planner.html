@@ -13,8 +13,8 @@
 <!-- HEADER -->
 <div class="max-w-3xl mb-10">
 <span class="chip text-xs mb-3">Styling & Capsule Studio</span>
-<h1 class="text-5xl md:text-6xl gt">Jewelry Lookbook & Wear Planner</h1>
-<p class="muted text-lg mt-3">Organize what jewelry you wear every day, track your 30-day wearing history, and discover your true Cost-Per-Wear in real-time.</p>
+<h1 class="text-5xl md:text-6xl gt" data-i18n="planner.title">Jewelry Lookbook & Wear Planner</h1>
+<p class="muted text-lg mt-3" data-i18n="planner.sub">Organize what jewelry you wear every day, track your 30-day wearing history, and discover your true Cost-Per-Wear in real-time.</p>
 </div>
 
 <!-- STATS SUMMARY -->
@@ -32,9 +32,10 @@
 <h2 class="serif text-3xl gt">This Week's Styling Plan</h2>
 <p class="muted text-xs mt-0.5">Assign your rings, necklaces, and earrings to your outfits this week.</p>
 </div>
-<div class="flex gap-2 no-print">
+<div class="flex flex-wrap gap-2 no-print">
 <span id="planner-tier-badge" class="chip text-xs">Free Tier (2 days max)</span>
-<button id="btn-print-plan" class="btn btn-ghost text-xs">🖨️ Print Week</button>
+<button id="btn-planner-ics" type="button" class="btn btn-ghost text-xs">📅 Sunday Reset (.ics)</button>
+<button id="btn-print-plan" type="button" class="btn btn-ghost text-xs">🖨️ Print Week</button>
 </div>
 </div>
 
@@ -257,45 +258,101 @@ function renderWeekly(){
   var stP = document.getElementById('stat-planned');
   if(stP) stP.textContent = plannedCount + ' / 7';
 
-  // Wire day buttons
+  // Wire day buttons via clean In-Page Look Picker Modal (never window.prompt)
+  function openLookPicker(day) {
+    var old = document.getElementById('look-picker-modal');
+    if (old) old.remove();
+    var existing = currentPlan[day];
+    var curPiece = existing ? (typeof existing === 'object' ? existing.piece : existing) : '';
+    var curVibe = (existing && existing.vibe) ? existing.vibe : 'Everyday';
+
+    var dlg = document.createElement('div');
+    dlg.id = 'look-picker-modal';
+    dlg.style.cssText = 'position:fixed;inset:0;background:rgba(18,10,14,0.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:100000;display:flex;align-items:center;justify-content:center;padding:1.25rem;';
+
+    var vaultChips = currentVault.length
+      ? '<div class="mb-4"><p class="text-xs muted mb-2">Tap from your Jewelry Box:</p><div class="flex flex-wrap gap-1.5">' +
+        currentVault.map(function(v){
+          return '<button type="button" class="chip text-xs py-1 px-2.5" data-lp-pick="' + String(v.name).replace(/"/g, '&quot;') + '">' + v.name + '</button>';
+        }).join('') + '</div></div>'
+      : '';
+
+    dlg.innerHTML = '<div class="glass glow p-6 sm:p-7 rounded-3xl max-w-md w-full relative" style="border:1px solid rgba(243,226,179,0.28)">' +
+      '<button type="button" id="lp-close" style="position:absolute;top:1rem;right:1rem" class="muted hover:text-white text-sm">✕</button>' +
+      '<span class="text-xs uppercase tracking-wider gt">' + day + ' Look</span>' +
+      '<h3 class="serif text-3xl gt mt-1">Assign Jewelry Stack</h3>' +
+      '<div class="mt-4">' + vaultChips +
+      '<label class="fld" style="margin-top:0"><span>Piece or Stack Name</span><input id="lp-piece" type="text" value="' + String(curPiece).replace(/"/g, '&quot;') + '" placeholder="e.g. 14K Herringbone + Studs"></label>' +
+      '<label class="fld mt-3"><span>Occasion / Vibe</span><select id="lp-vibe">' +
+      ['Everyday','Work','Casual','Date Night','Weekend Brunch','Special Event'].map(function(vb){
+        return '<option' + (curVibe === vb ? ' selected' : '') + '>' + vb + '</option>';
+      }).join('') + '</select></label>' +
+      '</div>' +
+      '<div class="flex items-center justify-between gap-2 mt-6">' +
+      (curPiece ? '<button type="button" id="lp-clear" class="btn btn-ghost text-xs text-red-400">Clear Day</button>' : '<span></span>') +
+      '<div class="flex gap-2">' +
+      '<button type="button" id="lp-cancel" class="btn btn-ghost text-xs">Cancel</button>' +
+      '<button type="button" id="lp-save" class="btn btn-gold text-xs px-5">Save Look</button>' +
+      '</div></div></div>';
+
+    document.body.appendChild(dlg);
+    dlg.querySelectorAll('[data-lp-pick]').forEach(function(b){
+      b.onclick = function(){ document.getElementById('lp-piece').value = b.dataset.lpPick; };
+    });
+    document.getElementById('lp-close').onclick = function(){ dlg.remove(); };
+    document.getElementById('lp-cancel').onclick = function(){ dlg.remove(); };
+    dlg.onclick = function(e){ if (e.target === dlg) dlg.remove(); };
+
+    var clrBtn = document.getElementById('lp-clear');
+    if (clrBtn) {
+      clrBtn.onclick = async function(){
+        delete currentPlan[day];
+        if (window.currentUser && window.sb) {
+          await window.sb.from('weekly_plan').delete().eq('user_id', window.currentUser.id).eq('day', day);
+        }
+        try { localStorage.setItem(PLAN_KEY, JSON.stringify(currentPlan)); } catch(e){}
+        dlg.remove();
+        renderWeekly();
+      };
+    }
+
+    document.getElementById('lp-save').onclick = async function(){
+      var pieceVal = document.getElementById('lp-piece').value.trim();
+      var vibeVal = document.getElementById('lp-vibe').value || 'Everyday';
+      if (!pieceVal) {
+        if (clrBtn) clrBtn.click();
+        else dlg.remove();
+        return;
+      }
+      var lookObj = { piece: pieceVal, vibe: vibeVal };
+      currentPlan[day] = lookObj;
+      if (window.currentUser && window.sb) {
+        var upsertRes = await window.sb.from('weekly_plan').upsert({
+          user_id: window.currentUser.id,
+          day: day,
+          piece_ids: [lookObj]
+        }, { onConflict: 'user_id,day' });
+        if (upsertRes.error) {
+          dlg.remove();
+          if (window.showMcGeeToast) window.showMcGeeToast(upsertRes.error.message, true);
+          if (typeof openProModal === 'function') openProModal(false);
+          return;
+        }
+      }
+      try { localStorage.setItem(PLAN_KEY, JSON.stringify(currentPlan)); } catch(e){}
+      dlg.remove();
+      renderWeekly();
+    };
+  }
+
   document.querySelectorAll('[data-day]').forEach(function(btn){
-    btn.onclick = async function(){
+    btn.onclick = function(){
       var isProNow = (typeof isProUser === 'function') && isProUser();
       if(btn.dataset.locked === 'true' && !isProNow){
         if(typeof openProModal === 'function') openProModal(false);
         return;
       }
-      var d = btn.dataset.day;
-      var cur = currentPlan[d] ? (typeof currentPlan[d] === 'object' ? currentPlan[d].piece : currentPlan[d]) : '';
-      var pieceName = prompt('Enter jewelry piece for ' + d + ':', cur);
-      if(pieceName !== null){
-        if(pieceName.trim() === ''){
-          delete currentPlan[d];
-          if (window.currentUser && window.sb) {
-            await window.sb.from('weekly_plan').delete().eq('user_id', window.currentUser.id).eq('day', d);
-          }
-        } else {
-          var vibe = prompt('Outfit vibe (e.g. Work, Casual, Date Night):', (currentPlan[d] ? currentPlan[d].vibe : 'Everyday')) || 'Everyday';
-          var lookObj = { piece: pieceName.trim(), vibe: vibe.trim() };
-          currentPlan[d] = lookObj;
-
-          if (window.currentUser && window.sb) {
-            var upsertRes = await window.sb.from('weekly_plan').upsert({
-              user_id: window.currentUser.id,
-              day: d,
-              piece_ids: [lookObj]
-            }, { onConflict: 'user_id,day' });
-
-            if (upsertRes.error) {
-              alert('Policy restriction: ' + upsertRes.error.message);
-              if (typeof openProModal === 'function') openProModal(false);
-              return;
-            }
-          }
-        }
-        try { localStorage.setItem(PLAN_KEY, JSON.stringify(currentPlan)); } catch(e){}
-        renderWeekly();
-      }
+      openLookPicker(btn.dataset.day);
     };
   });
 }
@@ -328,10 +385,12 @@ function renderAnalytics(){
   var emptyDiv = document.getElementById('cpw-empty');
   var pieceKeys = Object.keys(counts);
 
+  var fmt = window.formatPrice ? window.formatPrice : function(n){ return '$' + Math.round(n).toLocaleString(); };
+
   if(!pieceKeys.length){
     if(tbody) tbody.innerHTML = '';
     if(emptyDiv) emptyDiv.style.display = 'block';
-    document.getElementById('stat-cpw').textContent = '$0';
+    document.getElementById('stat-cpw').textContent = fmt(0);
     return;
   }
   if(emptyDiv) emptyDiv.style.display = 'none';
@@ -341,21 +400,21 @@ function renderAnalytics(){
     var times = counts[pk];
     var matched = vault.filter(function(v){ return v.name.toLowerCase() === pk.toLowerCase(); })[0];
     var price = matched && matched.price ? parseFloat(matched.price) : 250;
-    var cpw = (price / times).toFixed(2);
-    totalCPW += parseFloat(cpw);
+    var cpw = price / times;
+    totalCPW += cpw;
     cpwCount++;
 
     return '<tr class="border-b border-rose-200/10">' +
            '<td class="py-3 px-3 font-medium">' + pk + '</td>' +
-           '<td class="py-3 px-3">' + times + ' times</td>' +
-           '<td class="py-3 px-3 muted">$' + price + '</td>' +
-           '<td class="py-3 px-3 font-semibold text-emerald-600 dark:text-emerald-400">$' + cpw + ' / wear</td>' +
+           '<td class="py-3 px-3 tabular-nums">' + times + ' times</td>' +
+           '<td class="py-3 px-3 muted tabular-nums">' + fmt(price) + '</td>' +
+           '<td class="py-3 px-3 font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">' + fmt(cpw) + ' / wear</td>' +
            '<td class="py-3 px-3 text-right"><span class="chip text-[10px]">' + (times >= 5 ? 'High Rotation' : 'Occasional') + '</span></td>' +
            '</tr>';
   }).join('');
 
   if(cpwCount){
-    document.getElementById('stat-cpw').textContent = '$' + (totalCPW / cpwCount).toFixed(0);
+    document.getElementById('stat-cpw').textContent = fmt(totalCPW / cpwCount);
   }
 
   // Check neglected jewels (in vault but 0 wears in 30 days)
@@ -379,7 +438,7 @@ if(wearForm){
       if(typeof openProModal === 'function') openProModal(false);
       var msg = document.getElementById('wear-msg');
       if(msg){
-        msg.textContent = 'Free wear log limit reached (3 entries). Upgrade to Pro ($6/mo) for full 30-day tracking.';
+        msg.textContent = 'Free wear log limit reached (3 entries). Upgrade to Pro for unlimited tracking.';
         msg.style.color = '#e8b4b8';
       }
       return;
@@ -397,7 +456,10 @@ if(wearForm){
         pieceId = matchedPiece.id || null;
       }
     }
-    if(!pieceName){ alert('Please select a piece from your box or type one.'); return; }
+    if(!pieceName){
+      if (window.showMcGeeToast) window.showMcGeeToast('Please select a piece from your box or type one.', true);
+      return;
+    }
 
     var dateVal = document.getElementById('w-date').value;
     var vibeVal = document.getElementById('w-vibe').value;
@@ -416,7 +478,7 @@ if(wearForm){
 
       if (insertRes.error) {
         submitBtn.disabled = false;
-        alert('Database policy error: ' + insertRes.error.message);
+        if (window.showMcGeeToast) window.showMcGeeToast(insertRes.error.message, true);
         if (typeof openProModal === 'function') openProModal(false);
         return;
       }
@@ -454,6 +516,38 @@ if(btnClearH){
       try { localStorage.setItem(WEAR_KEY, JSON.stringify([])); } catch(e){}
       renderAnalytics();
     }
+  };
+}
+
+// Sunday Calendar Reset (.ics)
+var btnPlanIcs = document.getElementById('btn-planner-ics');
+if(btnPlanIcs){
+  btnPlanIcs.onclick = function(){
+    var dt = new Date();
+    var daysUntilSun = (7 - dt.getDay()) % 7 || 7;
+    dt.setDate(dt.getDate() + daysUntilSun);
+    var ymd = dt.toISOString().slice(0, 10).replace(/-/g, '');
+    var ics = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//McGee Jewelry//Weekly Planner//EN',
+      'BEGIN:VEVENT',
+      'UID:mcgee-planner-reset-' + ymd + '@mcgeejewelry.com',
+      'DTSTAMP:' + ymd + 'T180000Z',
+      'DTSTART:' + ymd + 'T180000',
+      'DURATION:PT15M',
+      'RRULE:FREQ=WEEKLY;BYDAY=SU',
+      'SUMMARY:McGee Jewelry Weekly Lookbook & Cleaning Reset',
+      'DESCRIPTION:Plan Monday–Sunday jewelry outfits and check Cost-Per-Wear at https://mcgeejewelry.com/planner.html',
+      'URL:https://mcgeejewelry.com/planner.html',
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\r\n');
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+    a.download = 'mcgee-weekly-lookbook-reset.ics';
+    a.click();
+    if (window.showMcGeeToast) window.showMcGeeToast('📅 Sunday Lookbook reset downloaded!');
   };
 }
 

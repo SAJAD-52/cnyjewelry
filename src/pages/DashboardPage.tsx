@@ -6,6 +6,15 @@ import { Subscriber } from '../types';
 const ADMIN_EMAIL = 'said.cpge24@gmail.com';
 
 const ADMIN_SQL_SETUP = [
+  "create table if not exists public.site_config (",
+  "  key text primary key check (key in ('meta_pixel_id', 'gold_usd_per_oz')),",
+  "  value text not null, updated_at timestamptz default now()",
+  ");",
+  "alter table public.site_config enable row level security;",
+  "drop policy if exists \"Public can read site_config\" on public.site_config;",
+  "create policy \"Public can read site_config\" on public.site_config for select using (true);",
+  "insert into public.site_config (key, value) values ('gold_usd_per_oz', '2650') on conflict (key) do nothing;",
+  "",
   "insert into public.admins (user_id, notes)",
   "select id, 'Primary Owner' from auth.users where lower(email) = 'said.cpge24@gmail.com'",
   "on conflict (user_id) do nothing;",
@@ -18,8 +27,9 @@ const ADMIN_SQL_SETUP = [
   "  );",
   "$$;",
   "",
+  "drop function if exists public.admin_list_accounts();",
   "create or replace function public.admin_list_accounts()",
-  "returns table (user_id uuid, email text, created_at timestamptz, email_confirmed_at timestamptz, last_sign_in_at timestamptz, plan text, sub_status text, current_period_end timestamptz, is_admin boolean, pieces_count bigint)",
+  "returns table (user_id uuid, email text, created_at timestamptz, email_confirmed_at timestamptz, last_sign_in_at timestamptz, plan text, sub_status text, current_period_end timestamptz, is_admin boolean, pieces_count bigint, currency text, language text, utm_source text, utm_campaign text, country_hint text)",
   "language plpgsql security definer set search_path = public, auth as $$",
   "begin",
   "  if not public.is_admin_user() then raise exception 'Forbidden: admin access required'; end if;",
@@ -28,12 +38,23 @@ const ADMIN_SQL_SETUP = [
   "    case when (s.status in ('active','trialing') and s.current_period_end > now()) or a.user_id is not null or lower(u.email) = 'said.cpge24@gmail.com' then 'pro' else 'free' end,",
   "    coalesce(s.status,'free')::text, s.current_period_end,",
   "    (a.user_id is not null or lower(u.email) = 'said.cpge24@gmail.com'),",
-  "    coalesce(p.cnt, 0)::bigint",
+  "    coalesce(p.cnt, 0)::bigint,",
+  "    coalesce(pr.currency, 'USD')::text, coalesce(pr.language, 'EN')::text,",
+  "    pr.utm_source::text, pr.utm_campaign::text, pr.country_hint::text",
   "  from auth.users u",
   "  left join public.subscriptions s on s.user_id = u.id",
   "  left join public.admins a on a.user_id = u.id",
+  "  left join public.profiles pr on pr.user_id = u.id",
   "  left join (select pc.user_id, count(*)::bigint as cnt from public.pieces pc group by pc.user_id) p on p.user_id = u.id",
   "  order by u.created_at desc;",
+  "end; $$;",
+  "",
+  "create or replace function public.admin_set_site_config(cfg_key text, cfg_val text)",
+  "returns void language plpgsql security definer set search_path = public as $$",
+  "begin",
+  "  if not public.is_admin_user() then raise exception 'Forbidden: admin access required'; end if;",
+  "  insert into public.site_config (key, value, updated_at) values (cfg_key, trim(coalesce(cfg_val, '')), now())",
+  "  on conflict (key) do update set value = excluded.value, updated_at = now();",
   "end; $$;",
   "",
   "create or replace function public.admin_set_user_plan(target_user_id uuid, new_plan text)",
@@ -70,13 +91,14 @@ const ADMIN_SQL_SETUP = [
   "",
   "revoke all on function public.is_admin_user() from public; grant execute on function public.is_admin_user() to authenticated;",
   "revoke all on function public.admin_list_accounts() from public; grant execute on function public.admin_list_accounts() to authenticated;",
+  "revoke all on function public.admin_set_site_config(text, text) from public; grant execute on function public.admin_set_site_config(text, text) to authenticated;",
   "revoke all on function public.admin_set_user_plan(uuid, text) from public; grant execute on function public.admin_set_user_plan(uuid, text) to authenticated;",
   "revoke all on function public.admin_grant_pro_by_email(text, text) from public; grant execute on function public.admin_grant_pro_by_email(text, text) to authenticated;",
   "revoke all on function public.admin_delete_user(uuid) from public; grant execute on function public.admin_delete_user(uuid) to authenticated;",
 ].join('\n');
 
 export const DashboardPage: React.FC = () => {
-  const { currentUser, login, logout, formatPrice, navigate } = useApp();
+  const { currentUser, login, logout, formatPrice, navigate, goldUsdPerOz, metaPixelId, reloadSiteConfig } = useApp();
 
   const [activeTab, setActiveTab] = useState<'overview' | 'subscribers' | 'blog' | 'settings'>('overview');
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
@@ -98,6 +120,17 @@ export const DashboardPage: React.FC = () => {
   const [targetEmailInput, setTargetEmailInput] = useState('');
   const [targetPlanInput, setTargetPlanInput] = useState<'pro' | 'free'>('pro');
   const [grantLoading, setGrantLoading] = useState(false);
+
+  // Cloud Meta Pixel & Gold Spot Settings
+  const [pixelInput, setPixelInput] = useState(metaPixelId || '');
+  const [goldOzInput, setGoldOzInput] = useState(String(goldUsdPerOz || 2650));
+  const [siteCfgSaving, setSiteCfgSaving] = useState(false);
+  const [siteCfgFeedback, setSiteCfgFeedback] = useState<{ msg: string; err: boolean } | null>(null);
+
+  useEffect(() => {
+    setPixelInput(metaPixelId || '');
+    setGoldOzInput(String(goldUsdPerOz || 2650));
+  }, [metaPixelId, goldUsdPerOz]);
 
   const isAdmin = Boolean(
     currentUser?.email && currentUser.email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase()
@@ -145,6 +178,11 @@ export const DashboardPage: React.FC = () => {
           status: r.sub_status || (r.plan === 'pro' ? 'active' : 'free'),
           isAdmin: Boolean(r.is_admin),
           piecesCount: Number(r.pieces_count) || 0,
+          currency: r.currency || 'USD',
+          language: r.language || 'EN',
+          utmSource: r.utm_source || '',
+          utmCampaign: r.utm_campaign || '',
+          countryHint: r.country_hint || '',
           amount: r.plan === 'pro' && !r.is_admin ? 6.0 : 0.0,
         }));
         setSubscribers(rows);
@@ -244,6 +282,41 @@ export const DashboardPage: React.FC = () => {
     }
   };
 
+  const handleSaveSiteConfig = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSiteCfgSaving(true);
+    setSiteCfgFeedback(null);
+    const cleanPx = pixelInput.trim().replace(/[^0-9]/g, '');
+    const cleanOz = goldOzInput.trim() || '2650';
+    try {
+      let r1 = await supabase.rpc('admin_set_site_config', { cfg_key: 'meta_pixel_id', cfg_val: cleanPx });
+      if (r1.error) {
+        r1 = await supabase
+          .from('site_config')
+          .upsert({ key: 'meta_pixel_id', value: cleanPx, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+      }
+      let r2 = await supabase.rpc('admin_set_site_config', { cfg_key: 'gold_usd_per_oz', cfg_val: cleanOz });
+      if (r2.error) {
+        r2 = await supabase
+          .from('site_config')
+          .upsert({ key: 'gold_usd_per_oz', value: cleanOz, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+      }
+      if (r1.error || r2.error) {
+        setSiteCfgFeedback({
+          msg: r1.error?.message || r2.error?.message || 'Could not save site_config.',
+          err: true,
+        });
+      } else {
+        await reloadSiteConfig();
+        setSiteCfgFeedback({ msg: '✓ Saved Meta Pixel & Gold Spot Rate to Supabase!', err: false });
+      }
+    } catch (err: any) {
+      setSiteCfgFeedback({ msg: err?.message || 'Save error.', err: true });
+    } finally {
+      setSiteCfgSaving(false);
+    }
+  };
+
   if (!isAdmin) {
     return (
       <main className="mx-auto max-w-md px-5 py-24 text-center">
@@ -298,11 +371,24 @@ export const DashboardPage: React.FC = () => {
   const mrr = proSubs.reduce((acc, s) => acc + s.amount, 0);
   const convRate = customers.length ? Math.round((proSubs.length / customers.length) * 100) : 0;
 
+  const marketCounts: Record<string, number> = {};
+  let metaAttributedCount = 0;
+  customers.forEach((c) => {
+    const cur = c.currency || 'USD';
+    marketCounts[cur] = (marketCounts[cur] || 0) + 1;
+    if (c.utmSource || c.utmCampaign) metaAttributedCount++;
+  });
+  const topMarkets = Object.entries(marketCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
   const filteredSubs = subscribers.filter((s) => {
     if (subFilter === 'pro' && s.plan !== 'pro') return false;
     if (subFilter === 'free' && s.plan !== 'free') return false;
     if (subFilter === 'pending' && s.confirmed) return false;
-    if (subSearch.trim() && !s.email.toLowerCase().includes(subSearch.trim().toLowerCase())) return false;
+    const q = subSearch.trim().toLowerCase();
+    if (q) {
+      const hay = [s.email, s.currency, s.language, s.utmSource, s.utmCampaign, s.countryHint].join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
     return true;
   });
 
@@ -432,8 +518,44 @@ export const DashboardPage: React.FC = () => {
               </div>
               <div className="glass p-5 rounded-2xl">
                 <span className="muted text-xs uppercase tracking-wider">Active Studios</span>
-                <p className="serif text-3xl gt mt-1">13</p>
+                <p className="serif text-3xl gt mt-1 tabular-nums">14</p>
                 <p className="muted text-[11px] mt-1">{BLOG_POSTS.length} editorial guides</p>
+              </div>
+            </div>
+
+            <div className="glass p-5 rounded-3xl mb-6 flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <span className="muted text-xs uppercase tracking-wider">Top Markets &amp; Meta Ad Attribution</span>
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {topMarkets.length > 0 ? (
+                    topMarkets.map(([cur, cnt]) => (
+                      <span key={cur} className="chip text-xs py-0.5 px-2.5 tabular-nums">
+                        {cur}: {cnt}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="muted text-xs">No market signups yet</span>
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-5 text-xs">
+                <div>
+                  <span className="muted block">Meta Ad Signups</span>
+                  <b className="serif text-2xl gt tabular-nums">{metaAttributedCount}</b>
+                </div>
+                <div>
+                  <span className="muted block">Meta Pixel</span>
+                  <b className={metaPixelId ? 'text-emerald-400' : 'text-amber-400'}>
+                    {metaPixelId ? `Active (${metaPixelId})` : 'Not Set'}
+                  </b>
+                </div>
+                <div>
+                  <span className="muted block">Gold Spot</span>
+                  <b className="gt tabular-nums">${goldUsdPerOz} / oz</b>
+                </div>
+                <button onClick={() => setActiveTab('settings')} className="btn btn-ghost text-xs py-1.5 px-3">
+                  Configure &rarr;
+                </button>
               </div>
             </div>
 
@@ -469,6 +591,9 @@ export const DashboardPage: React.FC = () => {
                             {s.isAdmin ? 'Admin' : s.plan === 'pro' ? '$6 Pro' : 'Free'}
                           </span>
                           <span className="truncate font-mono">{s.email}</span>
+                          <span className="chip text-[10px] py-0 px-1.5">
+                            {s.currency || 'USD'}/{s.language || 'EN'}
+                          </span>
                         </div>
                         <span className="muted shrink-0">{s.date}</span>
                       </div>
@@ -481,7 +606,7 @@ export const DashboardPage: React.FC = () => {
                 <h2 className="serif text-2xl gt mb-3">Quick Navigation</h2>
                 <p className="muted text-xs mb-4">Jump directly into any customer-facing studio:</p>
                 <div className="flex flex-wrap gap-2">
-                  {['vault', 'planner', 'sizing', 'styling', 'care', 'gold', 'diamond', 'beading'].map(
+                  {['ritual', 'vault', 'planner', 'sizing', 'styling', 'care', 'gold', 'diamond', 'beading'].map(
                     (slug) => (
                       <button
                         key={slug}
@@ -624,7 +749,18 @@ export const DashboardPage: React.FC = () => {
                             )}
                           </div>
                           <div className="muted text-[11px] mt-0.5">
-                            {sub.piecesCount || 0} vault piece(s) &middot; Last login: {sub.lastSignIn || 'Never'}
+                            {sub.piecesCount || 0} vault piece(s) · Last login: {sub.lastSignIn || 'Never'}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                            <span className="chip text-[10px] py-0 px-2">
+                              {sub.currency || 'USD'} · {sub.language || 'EN'}
+                            </span>
+                            {sub.countryHint && <span className="muted text-[10px]">{sub.countryHint}</span>}
+                            {sub.utmSource && (
+                              <span className="chip text-[10px] py-0 px-2 border-emerald-400 text-emerald-400">
+                                Ad: {sub.utmSource}{sub.utmCampaign ? `/${sub.utmCampaign}` : ''}
+                              </span>
+                            )}
                           </div>
                         </td>
                         <td className="py-3 px-3">
@@ -718,9 +854,51 @@ export const DashboardPage: React.FC = () => {
         )}
 
         {activeTab === 'settings' && (
-          <div className="fade">
-            <h1 className="serif text-3xl sm:text-4xl gt mb-6">Studio & Production Settings</h1>
-            <div className="glass p-6 sm:p-8 rounded-3xl grid gap-5 max-w-xl">
+          <div className="fade space-y-6 max-w-2xl">
+            <h1 className="serif text-3xl sm:text-4xl gt">Studio & Production Settings</h1>
+
+            <form onSubmit={handleSaveSiteConfig} className="glass p-6 sm:p-8 rounded-3xl grid gap-4 border border-amber-300/25">
+              <div>
+                <h2 className="serif text-2xl gt">Meta Ads Pixel & Live Gold Spot Rate</h2>
+                <p className="muted text-xs mt-1">
+                  Updates apply globally across all countries via Supabase <code>site_config</code>.
+                </p>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <label className="fld" style={{ marginTop: 0 }}>
+                  <span>Meta Pixel ID (15–16 digits)</span>
+                  <input
+                    value={pixelInput}
+                    onChange={(e) => setPixelInput(e.target.value)}
+                    placeholder="e.g. 123456789012345"
+                    className="font-mono text-xs"
+                  />
+                </label>
+                <label className="fld" style={{ marginTop: 0 }}>
+                  <span>24K Gold Spot Rate (USD / oz)</span>
+                  <input
+                    type="number"
+                    min="500"
+                    step="1"
+                    value={goldOzInput}
+                    onChange={(e) => setGoldOzInput(e.target.value)}
+                    className="font-mono text-xs"
+                  />
+                </label>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <button type="submit" disabled={siteCfgSaving} className="btn btn-gold text-xs py-2.5 px-5">
+                  {siteCfgSaving ? 'Saving...' : 'Save Cloud Config'}
+                </button>
+                {siteCfgFeedback && (
+                  <span className={`text-xs ${siteCfgFeedback.err ? 'text-red-400' : 'text-emerald-400'}`}>
+                    {siteCfgFeedback.msg}
+                  </span>
+                )}
+              </div>
+            </form>
+
+            <div className="glass p-6 sm:p-8 rounded-3xl grid gap-5">
               <label className="fld">
                 <span>Production Domain</span>
                 <input readOnly value="https://mcgeejewelry.com" className="font-mono text-xs" />
@@ -734,7 +912,7 @@ export const DashboardPage: React.FC = () => {
                 <textarea
                   readOnly
                   rows={3}
-                  value="Fine jewelry: rings, necklaces, earrings, bracelets, gold scrap value, diamond visualizers, and care guides."
+                  value="Fine jewelry: daily styling rituals, rings, necklaces, earrings, bracelets, gold scrap value, diamond visualizers, and care guides."
                   className="text-xs"
                 />
               </label>

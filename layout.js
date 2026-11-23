@@ -31,15 +31,19 @@ var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 var STRIPE_BASE = 'https://buy.stripe.com/5kQ00kb7pgWc8p8c6Y0ZW00';
 var STRIPE_PORTAL = 'https://billing.stripe.com/p/login/';
 
-var ALL_TOOL_SLUGS = ['sizing', 'styling', 'care', 'gift', 'layering', 'anniversary', 'gold', 'diamond', 'earrings', 'wishlist', 'vault', 'planner', 'beading'];
+var ALL_TOOL_SLUGS = ['ritual', 'sizing', 'styling', 'care', 'gift', 'layering', 'anniversary', 'gold', 'diamond', 'earrings', 'wishlist', 'vault', 'planner', 'beading'];
 
 /* ---------- CURRENCIES & MATCHING LANGUAGES ---------- */
 var CURRENCIES = {
-  EUR: { symbol: '€', name: 'Euro (Eurozone)', rate: 0.92, defaultLang: 'FR' },
+  USD: { symbol: '$', name: 'US Dollar (USA)', rate: 1.0, defaultLang: 'EN' },
+  CAD: { symbol: 'CA$', name: 'Canadian Dollar (Canada)', rate: 1.38, defaultLang: 'EN' },
   GBP: { symbol: '£', name: 'British Pound (UK)', rate: 0.79, defaultLang: 'EN' },
-  CHF: { symbol: 'CHF', name: 'Swiss Franc (Switzerland)', rate: 0.88, defaultLang: 'FR' },
-  SEK: { symbol: 'kr', name: 'Swedish Krona (Sweden)', rate: 10.5, defaultLang: 'SV' },
-  NOK: { symbol: 'kr', name: 'Norwegian Krone (Norway)', rate: 10.6, defaultLang: 'NO' },
+  AUD: { symbol: 'A$', name: 'Australian Dollar (Australia)', rate: 1.53, defaultLang: 'EN' },
+  NZD: { symbol: 'NZ$', name: 'New Zealand Dollar (NZ)', rate: 1.66, defaultLang: 'EN' },
+  EUR: { symbol: '€', name: 'Euro (Eurozone)', rate: 0.92, defaultLang: 'EN' },
+  CHF: { symbol: 'CHF', name: 'Swiss Franc (Switzerland)', rate: 0.88, defaultLang: 'DE' },
+  SEK: { symbol: 'kr', name: 'Swedish Krona (Sweden)', rate: 10.6, defaultLang: 'SV' },
+  NOK: { symbol: 'kr', name: 'Norwegian Krone (Norway)', rate: 10.7, defaultLang: 'NO' },
   DKK: { symbol: 'kr', name: 'Danish Krone (Denmark)', rate: 6.9, defaultLang: 'DA' },
   PLN: { symbol: 'zł', name: 'Polish Złoty (Poland)', rate: 4.0, defaultLang: 'PL' },
   CZK: { symbol: 'Kč', name: 'Czech Koruna (Czechia)', rate: 23.2, defaultLang: 'CS' },
@@ -51,25 +55,22 @@ var CURRENCIES = {
   UAH: { symbol: '₴', name: 'Ukrainian Hryvnia (Ukraine)', rate: 41.0, defaultLang: 'UK' },
   RSD: { symbol: 'din', name: 'Serbian Dinar (Serbia)', rate: 108, defaultLang: 'EN' },
   MAD: { symbol: 'DH', name: 'Moroccan Dirham (Morocco)', rate: 10.1, defaultLang: 'FR' },
-  USD: { symbol: '$', name: 'US Dollar (USA)', rate: 1.0, defaultLang: 'EN' },
-  CAD: { symbol: 'CA$', name: 'Canadian Dollar (Canada)', rate: 1.36, defaultLang: 'EN' },
   AED: { symbol: 'AED', name: 'UAE Dirham (UAE)', rate: 3.67, defaultLang: 'AR' },
-  SAR: { symbol: 'SAR', name: 'Saudi Riyal (Saudi Arabia)', rate: 3.75, defaultLang: 'AR' },
-  AUD: { symbol: 'A$', name: 'Australian Dollar (Australia)', rate: 1.52, defaultLang: 'EN' }
+  SAR: { symbol: 'SAR', name: 'Saudi Riyal (Saudi Arabia)', rate: 3.75, defaultLang: 'AR' }
 };
 
 var LANGUAGES = {
   EN: 'English',
   FR: 'Français',
-  AR: 'العربية',
-  SV: 'Svenska',
-  NO: 'Norsk',
-  DA: 'Dansk',
-  DE: 'Deutsch',
   ES: 'Español',
+  DE: 'Deutsch',
   IT: 'Italiano',
   NL: 'Nederlands',
   PT: 'Português',
+  SV: 'Svenska',
+  NO: 'Norsk',
+  DA: 'Dansk',
+  AR: 'العربية',
   PL: 'Polski',
   CS: 'Čeština',
   HU: 'Magyar',
@@ -81,71 +82,91 @@ var LANGUAGES = {
 };
 
 function detectLocale() {
+  try {
+    var qp = new URLSearchParams(window.location.search);
+    var qCur = (qp.get('cur') || '').toUpperCase();
+    var qLang = (qp.get('lang') || '').toUpperCase();
+    if (CURRENCIES[qCur] || LANGUAGES[qLang]) {
+      var fromUrl = {
+        currency: CURRENCIES[qCur] ? qCur : 'USD',
+        lang: LANGUAGES[qLang] ? qLang : ((CURRENCIES[qCur] && CURRENCIES[qCur].defaultLang) || 'EN')
+      };
+      localStorage.setItem('koo_user_locale', JSON.stringify(fromUrl));
+      return fromUrl;
+    }
+  } catch(e){}
+
   var saved = null;
   try { saved = JSON.parse(localStorage.getItem('koo_user_locale')); } catch(e){}
-  if (saved && saved.currency && saved.lang) return saved;
+  if (saved && saved.currency && CURRENCIES[saved.currency] && saved.lang) return saved;
 
   var tz = '';
   try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch(e){}
   var navLang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
 
-  var cur = 'EUR';
-  var lang = 'FR';
+  var cur = 'USD';
+  var lang = 'EN';
 
-  if (tz.indexOf('Stockholm') >= 0 || navLang.indexOf('sv') >= 0) {
+  if (/New_York|Detroit|Indiana|Kentucky|Chicago|Menominee|Denver|Boise|Phoenix|Los_Angeles|Anchorage|Honolulu|Adak/.test(tz) || navLang === 'en-us') {
+    cur = 'USD'; lang = navLang.indexOf('es') === 0 ? 'ES' : 'EN';
+  } else if (/Toronto|Montreal|Winnipeg|Regina|Edmonton|Vancouver|Halifax|St_Johns|Moncton/.test(tz) || navLang === 'en-ca' || navLang === 'fr-ca') {
+    cur = 'CAD'; lang = (navLang.indexOf('fr') === 0 || tz.indexOf('Montreal') >= 0) ? 'FR' : 'EN';
+  } else if (/Sydney|Melbourne|Brisbane|Perth|Adelaide|Hobart|Darwin/.test(tz) || navLang === 'en-au') {
+    cur = 'AUD'; lang = 'EN';
+  } else if (/Auckland|Wellington|Pacific\/Chatham/.test(tz) || navLang === 'en-nz') {
+    cur = 'NZD'; lang = 'EN';
+  } else if (/London|Belfast/.test(tz) || navLang === 'en-gb') {
+    cur = 'GBP'; lang = 'EN';
+  } else if (/Dublin/.test(tz) || navLang === 'en-ie') {
+    cur = 'EUR'; lang = 'EN';
+  } else if (/Zurich|Geneva/.test(tz)) {
+    cur = 'CHF'; lang = navLang.indexOf('fr') === 0 ? 'FR' : (navLang.indexOf('it') === 0 ? 'IT' : 'DE');
+  } else if (tz.indexOf('Stockholm') >= 0 || navLang.indexOf('sv') === 0) {
     cur = 'SEK'; lang = 'SV';
-  } else if (tz.indexOf('Oslo') >= 0 || navLang.indexOf('no') >= 0 || navLang.indexOf('nb') >= 0 || navLang.indexOf('nn') >= 0) {
+  } else if (tz.indexOf('Oslo') >= 0 || navLang.indexOf('no') === 0 || navLang.indexOf('nb') === 0 || navLang.indexOf('nn') === 0) {
     cur = 'NOK'; lang = 'NO';
-  } else if (tz.indexOf('Copenhagen') >= 0 || navLang.indexOf('da') >= 0) {
+  } else if (tz.indexOf('Copenhagen') >= 0 || navLang.indexOf('da') === 0) {
     cur = 'DKK'; lang = 'DA';
-  } else if (tz.indexOf('Warsaw') >= 0 || navLang.indexOf('pl') >= 0) {
+  } else if (tz.indexOf('Warsaw') >= 0 || navLang.indexOf('pl') === 0) {
     cur = 'PLN'; lang = 'PL';
-  } else if (tz.indexOf('Prague') >= 0 || navLang.indexOf('cs') >= 0) {
+  } else if (tz.indexOf('Prague') >= 0 || navLang.indexOf('cs') === 0) {
     cur = 'CZK'; lang = 'CS';
-  } else if (tz.indexOf('Budapest') >= 0 || navLang.indexOf('hu') >= 0) {
+  } else if (tz.indexOf('Budapest') >= 0 || navLang.indexOf('hu') === 0) {
     cur = 'HUF'; lang = 'HU';
-  } else if (tz.indexOf('Bucharest') >= 0 || navLang.indexOf('ro') >= 0) {
+  } else if (tz.indexOf('Bucharest') >= 0 || navLang.indexOf('ro') === 0) {
     cur = 'RON'; lang = 'RO';
-  } else if (tz.indexOf('Sofia') >= 0 || navLang.indexOf('bg') >= 0) {
+  } else if (tz.indexOf('Sofia') >= 0 || navLang.indexOf('bg') === 0) {
     cur = 'BGN'; lang = 'BG';
-  } else if (tz.indexOf('Reykjavik') >= 0 || navLang.indexOf('is') >= 0) {
+  } else if (tz.indexOf('Reykjavik') >= 0 || navLang.indexOf('is') === 0) {
     cur = 'ISK'; lang = 'EN';
-  } else if (tz.indexOf('Istanbul') >= 0 || navLang.indexOf('tr') >= 0) {
+  } else if (tz.indexOf('Istanbul') >= 0 || navLang.indexOf('tr') === 0) {
     cur = 'TRY'; lang = 'TR';
-  } else if (tz.indexOf('Kyiv') >= 0 || navLang.indexOf('uk') >= 0) {
+  } else if (tz.indexOf('Kyiv') >= 0 || navLang.indexOf('uk') === 0) {
     cur = 'UAH'; lang = 'UK';
-  } else if (tz.indexOf('Belgrade') >= 0 || navLang.indexOf('sr') >= 0) {
+  } else if (tz.indexOf('Belgrade') >= 0 || navLang.indexOf('sr') === 0) {
     cur = 'RSD'; lang = 'EN';
-  } else if (tz.indexOf('Casablanca') >= 0 || navLang.indexOf('ar-ma') >= 0) {
+  } else if (tz.indexOf('Casablanca') >= 0 || navLang === 'ar-ma') {
     cur = 'MAD'; lang = 'FR';
   } else if (tz.indexOf('Dubai') >= 0 || tz.indexOf('Muscat') >= 0) {
     cur = 'AED'; lang = 'AR';
   } else if (tz.indexOf('Riyadh') >= 0) {
     cur = 'SAR'; lang = 'AR';
-  } else if (tz.indexOf('London') >= 0 || navLang.indexOf('en-gb') >= 0) {
-    cur = 'GBP'; lang = 'EN';
-  } else if (tz.indexOf('Zurich') >= 0 || tz.indexOf('Geneva') >= 0) {
-    cur = 'CHF'; lang = 'FR';
-  } else if (tz.indexOf('New_York') >= 0 || tz.indexOf('Los_Angeles') >= 0 || tz.indexOf('Chicago') >= 0 || navLang.indexOf('en-us') >= 0) {
-    cur = 'USD'; lang = 'EN';
-  } else if (tz.indexOf('Toronto') >= 0 || tz.indexOf('Vancouver') >= 0 || navLang.indexOf('en-ca') >= 0) {
-    cur = 'CAD'; lang = 'EN';
-  } else if (tz.indexOf('Sydney') >= 0 || tz.indexOf('Melbourne') >= 0 || navLang.indexOf('en-au') >= 0) {
-    cur = 'AUD'; lang = 'EN';
-  } else if (navLang.indexOf('de') >= 0) {
+  } else if (/Berlin|Vienna|Munich/.test(tz) || navLang.indexOf('de') === 0) {
     cur = 'EUR'; lang = 'DE';
-  } else if (navLang.indexOf('es') >= 0) {
+  } else if (/Paris|Lyon|Brussels|Luxembourg/.test(tz) || navLang.indexOf('fr') === 0) {
+    cur = 'EUR'; lang = 'FR';
+  } else if (/Madrid|Barcelona/.test(tz) || navLang.indexOf('es') === 0) {
     cur = 'EUR'; lang = 'ES';
-  } else if (navLang.indexOf('it') >= 0) {
+  } else if (/Rome|Milan/.test(tz) || navLang.indexOf('it') === 0) {
     cur = 'EUR'; lang = 'IT';
-  } else if (navLang.indexOf('nl') >= 0) {
+  } else if (/Amsterdam/.test(tz) || navLang.indexOf('nl') === 0) {
     cur = 'EUR'; lang = 'NL';
-  } else if (navLang.indexOf('pt') >= 0) {
+  } else if (/Lisbon/.test(tz) || navLang.indexOf('pt') === 0) {
     cur = 'EUR'; lang = 'PT';
-  } else if (navLang.indexOf('el') >= 0) {
+  } else if (/Athens/.test(tz) || navLang.indexOf('el') === 0) {
     cur = 'EUR'; lang = 'EL';
-  } else if (navLang.indexOf('ar') >= 0) {
-    cur = 'EUR'; lang = 'AR';
+  } else if (navLang.indexOf('ar') === 0) {
+    cur = 'USD'; lang = 'AR';
   }
 
   return { currency: cur, lang: lang };
@@ -153,6 +174,250 @@ function detectLocale() {
 
 var currentLocale = detectLocale();
 window.currentLocale = currentLocale;
+
+/* ---------- UTM & META AD ATTRIBUTION ---------- */
+function captureAttribution() {
+  try {
+    var qp = new URLSearchParams(window.location.search);
+    var src = qp.get('utm_source') || (qp.get('fbclid') ? 'meta' : '');
+    var med = qp.get('utm_medium') || '';
+    var camp = qp.get('utm_campaign') || '';
+    var cont = qp.get('utm_content') || '';
+    var fbclid = qp.get('fbclid') || '';
+    if (src || camp || fbclid) {
+      var prev = {};
+      try { prev = JSON.parse(localStorage.getItem('mcgee_utm')) || {}; } catch(e){}
+      var next = {
+        utm_source: src || prev.utm_source || '',
+        utm_medium: med || prev.utm_medium || '',
+        utm_campaign: camp || prev.utm_campaign || '',
+        utm_content: cont || prev.utm_content || '',
+        fbclid: fbclid || prev.fbclid || '',
+        landed_at: prev.landed_at || new Date().toISOString()
+      };
+      localStorage.setItem('mcgee_utm', JSON.stringify(next));
+    }
+  } catch(e){}
+}
+captureAttribution();
+
+function getSavedAttribution() {
+  try { return JSON.parse(localStorage.getItem('mcgee_utm')) || {}; } catch(e){ return {}; }
+}
+
+/* ---------- LIVE I18N ENGINE (11 LANGUAGES + RTL FOR AR) ---------- */
+var MCGEE_I18N = {
+  EN: {
+    'nav.ritual': 'Daily Ritual', 'nav.vault': 'Jewelry Box', 'nav.planner': 'Look Planner', 'nav.sizing': 'Size guide',
+    'nav.styling': 'Metal match', 'nav.gift': 'Gift finder', 'nav.more': 'More', 'nav.login': 'Log in', 'nav.menu': 'Menu',
+    'nav.theme': 'Theme', 'footer.tag': 'Daily styling rituals, fine jewelry value vault & sizing precision across every device.',
+    'footer.copy': '© 2026 McGee Jewelry. Sizes and care advice are general guidance. For fine or antique pieces, check with a jeweler.',
+    'hero.eyebrow': 'Daily Jewelry Ritual · Live Gold Vault · 14 Studios',
+    'hero.title': 'Your daily jewelry ritual & value vault, in one studio.',
+    'hero.sub': 'Pick your morning jewelry stack in 10 seconds, protect pieces from tarnish, track live 10k–24k gold melt value, and share your exact size passport.',
+    'hero.cta_ritual': 'Start Today’s 10s Ritual →', 'hero.cta_vault': 'Open My Jewelry Box', 'hero.cta_explore': 'Explore All 14 Studios ↓',
+    'habit.title': 'Built for every day, every week & every month',
+    'habit.d_tag': 'EVERY MORNING · 10 SECONDS', 'habit.d_title': 'Morning Look & Care Check',
+    'habit.d_desc': 'Pick your neckline and occasion to get instant chain lengths, tarnish safety reminders, and 1-tap wear streak logging.',
+    'habit.w_tag': 'EVERY SUNDAY · 2 MINUTES', 'habit.w_title': '7-Day Lookbook & Cleaning Radar',
+    'habit.w_desc': 'Plan Monday–Sunday looks without typing, spot pieces due for cleaning, and add a Sunday care alert to your phone calendar.',
+    'habit.m_tag': 'EVERY MONTH · ASSET & GIFTS', 'habit.m_title': 'Gold Melt Vault & Gift Passport',
+    'habit.m_desc': 'Watch your collection’s bullion value in your local currency, print insurance sheets, and copy your ring & wrist size card for your partner.',
+    'ritual.title': 'Daily Jewelry Ritual & Care',
+    'ritual.sub': 'Your 10-second morning check-in: match your neckline, protect metals from tarnish, log today’s wear streak, and share your size passport.',
+    'vault.title': 'My Jewelry Box & Value Tracker',
+    'vault.sub': 'Catalog your fine pieces, upload high-res photos, track pure gold grams, and monitor your collection’s estimated melt and replacement value.',
+    'planner.title': 'Jewelry Lookbook & Wear Planner',
+    'planner.sub': 'Organize what jewelry you wear every day, track your 30-day wearing history, and discover your true Cost-Per-Wear.',
+    'pro.badge': '✨ MCGEE JEWELRY PRO', 'pro.title_unlock': 'Unlock Your Daily Jewelry Concierge',
+    'pro.title_lock': 'Free Preview Used — Keep Going with Pro',
+    'pro.cancel': 'Instant activation via Stripe · Local currency checkout · Cancel in 1 click',
+    'loc.title': 'Currency & Language', 'loc.sub': 'Select your currency and language. Prices, gold rates, and text update instantly.',
+    'loc.apply': 'Apply & Translate'
+  },
+  FR: {
+    'nav.ritual': 'Rituel Jour', 'nav.vault': 'Mon Coffret', 'nav.planner': 'Lookbook', 'nav.sizing': 'Tailles',
+    'nav.styling': 'Métal & Teint', 'nav.gift': 'Idées Cadeaux', 'nav.more': 'Plus', 'nav.login': 'Connexion', 'nav.menu': 'Menu',
+    'nav.theme': 'Thème', 'footer.tag': 'Rituels bijoux quotidiens, coffret valeur or et guide de tailles synchronisé.',
+    'footer.copy': '© 2026 McGee Jewelry. Conseils généraux de taille et d’entretien. Consultez un joaillier pour vos pièces anciennes.',
+    'hero.eyebrow': 'Rituel Bijoux Quotidien · Coffret Or · 14 Studios',
+    'hero.title': 'Votre rituel bijoux quotidien & coffret valeur, en un studio.',
+    'hero.sub': 'Composez votre parure en 10 secondes le matin, protégez l’or et l’argent de l’oxydation, suivez la valeur de fonte et partagez vos tailles.',
+    'hero.cta_ritual': 'Lancer le Rituel du Jour →', 'hero.cta_vault': 'Ouvrir Mon Coffret', 'hero.cta_explore': 'Explorer les 14 Studios ↓',
+    'habit.title': 'Pensé pour chaque jour, semaine et mois',
+    'habit.d_tag': 'CHAQUE MATIN · 10 SECONDES', 'habit.d_title': 'Look du Jour & Alerte Entretien',
+    'habit.d_desc': 'Choisissez votre encolure et l’occasion pour obtenir longueurs idéales, conseils anti-ternissement et suivi de série.',
+    'habit.w_tag': 'CHAQUE DIMANCHE · 2 MINUTES', 'habit.w_title': 'Planificateur 7 Jours & Nettoyage',
+    'habit.w_desc': 'Planifiez la semaine du lundi au dimanche, repérez les bijoux à nettoyer et ajoutez un rappel au calendrier.',
+    'habit.m_tag': 'CHAQUE MOIS · PATRIMOINE & CADEAUX', 'habit.m_title': 'Valeur Or & Passeport Tailles',
+    'habit.m_desc': 'Suivez la valeur en devise locale, imprimez votre dossier assurance et copiez votre fiche tailles pour vos proches.',
+    'ritual.title': 'Rituel Bijoux Quotidien & Soin',
+    'ritual.sub': 'Votre check-in du matin en 10 secondes : accordez vos chaînes, protégez vos métaux et partagez votre passeport tailles.',
+    'vault.title': 'Mon Coffret à Bijoux & Valeur Or',
+    'vault.sub': 'Cataloguez vos bagues et chaînes, calculez le poids d’or pur et estimez la valeur de remplacement.',
+    'planner.title': 'Lookbook & Agenda de Port',
+    'planner.sub': 'Organisez vos parures de la semaine et calculez votre coût réel par port sur 30 jours.',
+    'pro.badge': '✨ MCGEE JEWELRY PRO', 'pro.title_unlock': 'Débloquez Votre Concierge Bijoux',
+    'pro.title_lock': 'Aperçu utilisé — Passez à Pro en illimité',
+    'pro.cancel': 'Accès instantané via Stripe · Paiement sécurisé · Annulation en 1 clic',
+    'loc.title': 'Devise & Langue', 'loc.sub': 'Choisissez votre devise et votre langue. Le site se traduit instantanément.',
+    'loc.apply': 'Appliquer & Traduire'
+  },
+  ES: {
+    'nav.ritual': 'Ritual Diario', 'nav.vault': 'Mi Joyero', 'nav.planner': 'Lookbook', 'nav.sizing': 'Tallas',
+    'nav.styling': 'Tono y Metal', 'nav.gift': 'Regalos', 'nav.more': 'Más', 'nav.login': 'Entrar', 'nav.menu': 'Menú',
+    'nav.theme': 'Tema', 'footer.tag': 'Ritual diario de joyería, bóveda de valor en oro y guía internacional de tallas.',
+    'hero.eyebrow': 'Ritual Diario · Bóveda de Oro · 14 Estudios',
+    'hero.title': 'Tu ritual diario de joyería y bóveda de valor, en un estudio.',
+    'hero.sub': 'Elige tus joyas en 10 segundos cada mañana, evita el deslustre, calcula el valor del oro y comparte tu pasaporte de tallas.',
+    'hero.cta_ritual': 'Iniciar Ritual de Hoy →', 'hero.cta_vault': 'Abrir Mi Joyero', 'hero.cta_explore': 'Ver los 14 Estudios ↓',
+    'habit.title': 'Diseñado para tu rutina diaria, semanal y mensual',
+    'ritual.title': 'Ritual Diario de Joyería y Cuidado',
+    'vault.title': 'Mi Joyero y Valor en Oro',
+    'planner.title': 'Planificador Semanal y Coste por Uso',
+    'loc.title': 'Moneda e Idioma', 'loc.apply': 'Aplicar y Traducir'
+  },
+  DE: {
+    'nav.ritual': 'Tagesritual', 'nav.vault': 'Schmuckbox', 'nav.planner': 'Lookbook', 'nav.sizing': 'Größen',
+    'nav.styling': 'Metall-Match', 'nav.gift': 'Geschenke', 'nav.more': 'Mehr', 'nav.login': 'Anmelden', 'nav.menu': 'Menü',
+    'nav.theme': 'Design', 'hero.eyebrow': 'Tägliches Schmuckritual · Gold-Tresor · 14 Studios',
+    'hero.title': 'Dein tägliches Schmuckritual & Wert-Tresor in einem Studio.',
+    'hero.sub': 'Wähle deinen Morgen-Look in 10 Sekunden, schütze Schmuck vor Anlaufen und verfolge deinen Goldwert.',
+    'hero.cta_ritual': 'Heutiges Ritual starten →', 'hero.cta_vault': 'Schmuckbox öffnen', 'hero.cta_explore': 'Alle 14 Studios ↓',
+    'ritual.title': 'Tägliches Schmuckritual & Pflege', 'vault.title': 'Meine Schmuckbox & Goldwert', 'planner.title': 'Wochen-Lookbook & Trage-Planer',
+    'loc.title': 'Währung & Sprache', 'loc.apply': 'Übernehmen & Übersetzen'
+  },
+  IT: {
+    'nav.ritual': 'Rituale Giorno', 'nav.vault': 'Portagioie', 'nav.planner': 'Lookbook', 'nav.sizing': 'Misure',
+    'nav.styling': 'Armonia Metalli', 'nav.gift': 'Regali', 'nav.more': 'Altro', 'nav.login': 'Accedi', 'nav.menu': 'Menu',
+    'hero.title': 'Il tuo rituale quotidiano di gioielleria e caveau in uno studio.',
+    'hero.cta_ritual': 'Inizia il Rituale di Oggi →', 'hero.cta_vault': 'Apri il Portagioie',
+    'ritual.title': 'Rituale Quotidiano e Cura', 'vault.title': 'Il Mio Portagioie e Valore Oro', 'planner.title': 'Lookbook Settimanale',
+    'loc.title': 'Valuta e Lingua', 'loc.apply': 'Applica e Traduci'
+  },
+  NL: {
+    'nav.ritual': 'Dagritueel', 'nav.vault': 'Sieradendoos', 'nav.planner': 'Lookbook', 'nav.sizing': 'Maten',
+    'nav.styling': 'Metaalmatch', 'nav.gift': 'Cadeaus', 'nav.more': 'Meer', 'nav.login': 'Inloggen', 'nav.menu': 'Menu',
+    'hero.title': 'Jouw dagelijkse sieradenritueel & goudkluis in één studio.',
+    'hero.cta_ritual': 'Start Ritueel van Vandaag →', 'hero.cta_vault': 'Open Sieradendoos',
+    'loc.title': 'Valuta & Taal', 'loc.apply': 'Toepassen & Vertalen'
+  },
+  PT: {
+    'nav.ritual': 'Ritual Diário', 'nav.vault': 'Porta-Joias', 'nav.planner': 'Lookbook', 'nav.sizing': 'Tamanhos',
+    'nav.styling': 'Metais', 'nav.gift': 'Presentes', 'nav.more': 'Mais', 'nav.login': 'Entrar', 'nav.menu': 'Menu',
+    'hero.title': 'O seu ritual diário de joalharia e cofre de valor num só estúdio.',
+    'hero.cta_ritual': 'Iniciar Ritual de Hoje →', 'hero.cta_vault': 'Abrir Porta-Joias',
+    'loc.title': 'Moeda e Idioma', 'loc.apply': 'Aplicar e Traduzir'
+  },
+  SV: {
+    'nav.ritual': 'Daglig Ritual', 'nav.vault': 'Smyckeskrin', 'nav.planner': 'Veckoplan', 'nav.sizing': 'Storlekar',
+    'nav.styling': 'Metallmatch', 'nav.gift': 'Presenter', 'nav.more': 'Mer', 'nav.login': 'Logga in', 'nav.menu': 'Meny',
+    'hero.title': 'Din dagliga smyckesritual och värdevalv i en studio.',
+    'hero.cta_ritual': 'Starta Dagens Ritual →', 'hero.cta_vault': 'Öppna Smyckeskrin',
+    'loc.title': 'Valuta & Språk', 'loc.apply': 'Verkställ & Översätt'
+  },
+  NO: {
+    'nav.ritual': 'Daglig Rituale', 'nav.vault': 'Smykkeskrin', 'nav.planner': 'Lookbook', 'nav.sizing': 'Størrelser',
+    'nav.styling': 'Metallmatch', 'nav.gift': 'Gaver', 'nav.more': 'Mer', 'nav.login': 'Logg inn', 'nav.menu': 'Meny',
+    'hero.title': 'Ditt daglige smykkerituale og verdihvelv i ett studio.',
+    'hero.cta_ritual': 'Start Dagens Rituale →', 'hero.cta_vault': 'Åpne Smykkeskrin',
+    'loc.title': 'Valuta & Språk', 'loc.apply': 'Bruk & Oversett'
+  },
+  DA: {
+    'nav.ritual': 'Dagligt Ritual', 'nav.vault': 'Smykkeskrin', 'nav.planner': 'Lookbook', 'nav.sizing': 'Størrelser',
+    'nav.styling': 'Metallmatch', 'nav.gift': 'Gaver', 'nav.more': 'Mere', 'nav.login': 'Log ind', 'nav.menu': 'Menu',
+    'hero.title': 'Dit daglige smykkeritual og værdiboks i ét studio.',
+    'hero.cta_ritual': 'Start Dagens Ritual →', 'hero.cta_vault': 'Åbn Smykkeskrin',
+    'loc.title': 'Valuta & Sprog', 'loc.apply': 'Anvend & Oversæt'
+  },
+  AR: {
+    'nav.ritual': 'الروتين اليومي', 'nav.vault': 'صندوق مجوهراتي', 'nav.planner': 'مخطط الإطلالات', 'nav.sizing': 'دليل المقاسات',
+    'nav.styling': 'المعدن المناسب', 'nav.gift': 'مكتشف الهدايا', 'nav.more': 'المزيد', 'nav.login': 'دخول', 'nav.menu': 'القائمة',
+    'nav.theme': 'المظهر', 'footer.tag': 'روتينك اليومي للمجوهرات، خزينة قيمة الذهب، ودليل المقاسات المتزامن عبر أجهزتك.',
+    'hero.eyebrow': 'روتين المجوهرات اليومي · خزينة الذهب الحية · 14 استوديو',
+    'hero.title': 'روتينكِ اليومي للمجوهرات وخزينة قيمتها، في استوديو واحد.',
+    'hero.sub': 'اختاري تنسيق مجوهراتك في 10 ثوانٍ كل صباح، واحميها من البهتان، وتابعي قيمة الذهب اللحظية، وشاركي بطاقة مقاساتك.',
+    'hero.cta_ritual': 'ابدئي روتين اليوم (10 ثوانٍ) ←', 'hero.cta_vault': 'افتحي صندوق مجوهراتي', 'hero.cta_explore': 'استكشفي 14 استوديو ↓',
+    'habit.title': 'مصمم لروتينك اليومي والأسبوعي والشهري',
+    'ritual.title': 'الروتين اليومي للمجوهرات والعناية',
+    'vault.title': 'صندوق مجوهراتي وحاسبة القيمة',
+    'planner.title': 'مخطط الإطلالات الأسبوعي وتكلفة الارتداء',
+    'pro.badge': '✨ عضوية McGee Pro', 'pro.title_unlock': 'افتحي مساعدكِ اليومي للمجوهرات',
+    'loc.title': 'العملة واللغة', 'loc.sub': 'اختاري عملتك ولغتك المفضلة. يتحدث الموقع ويُترجم فوراً.',
+    'loc.apply': 'تطبيق وترجمة'
+  }
+};
+window.MCGEE_I18N = MCGEE_I18N;
+
+function t(key, fallback) {
+  var lang = (currentLocale && currentLocale.lang) || 'EN';
+  var dict = MCGEE_I18N[lang] || MCGEE_I18N.EN;
+  return dict[key] || MCGEE_I18N.EN[key] || fallback || key;
+}
+window.t = t;
+
+function applyDocumentLocale() {
+  var lang = (currentLocale && currentLocale.lang) || 'EN';
+  document.documentElement.lang = lang.toLowerCase();
+  if (lang === 'AR') document.documentElement.setAttribute('dir', 'rtl');
+  else document.documentElement.removeAttribute('dir');
+
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    var key = el.getAttribute('data-i18n');
+    if (!el.dataset.i18nDefault) el.dataset.i18nDefault = el.textContent;
+    var val = t(key, el.dataset.i18nDefault);
+    if (val) el.textContent = val;
+  });
+
+  if (window.formatPrice) {
+    var lp = formatPrice(6);
+    var dp = formatPrice(0.20);
+    document.querySelectorAll('[data-pro-price]').forEach(function(el){ el.textContent = lp; });
+    document.querySelectorAll('[data-daily-price]').forEach(function(el){ el.textContent = dp + '/day'; });
+  }
+}
+window.applyMcGeeTranslations = applyDocumentLocale;
+
+/* ---------- LIVE SITE CONFIG & META PIXEL ---------- */
+window.__mcgeeSiteConfig = { meta_pixel_id: '', gold_usd_per_oz: '2650' };
+try {
+  var cachedCfg = JSON.parse(localStorage.getItem('mcgee_site_config'));
+  if (cachedCfg) window.__mcgeeSiteConfig = Object.assign(window.__mcgeeSiteConfig, cachedCfg);
+} catch(e){}
+
+window.getMcGeeGoldPerGramUsd = function() {
+  var oz = parseFloat(window.__mcgeeSiteConfig && window.__mcgeeSiteConfig.gold_usd_per_oz) || 2650;
+  return oz / 31.1035;
+};
+
+var __pixelBootedId = '';
+function bootMetaPixel(pixelId) {
+  var cleanId = String(pixelId || '').replace(/[^0-9]/g, '');
+  if (!cleanId || cleanId.length < 8 || __pixelBootedId === cleanId) return;
+  __pixelBootedId = cleanId;
+  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+  n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  window.fbq('init', cleanId);
+  window.fbq('track', 'PageView');
+}
+
+function trackMcGeeEvent(eventName, params) {
+  try {
+    if (typeof window.fbq === 'function') {
+      window.fbq('track', eventName, params || {});
+    }
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', eventName, params || {});
+    }
+  } catch(e){}
+}
+window.trackMcGeeEvent = trackMcGeeEvent;
+
+if (window.__mcgeeSiteConfig.meta_pixel_id) {
+  bootMetaPixel(window.__mcgeeSiteConfig.meta_pixel_id);
+}
 
 /* ---------- LIVE CURRENCY FORMATTER ---------- */
 function formatPrice(usdAmount) {
@@ -196,12 +461,12 @@ function openLocaleModal() {
   dlg.innerHTML = '<div class="glass glow p-6 md:p-8 rounded-3xl max-w-sm w-full relative" style="box-shadow:0 30px 60px rgba(0,0,0,0.5);border:1px solid rgba(243,226,179,0.25)">' +
                   '<button id="loc-close" style="position:absolute;top:1.2rem;right:1.2rem;width:2rem;height:2rem;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:1rem;cursor:pointer" class="muted hover:text-white">✕</button>' +
                   '<span class="chip text-xs">Regional Settings</span>' +
-                  '<h3 class="serif text-3xl gt mt-2">Currency & Language</h3>' +
-                  '<p class="muted text-xs mt-1">Select your preferred currency and language. The website translates instantly.</p>' +
+                  '<h3 class="serif text-3xl gt mt-2">' + t('loc.title', 'Currency & Language') + '</h3>' +
+                  '<p class="muted text-xs mt-1">' + t('loc.sub', 'Select your preferred currency and language. The website translates instantly.') + '</p>' +
                   '<div class="flex flex-col gap-3 mt-5">' +
                   '<label class="fld text-left"><span>Select Currency</span><select id="loc-sel-cur">' + curOptions + '</select></label>' +
                   '<label class="fld text-left"><span>Website Language</span><select id="loc-sel-lang">' + langOptions + '</select></label>' +
-                  '<button id="loc-btn-save" class="btn btn-gold w-full mt-3">Apply & Translate</button>' +
+                  '<button id="loc-btn-save" class="btn btn-gold w-full mt-3">' + t('loc.apply', 'Apply & Translate') + '</button>' +
                   '</div>' +
                   '</div>';
 
@@ -226,6 +491,9 @@ function openLocaleModal() {
       currentLocale.currency = newCur;
       currentLocale.lang = newLang;
       try { localStorage.setItem('koo_user_locale', JSON.stringify(currentLocale)); } catch(e){}
+      if (currentUser && sb) {
+        sb.from('profiles').upsert({ user_id: currentUser.id, currency: newCur, language: newLang, updated_at: new Date().toISOString() }, { onConflict: 'user_id' }).then(function(){});
+      }
       dlg.remove();
       location.reload();
     };
@@ -244,12 +512,13 @@ var guides=[["/how-to-measure-ring-size-at-home","Measure Ring Size at Home"],["
 
 var pages=[
   ['index.html','Home'],
-  ['vault.html','Jewelry Box'],
-  ['planner.html','Look Planner'],
-  ['sizing.html','Size guide'],
-  ['styling.html','Metal match'],
+  ['ritual.html', t('nav.ritual', 'Daily Ritual')],
+  ['vault.html', t('nav.vault', 'Jewelry Box')],
+  ['planner.html', t('nav.planner', 'Look Planner')],
+  ['sizing.html', t('nav.sizing', 'Size guide')],
+  ['styling.html', t('nav.styling', 'Metal match')],
   ['care.html','Care'],
-  ['gift.html','Gift finder'],
+  ['gift.html', t('nav.gift', 'Gift finder')],
   ['blog.html','Blog'],
   ['wishlist.html','Wishlist'],
   ['layering.html','Layering'],
@@ -330,20 +599,20 @@ function lk(p){
   return '<a class="l whitespace-nowrap" href="' + p[0] + '"' + (p[0] === here ? ' aria-current="page"' : '') + '>' + p[1] + (p[0] === 'wishlist.html' ? ' <span data-count hidden class="ml-1 rounded-full px-1.5 text-xs" style="background:#b76e79;color:#fff"></span>' : '') + '</a>';
 }
 
-var curInfo = CURRENCIES[currentLocale.currency] || CURRENCIES.EUR;
+var curInfo = CURRENCIES[currentLocale.currency] || CURRENCIES.USD;
 var locBtnHtml = '<button id="nav-locale-btn" class="l whitespace-nowrap flex items-center gap-1 font-medium text-xs py-1 px-2.5 rounded-full" style="cursor:pointer;color:#b76e79;background:rgba(243,226,179,0.15);border:1px solid rgba(183,110,121,0.25)" title="Change Currency & Language"><span>📍 ' + currentLocale.currency + ' (' + curInfo.symbol + ') ▾</span></button>';
 
 var deskLinks = [
   pages[1], pages[2], pages[3], pages[4]
-].map(lk).join('') + locBtnHtml + lk(pages[6]);
+].map(lk).join('') + locBtnHtml + lk(pages[7]);
 
-var moreLinks = [pages[5], pages[7], pages[8], pages[9], pages[10], pages[11], pages[12], pages[13], pages[14]].map(lk).join('');
-var desk = deskLinks + '<details class="more"><summary' + (here !== 'index.html' && ['vault.html','planner.html','sizing.html','styling.html','gift.html'].indexOf(here) < 0 ? ' style="color:#f3e2b3"' : '') + '>More</summary><div class="more-menu">' + moreLinks + '</div></details>';
+var moreLinks = [pages[5], pages[6], pages[8], pages[9], pages[10], pages[11], pages[12], pages[13], pages[14], pages[15]].map(lk).join('');
+var desk = deskLinks + '<details class="more"><summary' + (here !== 'index.html' && ['ritual.html','vault.html','planner.html','sizing.html','gift.html'].indexOf(here) < 0 ? ' style="color:#f3e2b3"' : '') + '>' + t('nav.more', 'More') + '</summary><div class="more-menu">' + moreLinks + '</div></details>';
 
 var mobLinks = pages.map(lk).join('') + 
   '<div class="pt-3 mt-2 border-t border-rose-200/20 flex flex-col gap-2">' +
-  '<button id="m-nav-locale-btn" class="chip text-xs w-full text-center py-2">📍 Currency & Language: ' + currentLocale.currency + ' (' + curInfo.symbol + ') · ' + (LANGUAGES[currentLocale.lang]||currentLocale.lang) + '</button>' +
-  '<button id="m-th" class="btn btn-ghost text-xs w-full py-2">Switch Theme</button>' +
+  '<button id="m-nav-locale-btn" class="chip text-xs w-full text-center py-2">📍 ' + currentLocale.currency + ' (' + curInfo.symbol + ') · ' + (LANGUAGES[currentLocale.lang]||currentLocale.lang) + '</button>' +
+  '<button id="m-th" class="btn btn-ghost text-xs w-full py-2">' + t('nav.theme', 'Theme') + '</button>' +
   '</div>';
 
 var nav = document.getElementById('nav');
@@ -353,10 +622,10 @@ if(nav) nav.innerHTML = '<header class="nav"><div class="mx-auto max-w-7xl px-3 
   '<div class="flex items-center gap-1.5 sm:gap-2 shrink-0" id="nav-actions">' +
   '<button id="th" class="btn btn-ghost hidden sm:inline-flex text-xs py-1.5 px-3" aria-label="Change color theme"></button>' +
   '<span id="auth-slot" class="flex items-center gap-1.5 shrink-0"></span>' +
-  '<button id="mb" class="xl:hidden btn btn-ghost py-1.5 px-3 text-xs" aria-expanded="false" aria-controls="mm">Menu</button>' +
+  '<button id="mb" class="xl:hidden btn btn-ghost py-1.5 px-3 text-xs" aria-expanded="false" aria-controls="mm">' + t('nav.menu', 'Menu') + '</button>' +
   '</div></div>' +
   '<nav id="mm" class="hidden xl:hidden px-4 pb-4 flex-col gap-1" aria-label="Mobile">' +
-  '<div id="mm-auth" class="pb-2 mb-2 border-b border-rose-200/20"></div>' +
+  '<div id="mm-auth" class="pb-2 mb-2 border-t border-rose-200/20"></div>' +
   mobLinks +
   '</nav></header>';
 
@@ -367,15 +636,15 @@ var mb = document.getElementById('mb');
 if(mb) mb.onclick = function(){ var m = document.getElementById('mm'), o = m.classList.toggle('hidden'); m.classList.toggle('flex', !o); mb.setAttribute('aria-expanded', !o); };
 
 var f = document.getElementById('foot');
-if(f) f.innerHTML = '<footer class="mx-auto max-w-6xl px-5 py-12 border-t" style="border-color:rgba(243,226,179,.1)"><div class="flex flex-wrap justify-between gap-6"><div>' + brand('lg2') + '<p class="muted text-sm mt-2 max-w-sm">Fine jewelry tools and style guides. Upgrade to Pro for unlimited access.</p></div><nav class="flex flex-wrap gap-x-5 gap-y-1 text-sm muted" aria-label="Footer">' + pages.map(function(p){ return '<a href="' + p[0] + '" class="hover:text-white">' + p[1] + '</a>'; }).join('') + '<a href="privacy.html" class="hover:text-white">Privacy and ads</a></nav></div><nav class="flex flex-wrap gap-x-5 gap-y-1 text-sm muted mt-6" aria-label="Guides">' + guides.map(function(g){ return '<a href="' + g[0] + '" class="hover:text-white">' + g[1] + '</a>'; }).join('') + '</nav><p class="muted text-xs mt-8">© 2026 McGee Jewelry. Sizes and care advice are general guidance. For fine or antique pieces, check with a jeweler.</p></footer>';
+if(f) f.innerHTML = '<footer class="mx-auto max-w-6xl px-5 py-12 border-t" style="border-color:rgba(243,226,179,.1)"><div class="flex flex-wrap justify-between gap-6"><div>' + brand('lg2') + '<p class="muted text-sm mt-2 max-w-sm">' + t('footer.tag', 'Daily styling rituals, fine jewelry value vault & sizing precision across every device.') + '</p></div><nav class="flex flex-wrap gap-x-5 gap-y-1 text-sm muted" aria-label="Footer">' + pages.map(function(p){ return '<a href="' + p[0] + '" class="hover:text-white">' + p[1] + '</a>'; }).join('') + '<a href="privacy.html" class="hover:text-white">Privacy and ads</a></nav></div><nav class="flex flex-wrap gap-x-5 gap-y-1 text-sm muted mt-6" aria-label="Guides">' + guides.map(function(g){ return '<a href="' + g[0] + '" class="hover:text-white">' + g[1] + '</a>'; }).join('') + '</nav><p class="muted text-xs mt-8">' + t('footer.copy', '© 2026 McGee Jewelry. Sizes and care advice are general guidance. For fine or antique pieces, check with a jeweler.') + '</p></footer>';
 
 /* ---------- Theme switcher ---------- */
 function thNow(){ return document.documentElement.dataset.theme || 'light'; }
 function thLab(){
-  var t = document.getElementById('th'), c = thNow(), r = TH.filter(function(x){ return x[0] === c; })[0] || TH[0];
-  if(t) t.textContent = 'Theme: ' + r[1];
+  var tEl = document.getElementById('th'), c = thNow(), r = TH.filter(function(x){ return x[0] === c; })[0] || TH[0];
+  if(tEl) tEl.textContent = t('nav.theme', 'Theme') + ': ' + r[1];
   var mt = document.getElementById('m-th');
-  if(mt) mt.textContent = 'Theme: ' + r[1];
+  if(mt) mt.textContent = t('nav.theme', 'Theme') + ': ' + r[1];
   var m = document.querySelector('meta[name="theme-color"]');
   if(m) m.content = r[2];
 }
@@ -446,15 +715,25 @@ function isProUser() {
 }
 window.isProUser = isProUser;
 
+function getStudioVisits() {
+  try { return JSON.parse(localStorage.getItem('koo_studio_visits')) || {}; } catch(e){ return {}; }
+}
+
 function getUsedFeatures() {
   try { return JSON.parse(localStorage.getItem('koo_used_features')) || []; } catch(e){ return []; }
 }
 
 function hasUsedFeature(slug) {
+  if (slug === 'ritual' || slug === 'vault' || slug === 'planner') return false;
+  var visits = getStudioVisits();
+  if (typeof visits[slug] === 'number') return visits[slug] >= 2;
   return getUsedFeatures().indexOf(slug) >= 0;
 }
 
 function markFeatureUsed(slug) {
+  var visits = getStudioVisits();
+  visits[slug] = (visits[slug] || 0) + 1;
+  try { localStorage.setItem('koo_studio_visits', JSON.stringify(visits)); } catch(e){}
   var used = getUsedFeatures();
   if (used.indexOf(slug) < 0) {
     used.push(slug);
@@ -463,20 +742,19 @@ function markFeatureUsed(slug) {
 }
 
 function getRemainingTries() {
-  var usedCount = getUsedFeatures().filter(function(s){
-    return ALL_TOOL_SLUGS.indexOf(s) >= 0;
+  var usedCount = ALL_TOOL_SLUGS.filter(function(s){
+    return hasUsedFeature(s);
   }).length;
   var left = ALL_TOOL_SLUGS.length - usedCount;
   return left > 0 ? left : 0;
 }
 
-function getStripeUrl() {
+function getStripeUrl(overrideEmail) {
   var url = STRIPE_BASE;
   var params = [];
-  if (currentUser) {
-    if (currentUser.email) params.push('prefilled_email=' + encodeURIComponent(currentUser.email));
-    if (currentUser.id) params.push('client_reference_id=' + encodeURIComponent(currentUser.id));
-  }
+  var emailVal = overrideEmail || (currentUser && currentUser.email) || '';
+  if (emailVal) params.push('prefilled_email=' + encodeURIComponent(emailVal));
+  if (currentUser && currentUser.id) params.push('client_reference_id=' + encodeURIComponent(currentUser.id));
   if (params.length) {
     url += (url.indexOf('?') >= 0 ? '&' : '?') + params.join('&');
   }
@@ -489,6 +767,7 @@ function updateNavAuth() {
   var pro = isProUser();
   var triesLeft = getRemainingTries();
   var priceLabel = formatPrice(6);
+  var loginLabel = t('nav.login', 'Log in');
 
   var statusBadge = '';
   if (pro) {
@@ -521,10 +800,10 @@ function updateNavAuth() {
   } else {
     html = statusBadge +
            '<button id="nav-btn-pro" class="btn btn-gold text-xs py-1.5 px-2.5 whitespace-nowrap">Pro ' + priceLabel + '</button>' +
-           '<button id="btn-login" class="btn btn-ghost text-xs py-1.5 px-2.5 whitespace-nowrap">Log in</button>';
+           '<button id="btn-login" class="btn btn-ghost text-xs py-1.5 px-2.5 whitespace-nowrap">' + loginLabel + '</button>';
 
     mHtml = '<div class="flex items-center justify-between gap-2">' +
-            '<button id="m-btn-login" class="btn btn-ghost flex-1 py-1.5 text-xs">Log in</button>' +
+            '<button id="m-btn-login" class="btn btn-ghost flex-1 py-1.5 text-xs">' + loginLabel + '</button>' +
             '<button id="m-nav-btn-pro" class="btn btn-gold flex-1 text-center py-1.5 text-xs">Pro ' + priceLabel + '/mo</button>' +
             '</div>' +
             '<p class="text-xs muted text-center mt-2">🎁 ' + triesLeft + '/' + ALL_TOOL_SLUGS.length + ' Free Tries Remaining</p>';
@@ -545,14 +824,14 @@ function updateNavAuth() {
 function showToast(msg, isError) {
   var old = document.getElementById('mcgee-toast');
   if (old) old.remove();
-  var t = document.createElement('div');
-  t.id = 'mcgee-toast';
-  t.setAttribute('role', 'status');
-  t.style.cssText = 'position:fixed;bottom:1.5rem;right:1.5rem;z-index:100002;max-width:24rem;padding:.9rem 1.25rem;border-radius:1rem;box-shadow:0 20px 40px rgba(0,0,0,0.4);border:1px solid ' + (isError ? 'rgba(239,68,68,0.5)' : 'rgba(243,226,179,0.4)') + ';';
-  t.className = 'glass fade text-sm flex items-center justify-between gap-3';
-  t.innerHTML = '<span>' + msg + '</span><button type="button" onclick="this.parentElement.remove()" class="muted hover:text-white text-xs shrink-0" aria-label="Dismiss">✕</button>';
-  document.body.appendChild(t);
-  setTimeout(function(){ if (t && t.parentElement) t.remove(); }, 6000);
+  var el = document.createElement('div');
+  el.id = 'mcgee-toast';
+  el.setAttribute('role', 'status');
+  el.style.cssText = 'position:fixed;bottom:1.5rem;right:1.5rem;z-index:100002;max-width:24rem;padding:.9rem 1.25rem;border-radius:1rem;box-shadow:0 20px 40px rgba(0,0,0,0.4);border:1px solid ' + (isError ? 'rgba(239,68,68,0.5)' : 'rgba(243,226,179,0.4)') + ';';
+  el.className = 'glass fade text-sm flex items-center justify-between gap-3';
+  el.innerHTML = '<span>' + msg + '</span><button type="button" onclick="this.parentElement.remove()" class="muted hover:text-white text-xs shrink-0" aria-label="Dismiss">✕</button>';
+  document.body.appendChild(el);
+  setTimeout(function(){ if (el && el.parentElement) el.remove(); }, 6000);
 }
 window.showMcGeeToast = showToast;
 
@@ -565,10 +844,19 @@ document.addEventListener('pointermove', function(e) {
   card.style.setProperty('--my', (e.clientY - r.top) + 'px');
 }, { passive: true });
 
-// STRIPE RETURN HANDLING: Refetches DB subscription, does NOT grant Pro locally
+// STRIPE RETURN HANDLING: Refetches DB subscription, fires deduped Meta Purchase conversion
 async function handleStripeSuccess() {
   if (location.search.indexOf('payment=success') >= 0) {
     try {
+      if (!sessionStorage.getItem('mcgee_purchase_tracked')) {
+        sessionStorage.setItem('mcgee_purchase_tracked', '1');
+        var curCfg = CURRENCIES[currentLocale.currency] || CURRENCIES.USD;
+        trackMcGeeEvent('Purchase', {
+          value: Number((6 * curCfg.rate).toFixed(2)),
+          currency: currentLocale.currency || 'USD',
+          content_name: 'McGee Jewelry Pro Monthly'
+        });
+      }
       var url = new URL(window.location);
       url.searchParams.delete('payment');
       window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : ''));
@@ -780,21 +1068,16 @@ function openProModal(isPageLock) {
   var old = document.getElementById('mcgee-pro-modal');
   if (old) old.remove();
 
-  var triesLeft = getRemainingTries();
   var priceLabel = formatPrice(6);
+  var dailyLabel = formatPrice(0.20);
 
   var features = [
-    { icon: '👑', t: 'My Jewelry Box & Value Vault', d: 'Track collection weight, gold melt value & insurance dossiers' },
-    { icon: '🗓️', t: 'Lookbook & Outfit Planner', d: 'Weekly 7-day look planning & 30-day Cost-Per-Wear analysis' },
-    { icon: '💍', t: 'Ring & Bracelet Sizer', d: 'US, UK, EU and Japan sizes with life-scale preview' },
-    { icon: '🪙', t: 'Gold Karat & Value Calculator', d: 'Real-time 10k–24k melt values and investment estimates' },
-    { icon: '💎', t: 'Diamond Carat Visualizer', d: 'Exact millimeter-to-carat finger scale on hand simulator' },
-    { icon: '✨', t: 'Photo & Undertone Analyzer', d: 'Browser-based metal detection & gem color matching' },
-    { icon: '📿', t: 'Necklace Layering Studio', d: 'Recommended chain lengths and spacing for 6 necklines' },
-    { icon: '🎨', t: 'Metal & Skin Undertone Match', d: 'Gold, silver and rose gold flattering guide' },
-    { icon: '🎁', t: '4-Question Smart Gift Finder', d: 'Custom jewelry gift recommendations by style and budget' },
-    { icon: '🧿', t: 'Beading Board & Pattern Designer', d: 'Millimeter bracelet patterns, bead counts, BOM CSV & blueprints' },
-    { icon: '♡', t: 'Synced Pro Wishlist', d: 'Save unlimited pieces and styling sets across devices' }
+    { icon: '✨', t: 'Daily 10s Stylist & Tarnish Alerts', d: 'Morning neckline stack guide, care rules & wear streak tracker' },
+    { icon: '👑', t: 'Unlimited Jewelry Box & Cloud Vault', d: 'Encrypted photos, live 10k–24k melt value & insurance PDFs' },
+    { icon: '🗓️', t: '7-Day Lookbook & Cost-Per-Wear', d: 'Sunday reset calendar alerts, CPW analytics & cleaning radar' },
+    { icon: '💌', t: 'Partner Size & Gift Passport', d: 'Save US/UK/EU ring & wrist sizes and share gift hints in 1 tap' },
+    { icon: '💍', t: 'All 14 Fine Jewelry Studios', d: 'Ring sizer, diamond carat scale, layering & gold calculator' },
+    { icon: '🧿', t: 'Beading Board & Pattern Designer', d: 'Millimeter bracelet blueprints, bead counts & BOM CSV export' }
   ];
 
   var featHtml = features.map(function(f){
@@ -804,6 +1087,13 @@ function openProModal(isPageLock) {
            '</div>';
   }).join('');
 
+  var emailCaptureHtml = currentUser ? '' : (
+    '<label class="fld text-left w-full mb-1" style="margin-top:0">' +
+    '<span class="text-xs muted">Your email (recommended so Stripe activates your account instantly)</span>' +
+    '<input id="pro-checkout-email" type="email" placeholder="you@example.com" class="w-full text-sm">' +
+    '</label>'
+  );
+
   var m = document.createElement('div');
   m.id = 'mcgee-pro-modal';
   m.style.cssText = 'position:fixed;inset:0;background:rgba(18,10,14,0.85);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1.25rem;overflow-y:auto;';
@@ -812,24 +1102,23 @@ function openProModal(isPageLock) {
                 '<button id="pro-close" style="position:absolute;top:1.2rem;right:1.2rem;width:2rem;height:2rem;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:1rem;cursor:pointer" class="muted hover:text-white" aria-label="Close">✕</button>' +
                 
                 '<div class="text-center">' +
-                '<span class="chip" style="font-size:0.75rem;padding:0.25rem 0.9rem;background:rgba(243,226,179,0.15);border-color:#b76e79;color:#f3e2b3">✨ MCGEE JEWELRY PRO</span>' +
-                '<h2 class="serif text-3xl md:text-5xl gt mt-3">' + (isPageLock ? 'Free Try Used For This Studio' : 'Unlock Your Complete Jewelry Studio') + '</h2>' +
+                '<span class="chip" style="font-size:0.75rem;padding:0.25rem 0.9rem;background:rgba(243,226,179,0.15);border-color:#b76e79;color:#f3e2b3">' + t('pro.badge', '✨ MCGEE JEWELRY PRO') + '</span>' +
+                '<h2 class="serif text-3xl md:text-5xl gt mt-3">' + (isPageLock ? t('pro.title_lock', 'Free Preview Used — Keep Going with Pro') : t('pro.title_unlock', 'Unlock Your Daily Jewelry Concierge')) + '</h2>' +
                 '<p class="muted text-sm md:text-base mt-2 max-w-lg mx-auto">' +
-                (isPageLock
-                  ? 'You have used your 1 free try for this feature (' + triesLeft + '/' + ALL_TOOL_SLUGS.length + ' total tries remaining). Subscribe for <b class="gt">' + priceLabel + '/month</b> to unlock all ' + ALL_TOOL_SLUGS.length + ' tools with unlimited access.'
-                  : 'Track unlimited fine gold pieces, export printable insurance sheets, and unlock all ' + ALL_TOOL_SLUGS.length + ' interactive styling, beading &amp; sizing tools for <b class="gt">' + priceLabel + '/month</b>.') +
+                'Just <b class="gt">' + dailyLabel + '/day</b> (<b class="gt">' + priceLabel + '/month</b>) &mdash; less than a single tarnish polish, for unlimited cloud vault, daily look check-ins, and all ' + ALL_TOOL_SLUGS.length + ' studios.' +
                 '</p>' +
                 '</div>' +
 
-                '<div class="grid sm:grid-cols-2 gap-2.5 mt-5 max-h-[44vh] overflow-y-auto pr-1">' +
+                '<div class="grid sm:grid-cols-2 gap-2.5 mt-5 max-h-[38vh] overflow-y-auto pr-1">' +
                 featHtml +
                 '</div>' +
 
-                '<div class="mt-6 flex flex-col gap-2.5 items-center">' +
-                '<a href="' + getStripeUrl() + '" class="btn btn-gold w-full text-center py-3.5 text-base md:text-lg font-medium shadow-lg" style="letter-spacing:0.02em">' +
-                'Unlock All ' + ALL_TOOL_SLUGS.length + ' Studios &nbsp;&rarr;&nbsp; ' + priceLabel + '/month' +
+                '<div class="mt-5 flex flex-col gap-2.5 items-center">' +
+                emailCaptureHtml +
+                '<a id="pro-checkout-link" href="' + getStripeUrl() + '" class="btn btn-gold w-full text-center py-3.5 text-base md:text-lg font-medium shadow-lg" style="letter-spacing:0.02em">' +
+                'Continue to Secure Checkout &nbsp;&rarr;&nbsp; ' + priceLabel + '/mo' +
                 '</a>' +
-                '<p class="muted text-xs mt-0.5 text-center">Instant access &middot; Secure checkout via Stripe &middot; Cancel anytime in 1 click</p>' +
+                '<p class="muted text-xs mt-0.5 text-center">' + t('pro.cancel', 'Instant activation via Stripe · Local currency checkout · Cancel in 1 click') + '</p>' +
                 '</div>' +
 
                 '<div class="text-center mt-3 pt-3 border-t border-rose-200/10">' +
@@ -838,6 +1127,24 @@ function openProModal(isPageLock) {
                 '</div>';
 
   document.body.appendChild(m);
+
+  var emailInput = document.getElementById('pro-checkout-email');
+  var checkoutLink = document.getElementById('pro-checkout-link');
+  if (emailInput && checkoutLink) {
+    emailInput.oninput = function(){
+      checkoutLink.href = getStripeUrl(emailInput.value.trim());
+    };
+  }
+  if (checkoutLink) {
+    checkoutLink.onclick = function(){
+      var curCfg = CURRENCIES[currentLocale.currency] || CURRENCIES.USD;
+      trackMcGeeEvent('InitiateCheckout', {
+        value: Number((6 * curCfg.rate).toFixed(2)),
+        currency: currentLocale.currency || 'USD',
+        content_name: 'McGee Jewelry Pro Monthly'
+      });
+    };
+  }
 
   var cl = document.getElementById('pro-close');
   if (cl) {
@@ -867,34 +1174,37 @@ window.openProModal = openProModal;
 function checkDirectPagePaywall() {
   if (!isToolPage) return;
   if (isProUser()) return;
+  if (cleanSlug === 'ritual' || cleanSlug === 'vault' || cleanSlug === 'planner') return;
 
   var activeSessionKey = 'koo_active_session_' + cleanSlug;
   if (sessionStorage.getItem(activeSessionKey) === '1') {
     return;
   }
 
-  if (!hasUsedFeature(cleanSlug)) {
+  var visits = getStudioVisits();
+  var curCount = visits[cleanSlug] || 0;
+  if (curCount < 2) {
     markFeatureUsed(cleanSlug);
     sessionStorage.setItem(activeSessionKey, '1');
     updateNavAuth();
-    showFreeTryBanner(cleanSlug);
+    showFreeTryBanner(cleanSlug, 2 - (curCount + 1));
     return;
   }
 
   openProModal(true);
 }
 
-function showFreeTryBanner(slug) {
+function showFreeTryBanner(slug, leftAfterThis) {
   var b = document.createElement('div');
   b.style.cssText = 'position:fixed;top:4.5rem;left:50%;transform:translateX(-50%);z-index:9999;max-width:90%;width:520px;padding:.6rem 1.2rem;border-radius:999px;font-size:.78rem;box-shadow:0 10px 25px rgba(0,0,0,0.18);';
   b.className = 'glass glow flex items-center justify-between gap-3 text-center';
-  b.innerHTML = '<span>🎁 <b>1 Free Try Active</b> for this studio (' + getRemainingTries() + '/' + ALL_TOOL_SLUGS.length + ' remaining)</span>' +
+  b.innerHTML = '<span>🎁 <b>Free Preview Active</b> (' + (leftAfterThis > 0 ? leftAfterThis + ' free visit left here' : 'last free preview for this studio') + ')</span>' +
                 '<button onclick="this.parentElement.remove()" class="text-xs muted hover:text-white" style="cursor:pointer">✕</button>';
   document.body.appendChild(b);
-  setTimeout(function(){ if(b) b.remove(); }, 6000);
+  setTimeout(function(){ if(b) b.remove(); }, 5500);
 }
 
-/* ---------- Global Click Interceptor for Tool Links ---------- */
+/* ---------- Global Click Interceptor for Tool Links (Value-First: Homepage Widgets Always Free) ---------- */
 document.addEventListener('click', function(e) {
   if (isProUser()) return;
 
@@ -911,19 +1221,6 @@ document.addEventListener('click', function(e) {
         openProModal(false);
         return;
       }
-    }
-    if (cleanSlug === 'index' && (href === '#size' || href === '#photo' || href === '#layer' || href === '#birth')) {
-      e.preventDefault();
-      openProModal(false);
-      return;
-    }
-  }
-
-  if (cleanSlug === 'index') {
-    var widget = e.target.closest('#ms, #dz, #nl button, #bm button, #file');
-    if (widget) {
-      e.preventDefault();
-      openProModal(false);
     }
   }
 }, true);
@@ -1124,16 +1421,31 @@ function handleFormSubmit(e) {
   st.style.color = '';
 
   if (authMode === 'signup') {
+    var attr = getSavedAttribution();
+    var tzCountry = '';
+    try { tzCountry = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch(e){}
     sb.auth.signUp({
       email: email,
       password: password,
-      options: { emailRedirectTo: window.location.origin }
+      options: {
+        emailRedirectTo: window.location.origin,
+        data: {
+          currency: currentLocale.currency,
+          language: currentLocale.lang,
+          utm_source: attr.utm_source || '',
+          utm_medium: attr.utm_medium || '',
+          utm_campaign: attr.utm_campaign || '',
+          utm_content: attr.utm_content || '',
+          country_hint: tzCountry
+        }
+      }
     }).then(function(res){
       btn.disabled = false;
       if (res.error) {
         st.textContent = res.error.message;
         st.style.color = '#ef4444';
       } else if (res.data && res.data.session) {
+        trackMcGeeEvent('CompleteRegistration', { currency: currentLocale.currency || 'USD', status: 'instant' });
         st.textContent = 'Welcome! Signing you in...';
         st.style.color = '#10b981';
         setTimeout(function(){
@@ -1258,12 +1570,55 @@ function notifyAuthReady() {
   } catch(e){}
 }
 
+async function loadRemoteSiteConfig() {
+  if (!sb) return;
+  try {
+    var res = await sb.from('site_config').select('key, value');
+    if (!res.error && Array.isArray(res.data)) {
+      res.data.forEach(function(row){
+        if (row && row.key) window.__mcgeeSiteConfig[row.key] = row.value;
+      });
+      try { localStorage.setItem('mcgee_site_config', JSON.stringify(window.__mcgeeSiteConfig)); } catch(e){}
+      if (window.__mcgeeSiteConfig.meta_pixel_id) {
+        bootMetaPixel(window.__mcgeeSiteConfig.meta_pixel_id);
+      }
+      window.dispatchEvent(new CustomEvent('mcgee:config-ready', { detail: window.__mcgeeSiteConfig }));
+    }
+  } catch(e){}
+}
+
+async function syncUserProfileLocale(user) {
+  if (!user || !sb) return;
+  try {
+    var attr = getSavedAttribution();
+    var tzCountry = '';
+    try { tzCountry = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch(e){}
+    var payload = {
+      user_id: user.id,
+      currency: currentLocale.currency,
+      language: currentLocale.lang,
+      country_hint: tzCountry,
+      updated_at: new Date().toISOString()
+    };
+    if (attr.utm_source) payload.utm_source = attr.utm_source;
+    if (attr.utm_medium) payload.utm_medium = attr.utm_medium;
+    if (attr.utm_campaign) payload.utm_campaign = attr.utm_campaign;
+    if (attr.utm_content) payload.utm_content = attr.utm_content;
+    await sb.from('profiles').upsert(payload, { onConflict: 'user_id' });
+  } catch(e){}
+}
+
 window.initMcGeeAuth = async function() {
   if (!window.supabase) return;
   sb = window.supabase.createClient(SB_URL, SB_KEY);
   window.sb = sb;
 
   var isRecoveryUrl = (window.location.hash || '').indexOf('type=recovery') >= 0;
+  await loadRemoteSiteConfig();
+
+  if (isToolPage) {
+    trackMcGeeEvent('ViewContent', { content_name: cleanSlug, content_category: 'Jewelry Studio' });
+  }
 
   try {
     var res = await sb.auth.getSession();
@@ -1271,6 +1626,7 @@ window.initMcGeeAuth = async function() {
       currentUser = res.data.session.user;
       window.currentUser = currentUser;
       await refreshProStatus();
+      await syncUserProfileLocale(currentUser);
       await syncLocalToCloud(currentUser);
       await KOO.loadFromCloud();
     }
@@ -1279,6 +1635,7 @@ window.initMcGeeAuth = async function() {
   }
 
   updateNavAuth();
+  applyDocumentLocale();
   handleStripeSuccess();
   checkDirectPagePaywall();
   notifyAuthReady();
@@ -1293,10 +1650,12 @@ window.initMcGeeAuth = async function() {
     window.currentUser = currentUser;
     await refreshProStatus();
     if (currentUser) {
+      await syncUserProfileLocale(currentUser);
       await syncLocalToCloud(currentUser);
       await KOO.loadFromCloud();
     }
     updateNavAuth();
+    applyDocumentLocale();
     handleStripeSuccess();
     notifyAuthReady();
     if (evt === 'PASSWORD_RECOVERY') {
@@ -1308,6 +1667,10 @@ window.initMcGeeAuth = async function() {
 
 if (window.supabase) window.initMcGeeAuth();
 updateNavAuth();
+applyDocumentLocale();
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', applyDocumentLocale);
+}
 
 setTimeout(function(){
   checkDirectPagePaywall();

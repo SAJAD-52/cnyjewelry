@@ -35,6 +35,12 @@
 <div id="wrist-stats" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6 tabular-nums"></div>
 <p class="muted text-xs mt-5">Add 1.5 cm for a snug cuff fit, 2 cm for comfort, or 2.5+ cm for loose charm bracelets.</p>
 </div>
+
+<div class="mt-6 pt-5 border-t border-rose-200/15 flex flex-wrap items-center justify-between gap-3">
+<button id="btn-save-size-passport" type="button" class="btn btn-gold text-xs py-2.5 px-5">Save Size to Passport</button>
+<a href="ritual.html#passport" class="text-xs gt underline">Open Gift Passport &rarr;</a>
+</div>
+<p id="sizing-passport-msg" class="text-xs muted mt-2" aria-live="polite"></p>
 </div>
 </div>
 
@@ -118,6 +124,38 @@
 
   rSlider.oninput = renderRing;
   wSlider.oninput = renderWrist;
+
+  try {
+    var savedPp = JSON.parse(localStorage.getItem('mcgee_passport') || '{}');
+    if (savedPp.ring_size_us) rSlider.value = savedPp.ring_size_us;
+    if (savedPp.wrist_cm) wSlider.value = savedPp.wrist_cm;
+  } catch(e){}
+
+  var btnSavePp = document.getElementById('btn-save-size-passport');
+  if (btnSavePp) {
+    btnSavePp.onclick = async function(){
+      var rVal = parseFloat(rSlider.value) || 7;
+      var wVal = parseFloat(wSlider.value) || 16;
+      var prev = {};
+      try { prev = JSON.parse(localStorage.getItem('mcgee_passport') || '{}'); } catch(e){}
+      prev.ring_size_us = rVal;
+      prev.wrist_cm = wVal;
+      try { localStorage.setItem('mcgee_passport', JSON.stringify(prev)); } catch(e){}
+      if (window.currentUser && window.sb) {
+        try {
+          await window.sb.from('profiles').upsert({
+            user_id: window.currentUser.id,
+            ring_size_us: rVal,
+            wrist_cm: wVal,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_id' });
+        } catch(e){}
+      }
+      var msg = document.getElementById('sizing-passport-msg');
+      if (msg) msg.textContent = '✓ Saved US ' + rVal + ' ring & ' + wVal.toFixed(1) + ' cm wrist to your Size Passport!';
+    };
+  }
+
   renderRing();
   renderWrist();
 })();

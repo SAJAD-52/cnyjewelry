@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp, ALL_TOOL_SLUGS, STRIPE_BASE } from '../../context/AppContext';
 
 export const ProModal: React.FC = () => {
@@ -9,28 +9,31 @@ export const ProModal: React.FC = () => {
     formatPrice,
     currentUser,
     openAuthModal,
+    t,
+    trackEvent,
+    currentLocale,
   } = useApp();
+
+  const [guestEmail, setGuestEmail] = useState('');
 
   if (!isProModalOpen) return null;
 
   const priceLabel = formatPrice(6);
-
-  const stripeUrl = currentUser?.email
-    ? `${STRIPE_BASE}?prefilled_email=${encodeURIComponent(currentUser.email)}`
+  const dailyLabel = formatPrice(0.20);
+  const checkoutEmail = currentUser?.email || guestEmail.trim();
+  const stripeUrl = checkoutEmail
+    ? `${STRIPE_BASE}?prefilled_email=${encodeURIComponent(checkoutEmail)}`
     : STRIPE_BASE;
 
   const features = [
-    { icon: '👑', t: 'My Jewelry Box & Value Vault', d: 'Track collection weight, gold melt value & insurance dossiers' },
-    { icon: '🗓️', t: 'Lookbook & Outfit Planner', d: 'Weekly 7-day look planning & 30-day Cost-Per-Wear analysis' },
-    { icon: '💍', t: 'Ring & Bracelet Sizer', d: 'US, UK, EU and Japan sizes with life-scale preview' },
-    { icon: '🪙', t: 'Gold Karat & Value Calculator', d: 'Real-time 10k–24k melt values and investment estimates' },
+    { icon: '✨', t: 'Daily 10s Ritual & Tarnish Shield', d: 'Morning stack match, cleaning radar & partner size card' },
+    { icon: '👑', t: 'My Jewelry Box & Value Vault', d: 'Unlimited collection photos, gold melt value & insurance sheets' },
+    { icon: '🗓️', t: '7-Day Lookbook & CPW Diary', d: 'Full week outfit planner & 30-day Cost-Per-Wear tracking' },
+    { icon: '💍', t: 'Ring & Bracelet Sizer', d: 'US, UK, EU & Japan scales with Size Passport sync' },
+    { icon: '🪙', t: 'Gold Karat & Value Calculator', d: 'Real-time 10k–24k bullion & scrap values in local currency' },
     { icon: '💎', t: 'Diamond Carat Visualizer', d: 'Exact millimeter-to-carat finger scale on hand simulator' },
-    { icon: '✨', t: 'Photo & Undertone Analyzer', d: 'Browser-based metal detection & gem color matching' },
-    { icon: '📿', t: 'Necklace Layering Studio', d: 'Recommended chain lengths and spacing for 6 necklines' },
-    { icon: '🎨', t: 'Metal & Skin Undertone Match', d: 'Gold, silver and rose gold flattering guide' },
-    { icon: '🎁', t: '4-Question Smart Gift Finder', d: 'Custom jewelry gift recommendations by style and budget' },
-    { icon: '🧿', t: 'Beading Board & Pattern Designer', d: 'Millimeter bracelet patterns, bead counts, BOM CSV & blueprints' },
-    { icon: '♡', t: 'Synced Pro Wishlist', d: 'Save unlimited pieces and styling sets across devices' }
+    { icon: '📿', t: 'Necklace Layering & Ear Match', d: 'Chain lengths, spacing & face-shape earring pairings' },
+    { icon: '🧿', t: 'Beading Board & Wishlist Sync', d: 'Millimeter bracelet patterns, BOM CSV & cloud wishlist' },
   ];
 
   return (
@@ -83,15 +86,17 @@ export const ProModal: React.FC = () => {
               color: '#f3e2b3',
             }}
           >
-            ✨ MCGEE JEWELRY PRO
+            {t('pro.badge', '✨ MCGEE JEWELRY PRO')}
           </span>
-          <h2 className="serif text-3xl md:text-5xl gt mt-3">Free Try Used For This Studio</h2>
+          <h2 className="serif text-3xl md:text-5xl gt mt-3">
+            {t('pro.title_unlock', 'Unlock Your Daily Jewelry Concierge')}
+          </h2>
           <p className="muted text-sm md:text-base mt-2 max-w-lg mx-auto">
-            You have used your 1 free try for this feature ({remainingTries}/{ALL_TOOL_SLUGS.length} total tries remaining). Subscribe for <b className="gt">{priceLabel}/month</b> to unlock all {ALL_TOOL_SLUGS.length} tools with unlimited access.
+            Less than <b className="gt">{dailyLabel}/day</b> ({priceLabel}/month) for all {ALL_TOOL_SLUGS.length} studios unlimited ({remainingTries} free tries remaining).
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 gap-2.5 mt-5 max-h-[44vh] overflow-y-auto pr-1">
+        <div className="grid sm:grid-cols-2 gap-2.5 mt-5 max-h-[40vh] overflow-y-auto pr-1">
           {features.map((f, i) => (
             <div
               key={i}
@@ -110,18 +115,34 @@ export const ProModal: React.FC = () => {
           ))}
         </div>
 
-        <div className="mt-6 flex flex-col gap-2.5 items-center">
+        <div className="mt-5 flex flex-col gap-2.5 items-center">
+          {!currentUser?.email && (
+            <input
+              type="email"
+              value={guestEmail}
+              onChange={(e) => setGuestEmail(e.target.value)}
+              placeholder="Enter email for instant activation (optional)"
+              className="w-full px-4 py-2.5 rounded-xl text-sm border border-rose-200/30 bg-white/85 text-slate-900"
+            />
+          )}
           <a
             href={stripeUrl}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() =>
+              trackEvent('InitiateCheckout', {
+                value: 6,
+                currency: currentLocale.currency || 'USD',
+                content_name: 'McGee Pro Membership',
+              })
+            }
             className="btn btn-gold w-full text-center py-3.5 text-base md:text-lg font-medium shadow-lg justify-center no-underline"
             style={{ letterSpacing: '0.02em' }}
           >
-            Unlock All {ALL_TOOL_SLUGS.length} Studios &nbsp;&rarr;&nbsp; {priceLabel}/month
+            Start Pro · {dailyLabel}/day ({priceLabel}/mo) &rarr;
           </a>
           <p className="muted text-xs mt-0.5 text-center">
-            Instant access &middot; Secure checkout via Stripe &middot; Cancel anytime in 1 click
+            {t('pro.cancel', 'Instant activation via Stripe · Local currency checkout · Cancel in 1 click')}
           </p>
         </div>
 

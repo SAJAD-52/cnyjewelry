@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useApp, CURRENCIES, LANGUAGES } from '../../context/AppContext';
 
 export const LocaleModal: React.FC = () => {
-  const { isLocaleModalOpen, closeLocaleModal, currentLocale, setLocale } = useApp();
+  const { isLocaleModalOpen, closeLocaleModal, currentLocale, setLocale, t } = useApp();
 
   const [selectedCurrency, setSelectedCurrency] = useState(currentLocale.currency);
   const [selectedLang, setSelectedLang] = useState(currentLocale.lang);
@@ -63,9 +63,9 @@ export const LocaleModal: React.FC = () => {
         </button>
 
         <span className="chip text-xs">Regional Settings</span>
-        <h3 className="serif text-3xl gt mt-2">Currency & Language</h3>
+        <h3 className="serif text-3xl gt mt-2">{t('loc.title', 'Currency & Language')}</h3>
         <p className="muted text-xs mt-1">
-          Select your preferred currency and language. Rates and formats update instantly.
+          {t('loc.sub', 'Select your preferred currency and language. Rates and formats update instantly.')}
         </p>
 
         <div className="flex flex-col gap-3 mt-5">
@@ -101,7 +101,7 @@ export const LocaleModal: React.FC = () => {
           </label>
 
           <button onClick={handleSave} className="btn btn-gold w-full mt-3 justify-center">
-            Apply Changes
+            {t('loc.apply', 'Apply & Translate')}
           </button>
         </div>
       </div>

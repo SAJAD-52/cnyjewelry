@@ -9,6 +9,7 @@ import { LocaleModal } from './components/modals/LocaleModal';
 
 // Pages
 import { HomePage } from './pages/HomePage';
+import { RitualPage } from './pages/RitualPage';
 import { VaultPage } from './pages/VaultPage';
 import { PlannerPage } from './pages/PlannerPage';
 import { SizingPage } from './pages/SizingPage';
@@ -45,6 +46,8 @@ export const App: React.FC = () => {
       case 'index':
       case 'home':
         return <HomePage />;
+      case 'ritual':
+        return <RitualPage />;
       case 'vault':
         return <VaultPage />;
       case 'planner':

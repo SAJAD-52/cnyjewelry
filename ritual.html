@@ -1,0 +1,585 @@
+<!DOCTYPE html><html lang="en" class="overflow-x-hidden"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Daily Jewelry Ritual, Cleaning Radar &amp; Size Passport | McGee Jewelry</title><meta name="description" content="Your 10-second morning jewelry ritual: match your neckline, avoid tarnish damage, track daily wear streaks, schedule weekly cleaning resets, and share your size passport."><meta name="theme-color" content="#fbf5f2"><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="canonical" href="https://mcgeejewelry.com/ritual.html"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"><script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="style.css"></head><body class="overflow-x-hidden"><a class="skip" href="#main">Skip to content</a><div id="nav"></div>
+<main id="main" class="mx-auto max-w-6xl px-4 sm:px-5 pb-24 pt-8 sm:pt-10 overflow-x-hidden">
+
+<!-- HEADER + STREAK SUMMARY -->
+<div class="flex flex-wrap items-end justify-between gap-6 mb-10">
+  <div class="max-w-2xl">
+    <p class="text-xs uppercase tracking-wider muted mb-2">Daily &middot; Weekly &middot; Monthly Concierge</p>
+    <h1 class="text-4xl sm:text-5xl md:text-6xl gt" data-i18n="ritual.title">Daily Jewelry Ritual &amp; Care</h1>
+    <p class="muted text-base sm:text-lg mt-3 leading-relaxed" data-i18n="ritual.sub">Your 10-second morning check-in: match your neckline, protect metals from tarnish, log today&rsquo;s wear streak, and share your size passport.</p>
+  </div>
+  <div class="grid grid-cols-3 gap-3 w-full sm:w-auto tabular-nums">
+    <div class="glass p-4 rounded-2xl text-center min-w-[6.2rem]">
+      <span class="muted text-[11px] uppercase tracking-wider block">Streak</span>
+      <b id="stat-streak" class="serif text-3xl gt block mt-0.5">0d</b>
+    </div>
+    <div class="glass p-4 rounded-2xl text-center min-w-[6.2rem]">
+      <span class="muted text-[11px] uppercase tracking-wider block">Check-Ins</span>
+      <b id="stat-checkins" class="serif text-3xl gt block mt-0.5">0</b>
+    </div>
+    <div class="glass p-4 rounded-2xl text-center min-w-[6.2rem]">
+      <span class="muted text-[11px] uppercase tracking-wider block">Due Polish</span>
+      <b id="stat-polish" class="serif text-3xl gt block mt-0.5">0</b>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 1: MORNING 10-SECOND LOOK & CARE CHECK-IN -->
+<section class="grid lg:grid-cols-12 gap-6 mb-12">
+  <div class="lg:col-span-7 glass glow p-6 sm:p-8 rounded-3xl">
+    <div class="flex items-center justify-between gap-2 mb-5">
+      <div>
+        <span class="text-xs uppercase tracking-wider gt font-medium">Step 01 &middot; Every Morning (10s)</span>
+        <h2 class="serif text-2xl sm:text-3xl gt mt-0.5">Morning Look &amp; Tarnish Check</h2>
+      </div>
+      <span id="ritual-tier-label" class="text-xs muted">Free: 5 check-ins</span>
+    </div>
+
+    <div class="space-y-5">
+      <div>
+        <p class="text-xs uppercase tracking-wider muted mb-2">1. Today&rsquo;s Occasion</p>
+        <div id="occ-pills" class="flex flex-wrap gap-2" role="group" aria-label="Occasion"></div>
+      </div>
+
+      <div>
+        <p class="text-xs uppercase tracking-wider muted mb-2">2. Neckline</p>
+        <div id="neck-pills" class="flex flex-wrap gap-2" role="group" aria-label="Neckline"></div>
+      </div>
+
+      <div>
+        <p class="text-xs uppercase tracking-wider muted mb-2">3. Metal / Stone Mood</p>
+        <div id="metal-pills" class="flex flex-wrap gap-2" role="group" aria-label="Metal Mood"></div>
+      </div>
+
+      <div class="pt-4 border-t border-rose-200/15">
+        <p class="text-xs uppercase tracking-wider muted mb-2">4. Pick or Type Piece You&rsquo;re Wearing</p>
+        <div id="vault-quick-chips" class="flex flex-wrap gap-2 mb-3"></div>
+        <div class="flex flex-col sm:flex-row gap-2.5">
+          <input id="ritual-piece-input" type="text" placeholder="e.g. 14K Herringbone + Pearl Studs" class="flex-1 px-4 py-2.5 rounded-xl text-sm border border-rose-200/30 bg-white/80 text-slate-900">
+          <button id="btn-log-ritual" type="button" class="btn btn-gold py-2.5 px-5 text-sm shrink-0">✓ Wear &amp; Log Today</button>
+        </div>
+        <p id="ritual-status" class="text-xs mt-2 muted" aria-live="polite"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- INSTANT STYLING & TARNISH OUTPUT -->
+  <div class="lg:col-span-5 flex flex-col gap-5">
+    <div class="glass p-6 sm:p-7 rounded-3xl flex-1 flex flex-col justify-between">
+      <div>
+        <span class="text-xs uppercase tracking-wider muted">Instant Stylist Recipe</span>
+        <h3 id="out-stack-title" class="serif text-2xl sm:text-3xl gt mt-1">Crew Neck &middot; Work</h3>
+        <p id="out-stack-lengths" class="text-sm font-medium mt-3"></p>
+        <p id="out-earring-tip" class="muted text-xs sm:text-sm mt-2 leading-relaxed"></p>
+
+        <div class="mt-5 p-4 rounded-2xl" style="background:rgba(183,110,121,0.1);border:1px solid rgba(183,110,121,0.28)">
+          <p class="text-xs uppercase tracking-wider font-semibold" style="color:#b76e79">Care &amp; Tarnish Shield</p>
+          <p id="out-tarnish-alert" class="text-xs sm:text-sm mt-1.5 leading-relaxed"></p>
+        </div>
+      </div>
+
+      <div class="mt-6 pt-4 border-t border-rose-200/15">
+        <p class="text-xs muted mb-2">Recent Check-Ins</p>
+        <div id="recent-checkins" class="space-y-1.5 text-xs muted">No check-ins logged yet today.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 2: WEEKLY CLEANING RADAR & SUNDAY RESET -->
+<section class="glass p-6 sm:p-8 rounded-3xl mb-12">
+  <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+    <div>
+      <span class="text-xs uppercase tracking-wider gt font-medium">Step 02 &middot; Every Sunday (2 Min)</span>
+      <h2 class="serif text-2xl sm:text-3xl gt mt-0.5">Weekly Cleaning Radar &amp; Sunday Reset</h2>
+      <p class="muted text-xs sm:text-sm mt-1">Pieces worn 4+ times since their last polish appear here so oils, lotion, and perfume never dull your stones.</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button id="btn-download-ics" type="button" class="btn btn-gold text-xs py-2.5 px-4">📅 Add Sunday Reset to Calendar (.ics)</button>
+      <a href="planner.html" class="btn btn-ghost text-xs py-2.5 px-4">Open 7-Day Planner &rarr;</a>
+    </div>
+  </div>
+
+  <div id="cleaning-radar-list" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+</section>
+
+<!-- SECTION 3: SIZE & GIFT PASSPORT (PARTNER LOOP) -->
+<section class="glass glow p-6 sm:p-8 rounded-3xl">
+  <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+    <div>
+      <span class="text-xs uppercase tracking-wider gt font-medium">Step 03 &middot; Monthly &amp; Gifting Loop</span>
+      <h2 class="serif text-2xl sm:text-3xl gt mt-0.5">Size &amp; Gift Passport</h2>
+      <p class="muted text-xs sm:text-sm mt-1">Save your ring size, wrist fit, skin undertone, and favorite metal once &mdash; copy a polished gift card for your partner in 1 tap.</p>
+    </div>
+    <a href="wishlist.html" class="btn btn-ghost text-xs py-2 px-4">View Wishlist &rarr;</a>
+  </div>
+
+  <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <label class="fld" style="margin-top:0">
+      <span>US Ring Size (<b id="pp-ring-label" class="gt">7</b>)</span>
+      <input id="pp-ring" type="range" min="3" max="13" step="0.5" value="7" class="w-full cursor-pointer">
+      <span id="pp-ring-conv" class="text-[11px] muted mt-1 block tabular-nums">UK O½ &middot; EU 54 &middot; 17.3 mm</span>
+    </label>
+
+    <label class="fld" style="margin-top:0">
+      <span>Wrist Fit (<b id="pp-wrist-label" class="gt">16.0 cm</b>)</span>
+      <input id="pp-wrist" type="range" min="13" max="22" step="0.5" value="16" class="w-full cursor-pointer">
+      <span id="pp-wrist-conv" class="text-[11px] muted mt-1 block tabular-nums">Bracelet: 18.0 cm comfort fit</span>
+    </label>
+
+    <label class="fld" style="margin-top:0">
+      <span>Skin Undertone</span>
+      <select id="pp-undertone">
+        <option value="Warm">Warm (Golden / Olive)</option>
+        <option value="Cool">Cool (Rosy / Blue veins)</option>
+        <option value="Neutral">Neutral (Balanced)</option>
+      </select>
+    </label>
+
+    <label class="fld" style="margin-top:0">
+      <span>Signature Metal</span>
+      <select id="pp-metal">
+        <option value="14K Yellow Gold">14K Yellow Gold</option>
+        <option value="18K Yellow Gold">18K Yellow Gold</option>
+        <option value="Rose Gold">14K Rose Gold</option>
+        <option value="White Gold / Platinum">White Gold / Platinum</option>
+        <option value="Sterling Silver 925">Sterling Silver 925</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="flex flex-wrap items-center gap-3 mt-6 pt-5 border-t border-rose-200/15">
+    <button id="btn-save-passport" type="button" class="btn btn-gold text-sm py-2.5 px-5">Save Passport</button>
+    <button id="btn-copy-passport" type="button" class="btn btn-ghost text-sm py-2.5 px-5">💌 Copy Size &amp; Gift Card for Partner</button>
+    <span id="passport-msg" class="text-xs muted" aria-live="polite"></span>
+  </div>
+</section>
+
+</main>
+<div id="foot"></div>
+<script src="layout.js"></script>
+<script src="ads.js"></script>
+<script src="affiliates.js"></script>
+<script>
+(function(){
+  var CHECKINS_KEY = 'mcgee_daily_checkins';
+  var WEAR_KEY = 'koo_wear_history';
+  var VAULT_KEY = 'koo_jewelry_vault';
+  var PASSPORT_KEY = 'mcgee_passport';
+
+  var OCCASIONS = ['Work', 'Casual', 'Date Night', 'Workout / Travel', 'Special Event'];
+  var NECKLINES = {
+    'Crew neck': { stack: '40 cm choker + 45 cm fine box chain + 58 cm coin pendant', tip: 'Pair with crisp huggies or 12 mm hoops so your collar feels balanced.' },
+    'V-neck': { stack: '45 cm dainty bar + 52 cm drop pendant echoing the V', tip: 'Add slim threader earrings or petite studs to elongate the neckline.' },
+    'Scoop neck': { stack: '40 cm herringbone + 48 cm bezel solitaire', tip: 'Curved medium hoops frame open collarbones naturally.' },
+    'Off-shoulder': { stack: '36 cm diamond tennis collar or 40 cm pearl strand', tip: 'Skip heavy chains if wearing statement shoulder-grazing drops.' },
+    'High neck': { stack: '65 cm–75 cm lariat or bold medallion chain over knitwear', tip: 'Sculptural gold studs polish high-neck sweaters cleanly.' }
+  };
+  var METALS = [
+    { key: '14K Yellow Gold', alert: 'Solid 14K resists daily handwashing, but remove rings before chlorine pools or heavy gym weights to prevent scratches.' },
+    { key: 'White Gold / Platinum', alert: 'Rhodium plating fades faster with harsh sanitizer and lotion—apply hand cream first, wait 3 minutes, then slide rings on.' },
+    { key: 'Sterling Silver 925', alert: 'Keep silver in an anti-tarnish pouch away from humidity and sulfur. Wipe with a microfiber cloth right after wear.' },
+    { key: 'Rose Gold', alert: 'Copper alloys give rose gold its blush hue—rinse sweat off after warm days to preserve its warm mirror glow.' },
+    { key: 'Pearls / Opals', alert: 'Last on, first off: spray perfume and hairspray BEFORE putting on pearls or opals. Never use ultrasonic cleaners.' }
+  ];
+
+  var state = {
+    occasion: 'Work',
+    neckline: 'Crew neck',
+    metal: '14K Yellow Gold',
+    selectedPieces: [],
+    vault: [],
+    wears: [],
+    checkins: []
+  };
+
+  function getLocal(k, fb){ try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? fb : v; } catch(e){ return fb; } }
+  function setLocal(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+
+  function renderChips(){
+    document.getElementById('occ-pills').innerHTML = OCCASIONS.map(function(o){
+      return '<button type="button" class="chip text-xs py-1.5 px-3" aria-pressed="' + (state.occasion === o) + '" data-occ="' + o + '">' + o + '</button>';
+    }).join('');
+    document.querySelectorAll('[data-occ]').forEach(function(b){ b.onclick = function(){ state.occasion = b.dataset.occ; renderChips(); updateRecipe(); }; });
+
+    document.getElementById('neck-pills').innerHTML = Object.keys(NECKLINES).map(function(n){
+      return '<button type="button" class="chip text-xs py-1.5 px-3" aria-pressed="' + (state.neckline === n) + '" data-neck="' + n + '">' + n + '</button>';
+    }).join('');
+    document.querySelectorAll('[data-neck]').forEach(function(b){ b.onclick = function(){ state.neckline = b.dataset.neck; renderChips(); updateRecipe(); }; });
+
+    document.getElementById('metal-pills').innerHTML = METALS.map(function(m){
+      return '<button type="button" class="chip text-xs py-1.5 px-3" aria-pressed="' + (state.metal === m.key) + '" data-met="' + m.key + '">' + m.key + '</button>';
+    }).join('');
+    document.querySelectorAll('[data-met]').forEach(function(b){ b.onclick = function(){ state.metal = b.dataset.met; renderChips(); updateRecipe(); }; });
+  }
+
+  function updateRecipe(){
+    var nInfo = NECKLINES[state.neckline] || NECKLINES['Crew neck'];
+    var mInfo = METALS.filter(function(m){ return m.key === state.metal; })[0] || METALS[0];
+    document.getElementById('out-stack-title').textContent = state.neckline + ' · ' + state.occasion;
+    document.getElementById('out-stack-lengths').textContent = 'Chain blueprint: ' + nInfo.stack;
+    document.getElementById('out-earring-tip').textContent = nInfo.tip + (state.occasion === 'Date Night' ? ' Add a shimmering stackable ring on your dominant hand.' : '');
+    var extra = state.occasion === 'Workout / Travel' ? ' Workout rule: swap delicate chains and plated pieces for solid silicone or sleek huggies before training.' : '';
+    document.getElementById('out-tarnish-alert').textContent = mInfo.alert + extra;
+  }
+
+  function renderQuickVault(){
+    var el = document.getElementById('vault-quick-chips');
+    if (!state.vault.length) {
+      el.innerHTML = '<a href="vault.html" class="text-xs underline gt">+ Add pieces to your Jewelry Box for 1-tap selection</a>';
+      return;
+    }
+    el.innerHTML = state.vault.slice(0, 8).map(function(p){
+      var on = state.selectedPieces.indexOf(p.name) >= 0;
+      return '<button type="button" class="chip text-xs py-1 px-3" aria-pressed="' + on + '" data-vpick="' + String(p.name).replace(/"/g, '&quot;') + '">' + (on ? '✓ ' : '+ ') + p.name + '</button>';
+    }).join('');
+    el.querySelectorAll('[data-vpick]').forEach(function(b){
+      b.onclick = function(){
+        var nm = b.dataset.vpick;
+        var idx = state.selectedPieces.indexOf(nm);
+        if (idx >= 0) state.selectedPieces.splice(idx, 1);
+        else state.selectedPieces.push(nm);
+        document.getElementById('ritual-piece-input').value = state.selectedPieces.join(' + ');
+        renderQuickVault();
+      };
+    });
+  }
+
+  function computeStreak(checkins, wears){
+    var dates = {};
+    checkins.forEach(function(c){ if (c.checked_on) dates[c.checked_on] = true; });
+    wears.forEach(function(w){ if (w.date) dates[w.date] = true; });
+    var streak = 0;
+    var cursor = new Date();
+    var todayIso = cursor.toISOString().slice(0, 10);
+    if (!dates[todayIso]) {
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    while (true) {
+      var iso = cursor.toISOString().slice(0, 10);
+      if (dates[iso]) { streak++; cursor.setDate(cursor.getDate() - 1); }
+      else break;
+    }
+    return streak;
+  }
+
+  function renderCheckinHistory(){
+    var isPro = window.isProUser && window.isProUser();
+    var badge = document.getElementById('ritual-tier-label');
+    if (badge) badge.textContent = isPro ? '⭐ Pro Unlimited' : ('Free: ' + state.checkins.length + '/5 check-ins');
+
+    document.getElementById('stat-checkins').textContent = state.checkins.length;
+    document.getElementById('stat-streak').textContent = computeStreak(state.checkins, state.wears) + 'd';
+
+    var box = document.getElementById('recent-checkins');
+    if (!state.checkins.length) {
+      box.innerHTML = 'No check-ins logged yet. Pick your mood and tap Wear & Log Today.';
+      return;
+    }
+    box.innerHTML = state.checkins.slice(0, 4).map(function(c){
+      return '<div class="flex items-center justify-between gap-2 py-1 border-b border-rose-200/10">' +
+        '<span class="truncate">' + (c.pieces_worn && c.pieces_worn.length ? c.pieces_worn.join(', ') : (c.metal_mood || 'Look logged')) + ' (' + (c.neckline || 'Look') + ')</span>' +
+        '<span class="shrink-0 muted">' + (c.checked_on || '') + '</span>' +
+        '</div>';
+    }).join('');
+  }
+
+  function renderCleaningRadar(){
+    var grid = document.getElementById('cleaning-radar-list');
+    if (!state.vault.length) {
+      document.getElementById('stat-polish').textContent = '0';
+      grid.innerHTML = '<div class="sm:col-span-2 lg:col-span-3 p-6 rounded-2xl border border-rose-200/15 text-center muted text-sm">Add your rings, chains, or earrings in <a href="vault.html" class="underline gt">My Jewelry Box</a> to activate automatic polish tracking.</div>';
+      return;
+    }
+
+    var dueCount = 0;
+    grid.innerHTML = state.vault.map(function(p, idx){
+      var lastCleaned = p.last_cleaned_at ? new Date(p.last_cleaned_at) : null;
+      var wearsSince = state.wears.filter(function(w){
+        if ((w.piece || '').toLowerCase() !== (p.name || '').toLowerCase()) return false;
+        if (!lastCleaned) return true;
+        return new Date(w.date) >= lastCleaned;
+      }).length;
+      var threshold = p.clean_every_wears || 4;
+      var due = wearsSince >= threshold;
+      if (due) dueCount++;
+
+      return '<div class="p-4 rounded-2xl border ' + (due ? 'border-amber-400/50 bg-amber-500/5' : 'border-rose-200/15') + ' flex flex-col justify-between gap-3">' +
+        '<div>' +
+        '<div class="flex items-center justify-between gap-2">' +
+        '<span class="text-[11px] uppercase tracking-wider muted">' + (p.cat || 'Piece') + '</span>' +
+        '<span class="text-xs font-medium ' + (due ? 'text-amber-500' : 'text-emerald-500') + '">' + (due ? ('Needs Polish (' + wearsSince + ' wears)') : (wearsSince + '/' + threshold + ' wears')) + '</span>' +
+        '</div>' +
+        '<h3 class="serif text-xl gt mt-1">' + p.name + '</h3>' +
+        '<p class="muted text-xs mt-1">' + (p.last_cleaned_at ? ('Last cleaned: ' + String(p.last_cleaned_at).slice(0, 10)) : 'Not marked cleaned yet') + '</p>' +
+        '</div>' +
+        '<button type="button" class="btn btn-ghost text-xs py-1.5 px-3 w-full" data-clean-idx="' + idx + '">✨ Mark Cleaned Today</button>' +
+        '</div>';
+    }).join('');
+
+    document.getElementById('stat-polish').textContent = dueCount;
+
+    grid.querySelectorAll('[data-clean-idx]').forEach(function(btn){
+      btn.onclick = async function(){
+        var idx = +btn.dataset.cleanIdx;
+        var item = state.vault[idx];
+        if (!item) return;
+        var nowIso = new Date().toISOString();
+        item.last_cleaned_at = nowIso;
+        setLocal(VAULT_KEY, state.vault);
+        if (window.currentUser && window.sb && item.id) {
+          try {
+            await window.sb.from('pieces').update({ last_cleaned_at: nowIso }).eq('id', item.id).eq('user_id', window.currentUser.id);
+          } catch(e){}
+        }
+        if (window.showMcGeeToast) window.showMcGeeToast('✨ Marked ' + item.name + ' as cleaned today.');
+        renderCleaningRadar();
+      };
+    });
+  }
+
+  document.getElementById('btn-log-ritual').onclick = async function(){
+    var isPro = window.isProUser && window.isProUser();
+    if (!isPro && state.checkins.length >= 5) {
+      if (window.openProModal) window.openProModal(false);
+      document.getElementById('ritual-status').textContent = 'Free limit reached (5 check-ins). Upgrade to Pro for unlimited daily ritual logs.';
+      return;
+    }
+
+    var typed = document.getElementById('ritual-piece-input').value.trim();
+    var piecesList = typed ? typed.split('+').map(function(s){ return s.trim(); }).filter(Boolean) : state.selectedPieces.slice();
+    if (!piecesList.length) piecesList = [state.metal + ' Daily Stack'];
+
+    var todayIso = new Date().toISOString().slice(0, 10);
+    var entry = {
+      checked_on: todayIso,
+      occasion: state.occasion,
+      neckline: state.neckline,
+      metal_mood: state.metal,
+      pieces_worn: piecesList
+    };
+
+    var btn = document.getElementById('btn-log-ritual');
+    btn.disabled = true;
+    btn.textContent = 'Logging...';
+
+    if (window.currentUser && window.sb) {
+      try {
+        var res = await window.sb.from('daily_checkins').upsert({
+          user_id: window.currentUser.id,
+          checked_on: todayIso,
+          occasion: state.occasion,
+          neckline: state.neckline,
+          metal_mood: state.metal,
+          pieces_worn: piecesList
+        }, { onConflict: 'user_id,checked_on' }).select().single();
+        if (res.error && /policy|row-level security/i.test(res.error.message || '')) {
+          btn.disabled = false;
+          btn.textContent = '✓ Wear & Log Today';
+          if (window.openProModal) window.openProModal(false);
+          return;
+        }
+      } catch(e){}
+    }
+
+    // Remove previous local entry for today if re-logging same date
+    state.checkins = [entry].concat(state.checkins.filter(function(c){ return c.checked_on !== todayIso; }));
+    setLocal(CHECKINS_KEY, state.checkins);
+
+    // Also log to wear_history so CPW & Cleaning Radar increment automatically
+    var newWear = { piece: piecesList[0], vibe: state.occasion, date: todayIso };
+    state.wears = [newWear].concat(state.wears);
+    setLocal(WEAR_KEY, state.wears);
+    if (window.currentUser && window.sb) {
+      try {
+        await window.sb.from('wear_log').insert({
+          user_id: window.currentUser.id,
+          piece_name: piecesList[0],
+          vibe: state.occasion,
+          worn_on: todayIso
+        });
+      } catch(e){}
+    }
+
+    btn.disabled = false;
+    btn.textContent = '✓ Wear & Log Today';
+    state.selectedPieces = [];
+    document.getElementById('ritual-piece-input').value = '';
+    document.getElementById('ritual-status').textContent = '✨ Logged for ' + todayIso + '! Streak & Cost-Per-Wear updated.';
+    renderQuickVault();
+    renderCheckinHistory();
+    renderCleaningRadar();
+  };
+
+  document.getElementById('btn-download-ics').onclick = function(){
+    var dt = new Date();
+    var daysUntilSun = (7 - dt.getDay()) % 7 || 7;
+    dt.setDate(dt.getDate() + daysUntilSun);
+    var ymd = dt.toISOString().slice(0, 10).replace(/-/g, '');
+    var ics = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//McGee Jewelry//Weekly Ritual//EN',
+      'BEGIN:VEVENT',
+      'UID:mcgee-sunday-reset-' + ymd + '@mcgeejewelry.com',
+      'DTSTAMP:' + ymd + 'T180000Z',
+      'DTSTART:' + ymd + 'T180000',
+      'DURATION:PT15M',
+      'RRULE:FREQ=WEEKLY;BYDAY=SU',
+      'SUMMARY:McGee Jewelry Sunday Cleaning & Lookbook Reset',
+      'DESCRIPTION:Wipe silver & gold pieces, check your Cleaning Radar, and plan Monday–Sunday jewelry looks at https://mcgeejewelry.com/ritual.html',
+      'URL:https://mcgeejewelry.com/ritual.html',
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\r\n');
+    var blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'mcgee-sunday-jewelry-reset.ics';
+    a.click();
+    if (window.showMcGeeToast) window.showMcGeeToast('📅 Calendar reminder downloaded! Open the file to save.');
+  };
+
+  /* ---------- SIZE & GIFT PASSPORT ---------- */
+  var ppRing = document.getElementById('pp-ring');
+  var ppWrist = document.getElementById('pp-wrist');
+  var ppUndertone = document.getElementById('pp-undertone');
+  var ppMetal = document.getElementById('pp-metal');
+
+  function updatePassportPreview(){
+    var r = parseFloat(ppRing.value) || 7;
+    var d = 11.63 + 0.8128 * r;
+    var circ = Math.PI * d;
+    var uk = String.fromCharCode(70 + Math.round((r - 3) * 2)) + '½';
+    var eu = Math.round(circ);
+    document.getElementById('pp-ring-label').textContent = r;
+    document.getElementById('pp-ring-conv').textContent = 'UK ' + uk + ' · EU ' + eu + ' · ' + d.toFixed(1) + ' mm';
+
+    var w = parseFloat(ppWrist.value) || 16;
+    document.getElementById('pp-wrist-label').textContent = w.toFixed(1) + ' cm';
+    document.getElementById('pp-wrist-conv').textContent = 'Bracelet: ' + (w + 2).toFixed(1) + ' cm comfort fit';
+  }
+  ppRing.oninput = updatePassportPreview;
+  ppWrist.oninput = updatePassportPreview;
+
+  function loadPassportLocal(){
+    var p = getLocal(PASSPORT_KEY, {});
+    if (p.ring_size_us) ppRing.value = p.ring_size_us;
+    if (p.wrist_cm) ppWrist.value = p.wrist_cm;
+    if (p.undertone) ppUndertone.value = p.undertone;
+    if (p.preferred_metal) ppMetal.value = p.preferred_metal;
+    updatePassportPreview();
+  }
+
+  document.getElementById('btn-save-passport').onclick = async function(){
+    var data = {
+      ring_size_us: parseFloat(ppRing.value) || 7,
+      wrist_cm: parseFloat(ppWrist.value) || 16,
+      undertone: ppUndertone.value,
+      preferred_metal: ppMetal.value
+    };
+    setLocal(PASSPORT_KEY, data);
+    if (window.currentUser && window.sb) {
+      try {
+        await window.sb.from('profiles').upsert({
+          user_id: window.currentUser.id,
+          ring_size_us: data.ring_size_us,
+          wrist_cm: data.wrist_cm,
+          undertone: data.undertone,
+          preferred_metal: data.preferred_metal,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+      } catch(e){}
+    }
+    var msg = document.getElementById('passport-msg');
+    msg.textContent = '✓ Size Passport saved' + (window.currentUser ? ' to your cloud account!' : ' on this device!');
+    setTimeout(function(){ msg.textContent = ''; }, 3500);
+  };
+
+  document.getElementById('btn-copy-passport').onclick = function(){
+    var r = parseFloat(ppRing.value) || 7;
+    var d = 11.63 + 0.8128 * r;
+    var uk = String.fromCharCode(70 + Math.round((r - 3) * 2)) + '½';
+    var eu = Math.round(Math.PI * d);
+    var w = parseFloat(ppWrist.value) || 16;
+    var wish = window.KOO ? window.KOO.get() : [];
+    var lines = [
+      '✨ My Jewelry Size & Style Passport (McGee Jewelry)',
+      '• Ring Size: US ' + r + ' (UK ' + uk + ' / EU ' + eu + ')',
+      '• Bracelet Fit: ' + (w + 2).toFixed(1) + ' cm comfort fit (wrist ' + w.toFixed(1) + ' cm)',
+      '• Preferred Metal: ' + ppMetal.value + ' (' + ppUndertone.value + ' undertone)'
+    ];
+    if (wish.length) {
+      lines.push('');
+      lines.push('♡ Wishlist Hints:');
+      wish.slice(0, 6).forEach(function(item){
+        lines.push('  - ' + item.label + (item.note ? ' (' + item.note + ')' : ''));
+      });
+    }
+    var msg = document.getElementById('passport-msg');
+    (navigator.clipboard ? navigator.clipboard.writeText(lines.join('\n')) : Promise.reject()).then(function(){
+      msg.textContent = '💌 Size & Gift Card copied! Paste into WhatsApp, iMessage, or Notes.';
+      setTimeout(function(){ msg.textContent = ''; }, 4000);
+    }, function(){
+      msg.textContent = 'Copy unavailable on this browser.';
+    });
+  };
+
+  async function initData(){
+    state.vault = getLocal(VAULT_KEY, []);
+    state.wears = getLocal(WEAR_KEY, []);
+    state.checkins = getLocal(CHECKINS_KEY, []);
+    loadPassportLocal();
+
+    if (window.currentUser && window.sb) {
+      try {
+        var pRes = await window.sb.from('pieces').select('id, name, category, karat, weight_g, paid_price, last_cleaned_at, clean_every_wears').eq('user_id', window.currentUser.id).order('created_at', { ascending: false });
+        if (!pRes.error && pRes.data) {
+          state.vault = pRes.data.map(function(p){
+            return { id: p.id, name: p.name, cat: p.category, karat: p.karat, weight: p.weight_g, price: p.paid_price, last_cleaned_at: p.last_cleaned_at, clean_every_wears: p.clean_every_wears };
+          });
+          setLocal(VAULT_KEY, state.vault);
+        }
+      } catch(e){}
+
+      try {
+        var wRes = await window.sb.from('wear_log').select('id, piece_name, vibe, worn_on').eq('user_id', window.currentUser.id).order('worn_on', { ascending: false });
+        if (!wRes.error && wRes.data) {
+          state.wears = wRes.data.map(function(w){ return { id: w.id, piece: w.piece_name, vibe: w.vibe, date: w.worn_on }; });
+          setLocal(WEAR_KEY, state.wears);
+        }
+      } catch(e){}
+
+      try {
+        var cRes = await window.sb.from('daily_checkins').select('*').eq('user_id', window.currentUser.id).order('checked_on', { ascending: false });
+        if (!cRes.error && cRes.data) {
+          state.checkins = cRes.data;
+          setLocal(CHECKINS_KEY, state.checkins);
+        }
+      } catch(e){}
+
+      try {
+        var profRes = await window.sb.from('profiles').select('ring_size_us, wrist_cm, undertone, preferred_metal').eq('user_id', window.currentUser.id).maybeSingle();
+        if (!profRes.error && profRes.data) {
+          if (profRes.data.ring_size_us) ppRing.value = profRes.data.ring_size_us;
+          if (profRes.data.wrist_cm) ppWrist.value = profRes.data.wrist_cm;
+          if (profRes.data.undertone) ppUndertone.value = profRes.data.undertone;
+          if (profRes.data.preferred_metal) ppMetal.value = profRes.data.preferred_metal;
+          updatePassportPreview();
+        }
+      } catch(e){}
+    }
+
+    renderQuickVault();
+    renderCheckinHistory();
+    renderCleaningRadar();
+  }
+
+  renderChips();
+  updateRecipe();
+  initData();
+
+  window.addEventListener('mcgee:auth-ready', initData);
+  if (window.__mcgeeAuthReady) initData();
+})();
+</script></body></html>

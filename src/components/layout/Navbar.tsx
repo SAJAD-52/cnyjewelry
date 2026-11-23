@@ -18,6 +18,7 @@ export const Navbar: React.FC = () => {
     openAuthModal,
     openProfileModal,
     logout,
+    t,
   } = useApp();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -26,15 +27,16 @@ export const Navbar: React.FC = () => {
   const priceLabel = formatPrice(6);
 
   const navLinks = [
-    { slug: 'vault', label: 'Jewelry Box' },
-    { slug: 'planner', label: 'Look Planner' },
-    { slug: 'sizing', label: 'Size guide' },
-    { slug: 'styling', label: 'Metal match' },
+    { slug: 'ritual', label: t('nav.ritual', 'Daily Ritual') },
+    { slug: 'vault', label: t('nav.vault', 'Jewelry Box') },
+    { slug: 'planner', label: t('nav.planner', 'Look Planner') },
+    { slug: 'sizing', label: t('nav.sizing', 'Size guide') },
   ];
 
   const moreLinks = [
+    { slug: 'styling', label: t('nav.styling', 'Metal match') },
     { slug: 'care', label: 'Care' },
-    { slug: 'gift', label: 'Gift finder' },
+    { slug: 'gift', label: t('nav.gift', 'Gift finder') },
     { slug: 'blog', label: 'Blog' },
     { slug: 'wishlist', label: 'Wishlist' },
     { slug: 'layering', label: 'Layering' },

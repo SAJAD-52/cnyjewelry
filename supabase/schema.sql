@@ -66,20 +66,44 @@ create table if not exists public.profiles (
   display_name text,
   email_reports boolean default true,
   currency text default 'USD',
+  language text default 'EN',
+  ring_size_us numeric,
+  wrist_cm numeric,
+  undertone text,
+  preferred_metal text,
+  utm_source text,
+  utm_medium text,
+  utm_campaign text,
+  utm_content text,
+  country_hint text,
   alert_threshold numeric,
   updated_at timestamptz default now()
 );
 
+alter table public.profiles add column if not exists language text default 'EN';
+alter table public.profiles add column if not exists ring_size_us numeric;
+alter table public.profiles add column if not exists wrist_cm numeric;
+alter table public.profiles add column if not exists undertone text;
+alter table public.profiles add column if not exists preferred_metal text;
+alter table public.profiles add column if not exists utm_source text;
+alter table public.profiles add column if not exists utm_medium text;
+alter table public.profiles add column if not exists utm_campaign text;
+alter table public.profiles add column if not exists utm_content text;
+alter table public.profiles add column if not exists country_hint text;
+
 alter table public.profiles enable row level security;
 
+drop policy if exists "Users can view own profile" on public.profiles;
 create policy "Users can view own profile"
   on public.profiles for select
   using (auth.uid() = user_id);
 
+drop policy if exists "Users can insert own profile" on public.profiles;
 create policy "Users can insert own profile"
   on public.profiles for insert
   with check (auth.uid() = user_id);
 
+drop policy if exists "Users can update own profile" on public.profiles;
 create policy "Users can update own profile"
   on public.profiles for update
   using (auth.uid() = user_id)
@@ -90,10 +114,26 @@ create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
 security definer
+set search_path = public
 as $$
+declare
+  meta jsonb := coalesce(new.raw_user_meta_data, '{}'::jsonb);
 begin
-  insert into public.profiles (user_id, display_name, currency)
-  values (new.id, split_part(new.email, '@', 1), 'USD')
+  insert into public.profiles (
+    user_id, display_name, currency, language,
+    utm_source, utm_medium, utm_campaign, utm_content, country_hint
+  )
+  values (
+    new.id,
+    split_part(new.email, '@', 1),
+    coalesce(nullif(meta->>'currency', ''), 'USD'),
+    coalesce(nullif(meta->>'language', ''), 'EN'),
+    nullif(meta->>'utm_source', ''),
+    nullif(meta->>'utm_medium', ''),
+    nullif(meta->>'utm_campaign', ''),
+    nullif(meta->>'utm_content', ''),
+    nullif(meta->>'country_hint', '')
+  )
   on conflict (user_id) do nothing;
   return new;
 end;
@@ -117,8 +157,13 @@ create table if not exists public.pieces (
   notes text,
   photo_path text,
   purchased_on date,
+  last_cleaned_at date,
+  clean_every_wears integer default 5,
   created_at timestamptz default now()
 );
+
+alter table public.pieces add column if not exists last_cleaned_at date;
+alter table public.pieces add column if not exists clean_every_wears integer default 5;
 
 alter table public.pieces enable row level security;
 
@@ -330,7 +375,59 @@ $$;
 revoke all on function public.get_user_id_by_email(text) from public;
 grant execute on function public.get_user_id_by_email(text) to service_role;
 
--- 13. ADMIN DASHBOARD RPCs (Strictly gated to admins table / owner email)
+-- 13. DAILY CHECKINS & SITE CONFIG TABLES
+create table if not exists public.daily_checkins (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  checked_on date not null default current_date,
+  occasion text default 'Everyday',
+  neckline text default 'Crew neck',
+  metal_mood text default '14K Gold',
+  piece_names jsonb not null default '[]'::jsonb,
+  created_at timestamptz default now()
+);
+
+create index if not exists idx_daily_checkins_user_date on public.daily_checkins(user_id, checked_on desc);
+alter table public.daily_checkins enable row level security;
+
+drop policy if exists "Users can read own checkins" on public.daily_checkins;
+create policy "Users can read own checkins"
+  on public.daily_checkins for select
+  using (auth.uid() = user_id);
+
+drop policy if exists "Users can insert own checkins" on public.daily_checkins;
+create policy "Users can insert own checkins"
+  on public.daily_checkins for insert
+  with check (
+    auth.uid() = user_id and (
+      public.is_pro_user(auth.uid()) or
+      (select count(*) from public.daily_checkins where user_id = auth.uid()) < 5
+    )
+  );
+
+drop policy if exists "Users can delete own checkins" on public.daily_checkins;
+create policy "Users can delete own checkins"
+  on public.daily_checkins for delete
+  using (auth.uid() = user_id);
+
+create table if not exists public.site_config (
+  key text primary key check (key in ('meta_pixel_id', 'gold_usd_per_oz')),
+  value text not null,
+  updated_at timestamptz default now()
+);
+
+alter table public.site_config enable row level security;
+
+drop policy if exists "Public can read site_config" on public.site_config;
+create policy "Public can read site_config"
+  on public.site_config for select
+  using (true);
+
+insert into public.site_config (key, value)
+values ('gold_usd_per_oz', '2650')
+on conflict (key) do nothing;
+
+-- 14. ADMIN DASHBOARD RPCs (Strictly gated to admins table / owner email)
 insert into public.admins (user_id, notes)
 select id, 'Primary Owner' from auth.users where lower(email) = 'said.cpge24@gmail.com'
 on conflict (user_id) do nothing;
@@ -352,6 +449,13 @@ as $$
   );
 $$;
 
+drop policy if exists "Admins can manage site_config" on public.site_config;
+create policy "Admins can manage site_config"
+  on public.site_config for all
+  using (public.is_admin_user())
+  with check (public.is_admin_user());
+
+drop function if exists public.admin_list_accounts();
 create or replace function public.admin_list_accounts()
 returns table (
   user_id uuid,
@@ -363,7 +467,12 @@ returns table (
   sub_status text,
   current_period_end timestamptz,
   is_admin boolean,
-  pieces_count bigint
+  pieces_count bigint,
+  currency text,
+  language text,
+  utm_source text,
+  utm_campaign text,
+  country_hint text
 )
 language plpgsql
 security definer
@@ -391,16 +500,40 @@ begin
     coalesce(s.status, 'free')::text as sub_status,
     s.current_period_end,
     (a.user_id is not null or lower(u.email) = 'said.cpge24@gmail.com') as is_admin,
-    coalesce(p.cnt, 0)::bigint as pieces_count
+    coalesce(p.cnt, 0)::bigint as pieces_count,
+    coalesce(pr.currency, 'USD')::text as currency,
+    coalesce(pr.language, 'EN')::text as language,
+    pr.utm_source::text as utm_source,
+    pr.utm_campaign::text as utm_campaign,
+    pr.country_hint::text as country_hint
   from auth.users u
   left join public.subscriptions s on s.user_id = u.id
   left join public.admins a on a.user_id = u.id
+  left join public.profiles pr on pr.user_id = u.id
   left join (
     select pc.user_id, count(*)::bigint as cnt
     from public.pieces pc
     group by pc.user_id
   ) p on p.user_id = u.id
   order by u.created_at desc;
+end;
+$$;
+
+create or replace function public.admin_set_site_config(cfg_key text, cfg_val text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_admin_user() then
+    raise exception 'Forbidden: admin access required';
+  end if;
+  insert into public.site_config (key, value, updated_at)
+  values (cfg_key, trim(coalesce(cfg_val, '')), now())
+  on conflict (key) do update
+    set value = excluded.value,
+        updated_at = now();
 end;
 $$;
 
@@ -484,6 +617,9 @@ grant execute on function public.is_admin_user() to authenticated;
 revoke all on function public.admin_list_accounts() from public;
 grant execute on function public.admin_list_accounts() to authenticated;
 
+revoke all on function public.admin_set_site_config(text, text) from public;
+grant execute on function public.admin_set_site_config(text, text) to authenticated;
+
 revoke all on function public.admin_set_user_plan(uuid, text) from public;
 grant execute on function public.admin_set_user_plan(uuid, text) to authenticated;
 
@@ -492,5 +628,4 @@ grant execute on function public.admin_grant_pro_by_email(text, text) to authent
 
 revoke all on function public.admin_delete_user(uuid) from public;
 grant execute on function public.admin_delete_user(uuid) to authenticated;
-
 

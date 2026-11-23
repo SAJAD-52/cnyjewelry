@@ -5,7 +5,7 @@ function render(){
     el.innerHTML = '<div class="glass p-10 text-center max-w-xl"><h2 class="text-3xl gt">Nothing saved yet</h2><p class="muted mt-2">Tap Save on any recommendation or piece and it will appear here.</p><div class="flex flex-wrap justify-center gap-3 mt-6"><a class="btn btn-gold" href="gift.html">Find a gift</a><a class="btn btn-ghost" href="styling.html">Match your metal</a></div></div>';
     return;
   }
-  el.innerHTML = '<div class="flex flex-wrap gap-3 mb-6"><button id="cp" class="btn btn-gold">Copy list</button><button id="cl" class="btn btn-ghost">Clear all</button><span id="ms" class="muted self-center" aria-live="polite"></span></div><ul class="grid md:grid-cols-2 gap-4">' +
+  el.innerHTML = '<div class="flex flex-wrap gap-3 mb-6"><button id="cp" class="btn btn-gold">Copy list</button><button id="cp-partner" class="btn btn-ghost">💌 Copy Size + Gift Card</button><button id="cl" class="btn btn-ghost">Clear all</button><span id="ms" class="muted self-center" aria-live="polite"></span></div><ul class="grid md:grid-cols-2 gap-4">' +
     a.map(function(x){
       return '<li class="glass p-5 flex items-center justify-between gap-4"><div><h3 class="text-2xl gt">' + x.label + '</h3><p class="muted text-sm mt-0.5">' + (x.note || 'Saved piece') + '</p></div><button class="btn btn-ghost text-xs" style="padding:.35rem 1rem" data-rm="' + x.id + '">Remove</button></li>';
     }).join('') + '</ul>';
@@ -45,6 +45,28 @@ function render(){
       (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function(){
         m.textContent = 'Copied to clipboard!';
         setTimeout(function(){ m.textContent = ''; }, 2500);
+      }, function(){
+        m.textContent = 'Copy unavailable on this browser.';
+      });
+    };
+  }
+
+  var btnPartner = document.getElementById('cp-partner');
+  if(btnPartner){
+    btnPartner.onclick = function(){
+      var pp = {};
+      try { pp = JSON.parse(localStorage.getItem('mcgee_passport') || '{}'); } catch(e){}
+      var lines = ['✨ My McGee Jewelry Size & Gift Card'];
+      if (pp.ring_size_us) lines.push('• Ring Size: US ' + pp.ring_size_us);
+      if (pp.wrist_cm) lines.push('• Bracelet Fit: ' + (parseFloat(pp.wrist_cm) + 2).toFixed(1) + ' cm comfort');
+      if (pp.preferred_metal) lines.push('• Favorite Metal: ' + pp.preferred_metal);
+      lines.push('');
+      lines.push('♡ Wishlist Picks:');
+      KOO.get().forEach(function(x){ lines.push('- ' + x.label + (x.note ? ' (' + x.note + ')' : '')); });
+      var m = document.getElementById('ms');
+      (navigator.clipboard ? navigator.clipboard.writeText(lines.join('\n')) : Promise.reject()).then(function(){
+        m.textContent = '💌 Copied Size + Gift Card for your partner!';
+        setTimeout(function(){ m.textContent = ''; }, 3000);
       }, function(){
         m.textContent = 'Copy unavailable on this browser.';
       });

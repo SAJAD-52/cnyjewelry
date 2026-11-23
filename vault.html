@@ -19,8 +19,8 @@
 <!-- HEADER -->
 <div class="max-w-3xl mb-10">
 <span class="chip text-xs mb-3">Portfolio & Value Studio</span>
-<h1 class="text-5xl md:text-6xl gt">My Jewelry Box & Value Tracker</h1>
-<p class="muted text-lg mt-3">Catalog your fine pieces, upload high-res photos, track pure gold grams, and monitor your collection's estimated melt and replacement value securely.</p>
+<h1 class="text-5xl md:text-6xl gt" data-i18n="vault.title">My Jewelry Box & Value Tracker</h1>
+<p class="muted text-lg mt-3" data-i18n="vault.sub">Catalog your fine pieces, upload high-res photos, track pure gold grams, and monitor your collection's estimated melt and replacement value securely.</p>
 </div>
 
 <!-- PORTFOLIO STATS SUMMARY -->
@@ -83,15 +83,16 @@
 <!-- SPOT PRICE REFERENCE -->
 <div class="mt-6 pt-5 border-t border-rose-200/10 text-xs muted flex items-center justify-between">
 <span>Gold Reference Rate:</span>
-<span class="font-mono gt font-semibold">$85.00 / gram (24k)</span>
+<span id="gold-spot-rate" class="font-mono gt font-semibold tabular-nums">$85.20 / gram (24k)</span>
 </div>
 </div>
 
 <!-- INVENTORY LIST -->
 <div class="lg:col-span-2">
-<div class="flex items-center justify-between mb-4">
+<div class="flex flex-wrap items-center justify-between gap-2 mb-4">
 <h2 class="serif text-3xl gt">Your Collection Inventory</h2>
-<div class="flex gap-2 no-print">
+<div class="flex flex-wrap gap-2 no-print">
+<button id="btn-export-csv" class="btn btn-ghost text-xs">⬇ Export CSV</button>
 <button id="btn-print" class="btn btn-ghost text-xs">🖨️ Print Dossier</button>
 <button id="btn-clear" class="btn btn-ghost text-xs text-red-400">Clear All</button>
 </div>
@@ -112,9 +113,9 @@
 <section class="mt-24 no-print">
 <h2 class="text-4xl gt mb-6">Frequently Asked Questions</h2>
 <div class="grid gap-3 max-w-3xl">
-<details class="faq"><summary>How is melt value calculated?</summary><p class="muted mt-3">Melt value is the pure weight of precious metal multiplied by current spot market prices. It represents scrap metal intrinsic value without retail markups.</p></details>
+<details class="faq"><summary>How is melt value calculated?</summary><p class="muted mt-3">Melt value is the pure weight of precious metal multiplied by the live benchmark gold rate configured in the studio. It represents scrap metal intrinsic value without retail markups.</p></details>
 <details class="faq"><summary>How is my collection data and photos secured?</summary><p class="muted mt-3">When logged out, data is saved locally on your device. When logged in, your pieces and photos sync to your private Supabase cloud account, secured by Row Level Security policies readable only by you.</p></details>
-<details class="faq"><summary>How do I unlock unlimited pieces?</summary><p class="muted mt-3">Upgrade to McGee Jewelry Pro for $6/month to store unlimited pieces and generate printable insurance dossiers.</p></details>
+<details class="faq"><summary>How do I unlock unlimited pieces?</summary><p class="muted mt-3">Upgrade to McGee Jewelry Pro to store unlimited pieces across devices, track cleaning reminders, and generate printable insurance dossiers.</p></details>
 </div></section>
 
 </main><div id="foot"></div>
@@ -126,9 +127,15 @@
 <script>
 (function(){
 var STORAGE_KEY = 'koo_jewelry_vault';
-var GOLD_24K_PER_GRAM = 85.00;
+var WEAR_KEY = 'koo_wear_history';
 var SILVER_PER_GRAM = 1.05;
 var PLATINUM_PER_GRAM = 32.00;
+function getGold24kPerGram() {
+  return window.getMcGeeGoldPerGramUsd ? window.getMcGeeGoldPerGramUsd() : 85.20;
+}
+function fmtMoney(usd) {
+  return window.formatPrice ? window.formatPrice(usd) : ('$' + Math.round(usd).toLocaleString());
+}
 
 var PURITY = {
   '24k': { name: '24K Gold', factor: 1.000, metal: 'gold' },
@@ -217,7 +224,7 @@ if (clearPhotoBtn) {
 function calcMelt(weight, karatKey) {
   var p = PURITY[karatKey] || PURITY['14k'];
   var pureWeight = weight * p.factor;
-  var rate = p.metal === 'gold' ? GOLD_24K_PER_GRAM : (p.metal === 'silver' ? SILVER_PER_GRAM : PLATINUM_PER_GRAM);
+  var rate = p.metal === 'gold' ? getGold24kPerGram() : (p.metal === 'silver' ? SILVER_PER_GRAM : PLATINUM_PER_GRAM);
   return { pureGrams: pureWeight, meltVal: pureWeight * rate };
 }
 
@@ -231,7 +238,6 @@ async function loadVault() {
         .order('created_at', { ascending: false });
 
       if (!res.error && res.data) {
-        // Resolve signed URLs for photos
         currentVault = await Promise.all(res.data.map(async function(p){
           var signedUrl = null;
           if (p.photo_path) {
@@ -248,6 +254,7 @@ async function loadVault() {
             weight: parseFloat(p.weight_g) || 0,
             price: parseFloat(p.paid_price) || 0,
             notes: p.notes || '',
+            last_cleaned_at: p.last_cleaned_at || null,
             photo_path: p.photo_path,
             photo_url: signedUrl
           };
@@ -272,6 +279,9 @@ async function loadVault() {
 }
 
 function render() {
+  var spotEl = document.getElementById('gold-spot-rate');
+  if (spotEl) spotEl.textContent = fmtMoney(getGold24kPerGram()) + ' / gram (24k)';
+
   var isPro = (typeof isProUser === 'function') && isProUser();
   var badge = document.getElementById('tier-badge');
   if (badge) badge.textContent = isPro ? '⭐ Pro (Unlimited)' : 'Free (' + currentVault.length + '/2 items)';
@@ -286,8 +296,8 @@ function render() {
 
   document.getElementById('stat-count').textContent = currentVault.length;
   document.getElementById('stat-gold-grams').textContent = totalPureGold.toFixed(1) + ' g';
-  document.getElementById('stat-melt-val').textContent = '$' + Math.round(totalMelt).toLocaleString();
-  document.getElementById('stat-retail-val').textContent = '$' + Math.round(totalRetail).toLocaleString();
+  document.getElementById('stat-melt-val').textContent = fmtMoney(totalMelt);
+  document.getElementById('stat-retail-val').textContent = fmtMoney(totalRetail);
 
   var emptyBox = document.getElementById('vault-empty');
   var list = document.getElementById('vault-list');
@@ -318,16 +328,58 @@ function render() {
            '<p class="muted text-xs mt-0.5">' + it.weight + 'g gross &middot; ' + c.pureGrams.toFixed(1) + 'g pure &middot; ' + (it.notes || 'No notes') + '</p>' +
            '</div>' +
            '</div>' +
-           '<div class="flex items-center gap-4">' +
-           '<div class="text-right">' +
+           '<div class="flex flex-wrap items-center gap-3">' +
+           '<div class="text-right mr-1">' +
            '<span class="text-xs muted block">Raw Melt Value</span>' +
-           '<b class="text-xl text-emerald-600 dark:text-emerald-400">$' + Math.round(c.meltVal) + '</b>' +
-           (it.price ? '<span class="text-xs muted block">Retail: $' + it.price + '</span>' : '') +
+           '<b class="text-xl text-emerald-600 dark:text-emerald-400 tabular-nums">' + fmtMoney(c.meltVal) + '</b>' +
+           (it.price ? '<span class="text-xs muted block tabular-nums">Retail: ' + fmtMoney(it.price) + '</span>' : '') +
            '</div>' +
-           '<button class="btn btn-ghost text-xs text-red-400 no-print" data-del="' + idx + '" title="Remove">✕</button>' +
+           '<div class="flex items-center gap-1.5 no-print">' +
+           '<button class="btn btn-ghost text-xs py-1.5 px-2.5" data-wore="' + idx + '" title="Log wear today">✓ Wore Today</button>' +
+           '<button class="btn btn-ghost text-xs py-1.5 px-2.5" data-cleaned="' + idx + '" title="Mark cleaned today">✨ Cleaned</button>' +
+           '<button class="btn btn-ghost text-xs text-red-400" data-del="' + idx + '" title="Remove">✕</button>' +
+           '</div>' +
            '</div>' +
            '</div>';
   }).join('');
+
+  document.querySelectorAll('[data-wore]').forEach(function(b){
+    b.onclick = async function(){
+      var it = currentVault[+b.dataset.wore];
+      if (!it) return;
+      var todayIso = new Date().toISOString().slice(0, 10);
+      var wears = [];
+      try { wears = JSON.parse(localStorage.getItem(WEAR_KEY)) || []; } catch(e){}
+      wears.unshift({ piece: it.name, vibe: 'Everyday', date: todayIso });
+      try { localStorage.setItem(WEAR_KEY, JSON.stringify(wears)); } catch(e){}
+      if (window.currentUser && window.sb) {
+        try {
+          await window.sb.from('wear_log').insert({
+            user_id: window.currentUser.id,
+            piece_id: it.id || null,
+            piece_name: it.name,
+            vibe: 'Everyday',
+            worn_on: todayIso
+          });
+        } catch(e){}
+      }
+      if (window.showMcGeeToast) window.showMcGeeToast('✓ Logged "' + it.name + '" worn today!');
+    };
+  });
+
+  document.querySelectorAll('[data-cleaned]').forEach(function(b){
+    b.onclick = async function(){
+      var it = currentVault[+b.dataset.cleaned];
+      if (!it) return;
+      var nowIso = new Date().toISOString();
+      it.last_cleaned_at = nowIso;
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(currentVault)); } catch(e){}
+      if (window.currentUser && window.sb && it.id) {
+        try { await window.sb.from('pieces').update({ last_cleaned_at: nowIso }).eq('id', it.id).eq('user_id', window.currentUser.id); } catch(e){}
+      }
+      if (window.showMcGeeToast) window.showMcGeeToast('✨ Marked "' + it.name + '" cleaned today.');
+    };
+  });
 
   document.querySelectorAll('[data-del]').forEach(function(b){
     b.onclick = async function(){
@@ -476,6 +528,28 @@ if (btnClear) {
   };
 }
 
+// Export CSV
+var btnCsv = document.getElementById('btn-export-csv');
+if (btnCsv) {
+  btnCsv.onclick = function(){
+    if (!currentVault.length) {
+      if (window.showMcGeeToast) window.showMcGeeToast('Add at least one piece to export CSV.', true);
+      return;
+    }
+    var escCsv = function(v){ return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; };
+    var rows = [['Name','Category','Karat','GrossWeight_g','PureGold_g','EstMelt_USD','PaidPrice_USD','Notes']];
+    currentVault.forEach(function(it){
+      var c = calcMelt(it.weight, it.karat);
+      rows.push([it.name, it.cat, it.karat, it.weight, c.pureGrams.toFixed(2), c.meltVal.toFixed(2), it.price || 0, it.notes || '']);
+    });
+    var csv = rows.map(function(r){ return r.map(escCsv).join(','); }).join('\n');
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+    a.download = 'mcgee-jewelry-vault.csv';
+    a.click();
+  };
+}
+
 // Print Dossier
 var btnPrint = document.getElementById('btn-print');
 if (btnPrint) {
@@ -492,10 +566,9 @@ if (btnPrint) {
 // Initial load
 loadVault();
 
-// Re-load as soon as Supabase session finishes initializing or changes
-window.addEventListener('mcgee:auth-ready', function(){
-  loadVault();
-});
+// Re-load as soon as Supabase session or live gold config finishes initializing
+window.addEventListener('mcgee:auth-ready', loadVault);
+window.addEventListener('mcgee:config-ready', render);
 if (window.__mcgeeAuthReady) {
   loadVault();
 }

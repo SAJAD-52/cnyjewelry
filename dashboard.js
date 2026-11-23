@@ -9,7 +9,7 @@ var sb = window.supabase ? window.supabase.createClient(SB_URL, SB_KEY) : null;
 var currentUser = null;
 var authChecked = false;
 
-var TOOLS=['sizing.html','styling.html','care.html','gift.html','layering.html','anniversary.html','gold.html','diamond.html','earrings.html','wishlist.html','vault.html','planner.html','beading.html','blog.html','index.html','privacy.html'];
+var TOOLS=['ritual.html','sizing.html','styling.html','care.html','gift.html','layering.html','anniversary.html','gold.html','diamond.html','earrings.html','wishlist.html','vault.html','planner.html','beading.html','blog.html','index.html','privacy.html'];
 var FONT='<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"><script src="https://cdn.tailwindcss.com"><\/script><link rel="stylesheet" href="style.css">';
 var GRADS=['linear-gradient(135deg,#f3e2b3,#e8b4b8 55%,#b76e79)','linear-gradient(135deg,#e8b4b8,#c9954f 70%,#7a4a2b)','linear-gradient(135deg,#d98e32,#9a3b2e 60%,#5a1d2a)','linear-gradient(135deg,#ffffff,#c7ccd6 45%,#b76e79)','linear-gradient(135deg,#f3e2b3,#e8b4b8 40%,#7b1e2b)','linear-gradient(135deg,#ffffff,#f3e2b3 45%,#b76e79)'];
 
@@ -30,7 +30,20 @@ var subActionMsg = '';
 var subActionErr = false;
 var pendingDeleteId = null;
 
+var siteCfg = { meta_pixel_id: '', gold_usd_per_oz: '2650' };
+var siteCfgMsg = '';
+var siteCfgErr = false;
+
 var ADMIN_SQL_SETUP = [
+  "create table if not exists public.site_config (",
+  "  key text primary key check (key in ('meta_pixel_id', 'gold_usd_per_oz')),",
+  "  value text not null, updated_at timestamptz default now()",
+  ");",
+  "alter table public.site_config enable row level security;",
+  "drop policy if exists \"Public can read site_config\" on public.site_config;",
+  "create policy \"Public can read site_config\" on public.site_config for select using (true);",
+  "insert into public.site_config (key, value) values ('gold_usd_per_oz', '2650') on conflict (key) do nothing;",
+  "",
   "insert into public.admins (user_id, notes)",
   "select id, 'Primary Owner' from auth.users where lower(email) = 'said.cpge24@gmail.com'",
   "on conflict (user_id) do nothing;",
@@ -43,8 +56,9 @@ var ADMIN_SQL_SETUP = [
   "  );",
   "$$;",
   "",
+  "drop function if exists public.admin_list_accounts();",
   "create or replace function public.admin_list_accounts()",
-  "returns table (user_id uuid, email text, created_at timestamptz, email_confirmed_at timestamptz, last_sign_in_at timestamptz, plan text, sub_status text, current_period_end timestamptz, is_admin boolean, pieces_count bigint)",
+  "returns table (user_id uuid, email text, created_at timestamptz, email_confirmed_at timestamptz, last_sign_in_at timestamptz, plan text, sub_status text, current_period_end timestamptz, is_admin boolean, pieces_count bigint, currency text, language text, utm_source text, utm_campaign text, country_hint text)",
   "language plpgsql security definer set search_path = public, auth as $$",
   "begin",
   "  if not public.is_admin_user() then raise exception 'Forbidden: admin access required'; end if;",
@@ -53,12 +67,23 @@ var ADMIN_SQL_SETUP = [
   "    case when (s.status in ('active','trialing') and s.current_period_end > now()) or a.user_id is not null or lower(u.email) = 'said.cpge24@gmail.com' then 'pro' else 'free' end,",
   "    coalesce(s.status,'free')::text, s.current_period_end,",
   "    (a.user_id is not null or lower(u.email) = 'said.cpge24@gmail.com'),",
-  "    coalesce(p.cnt, 0)::bigint",
+  "    coalesce(p.cnt, 0)::bigint,",
+  "    coalesce(pr.currency, 'USD')::text, coalesce(pr.language, 'EN')::text,",
+  "    pr.utm_source::text, pr.utm_campaign::text, pr.country_hint::text",
   "  from auth.users u",
   "  left join public.subscriptions s on s.user_id = u.id",
   "  left join public.admins a on a.user_id = u.id",
+  "  left join public.profiles pr on pr.user_id = u.id",
   "  left join (select pc.user_id, count(*)::bigint as cnt from public.pieces pc group by pc.user_id) p on p.user_id = u.id",
   "  order by u.created_at desc;",
+  "end; $$;",
+  "",
+  "create or replace function public.admin_set_site_config(cfg_key text, cfg_val text)",
+  "returns void language plpgsql security definer set search_path = public as $$",
+  "begin",
+  "  if not public.is_admin_user() then raise exception 'Forbidden: admin access required'; end if;",
+  "  insert into public.site_config (key, value, updated_at) values (cfg_key, trim(coalesce(cfg_val, '')), now())",
+  "  on conflict (key) do update set value = excluded.value, updated_at = now();",
   "end; $$;",
   "",
   "create or replace function public.admin_set_user_plan(target_user_id uuid, new_plan text)",
@@ -95,6 +120,7 @@ var ADMIN_SQL_SETUP = [
   "",
   "revoke all on function public.is_admin_user() from public; grant execute on function public.is_admin_user() to authenticated;",
   "revoke all on function public.admin_list_accounts() from public; grant execute on function public.admin_list_accounts() to authenticated;",
+  "revoke all on function public.admin_set_site_config(text, text) from public; grant execute on function public.admin_set_site_config(text, text) to authenticated;",
   "revoke all on function public.admin_set_user_plan(uuid, text) from public; grant execute on function public.admin_set_user_plan(uuid, text) to authenticated;",
   "revoke all on function public.admin_grant_pro_by_email(text, text) from public; grant execute on function public.admin_grant_pro_by_email(text, text) to authenticated;",
   "revoke all on function public.admin_delete_user(uuid) from public; grant execute on function public.admin_delete_user(uuid) to authenticated;"
@@ -149,6 +175,11 @@ async function loadSubscribers(forceRender) {
           status: r.sub_status || (r.plan === 'pro' ? 'active' : 'free'),
           isAdmin: !!r.is_admin,
           piecesCount: Number(r.pieces_count) || 0,
+          currency: r.currency || 'USD',
+          language: r.language || 'EN',
+          utmSource: r.utm_source || '',
+          utmCampaign: r.utm_campaign || '',
+          countryHint: r.country_hint || '',
           amount: (r.plan === 'pro' && !r.is_admin) ? 6.00 : 0.00
         };
       });
@@ -160,6 +191,27 @@ async function loadSubscribers(forceRender) {
     subsLoading = false;
     if (view === 'overview' || view === 'subscribers') render();
   }
+}
+
+async function loadSiteConfig() {
+  if (!sb) return;
+  try {
+    var cached = JSON.parse(localStorage.getItem('mcgee_site_config') || '{}');
+    if (cached && typeof cached === 'object') {
+      if (cached.meta_pixel_id != null) siteCfg.meta_pixel_id = String(cached.meta_pixel_id);
+      if (cached.gold_usd_per_oz) siteCfg.gold_usd_per_oz = String(cached.gold_usd_per_oz);
+    }
+  } catch(e){}
+  try {
+    var res = await sb.from('site_config').select('key, value');
+    if (!res.error && Array.isArray(res.data)) {
+      res.data.forEach(function(row){
+        if (row && row.key) siteCfg[row.key] = row.value || '';
+      });
+      try { localStorage.setItem('mcgee_site_config', JSON.stringify(siteCfg)); } catch(e){}
+      if (view === 'overview' || view === 'settings') render();
+    }
+  } catch(e){}
 }
 
 function checkAdminAuth() {
@@ -174,6 +226,7 @@ function checkAdminAuth() {
         showSidebar(true);
         render();
         loadSubscribers(true);
+        loadSiteConfig();
       } else {
         showSidebar(false);
         renderAdminLogin('Access denied. Log in with ' + ADMIN_EMAIL);
@@ -259,6 +312,18 @@ function renderOverview() {
   var arr = mrr * 12;
   var convRate = totalSubs ? Math.round((proCount / totalSubs) * 100) : 0;
 
+  // Market & Meta Ad Attribution summary
+  var curCounts = {};
+  var metaLeads = 0;
+  customers.forEach(function(c){
+    var cur = c.currency || 'USD';
+    curCounts[cur] = (curCounts[cur] || 0) + 1;
+    if (c.utmSource || c.utmCampaign) metaLeads++;
+  });
+  var topMarketsHtml = Object.keys(curCounts).sort(function(a,b){ return curCounts[b] - curCounts[a]; }).slice(0, 5).map(function(cur){
+    return '<span class="pill dr">' + esc(cur) + ': ' + curCounts[cur] + '</span>';
+  }).join(' ') || '<span class="muted text-xs">No market signups yet</span>';
+
   var latestArticles = A.slice(0, 3).map(function(a){
     return '<div class="flex items-center justify-between py-2 border-b border-rose-200/10 text-sm">' +
            '<span class="truncate max-w-xs font-medium">' + esc(a.title || 'Untitled') + '</span>' +
@@ -279,7 +344,8 @@ function renderOverview() {
              '<div class="flex items-center gap-2 min-w-0">' +
              '<span class="pill ' + (s.plan==='pro'?'pro':'dr') + '">' + (s.isAdmin ? 'Admin' : (s.plan==='pro'?'$6 Pro':'Free')) + '</span>' +
              '<span class="truncate">' + esc(s.email) + '</span>' +
-             (!s.confirmed ? '<span class="pill warn" style="font-size:.68rem">Pending Email</span>' : '') +
+             '<span class="pill dr" style="font-size:.66rem">' + esc(s.currency || 'USD') + '/' + esc(s.language || 'EN') + '</span>' +
+             (s.utmSource ? '<span class="pill live" style="font-size:.66rem">' + esc(s.utmSource) + '</span>' : '') +
              '</div>' +
              '<span class="muted text-xs shrink-0">' + esc(s.date) + '</span>' +
              '</div>';
@@ -294,13 +360,26 @@ function renderOverview() {
     renderSqlSetupBanner() +
 
     '<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">' +
-    '<div class="glass p-5 rounded-2xl"><span class="muted text-xs uppercase tracking-wider">Monthly Revenue (MRR)</span><h2 class="serif text-4xl text-emerald-600 dark:text-emerald-400 mt-1">$' + mrr + '</h2><p class="muted text-xs mt-1">$' + arr + ' ARR run rate</p></div>' +
-    '<div class="glass p-5 rounded-2xl"><span class="muted text-xs uppercase tracking-wider">Pro Subscribers ($6)</span><h2 class="serif text-4xl gt mt-1">' + proCount + '</h2><p class="muted text-xs mt-1">Active paid customers</p></div>' +
-    '<div class="glass p-5 rounded-2xl"><span class="muted text-xs uppercase tracking-wider">Customer Accounts</span><h2 class="serif text-4xl gt mt-1">' + totalSubs + '</h2><p class="muted text-xs mt-1">' + freeCount + ' free &middot; ' + pendingCount + ' unconfirmed</p></div>' +
-    '<div class="glass p-5 rounded-2xl"><span class="muted text-xs uppercase tracking-wider">Free &rarr; Pro Conversion</span><h2 class="serif text-4xl gt mt-1">' + convRate + '%</h2><p class="muted text-xs mt-1">Live Supabase ratio</p></div>' +
+    '<div class="glass p-5 rounded-2xl"><span class="muted text-xs uppercase tracking-wider">Monthly Revenue (MRR)</span><h2 class="serif text-4xl text-emerald-600 dark:text-emerald-400 mt-1 tabular-nums">$' + mrr + '</h2><p class="muted text-xs mt-1 tabular-nums">$' + arr + ' ARR run rate</p></div>' +
+    '<div class="glass p-5 rounded-2xl"><span class="muted text-xs uppercase tracking-wider">Pro Subscribers ($6)</span><h2 class="serif text-4xl gt mt-1 tabular-nums">' + proCount + '</h2><p class="muted text-xs mt-1">Active paid customers</p></div>' +
+    '<div class="glass p-5 rounded-2xl"><span class="muted text-xs uppercase tracking-wider">Customer Accounts</span><h2 class="serif text-4xl gt mt-1 tabular-nums">' + totalSubs + '</h2><p class="muted text-xs mt-1">' + freeCount + ' free &middot; ' + pendingCount + ' unconfirmed</p></div>' +
+    '<div class="glass p-5 rounded-2xl"><span class="muted text-xs uppercase tracking-wider">Free &rarr; Pro Conversion</span><h2 class="serif text-4xl gt mt-1 tabular-nums">' + convRate + '%</h2><p class="muted text-xs mt-1">Live Supabase ratio</p></div>' +
     '</div>' +
 
-    '<div class="grid md:grid-cols-2 gap-6 mt-8">' +
+    '<div class="glass p-5 rounded-3xl mt-6 flex flex-wrap items-center justify-between gap-4">' +
+    '<div>' +
+    '<p class="text-xs muted uppercase tracking-wider">Top Markets &amp; Meta Ad Attribution</p>' +
+    '<div class="flex flex-wrap gap-1.5 mt-2">' + topMarketsHtml + '</div>' +
+    '</div>' +
+    '<div class="flex flex-wrap items-center gap-4 text-xs">' +
+    '<div><span class="muted block">Attributed Ad Signups</span><b class="serif text-2xl gt tabular-nums">' + metaLeads + '</b></div>' +
+    '<div><span class="muted block">Meta Pixel</span><b class="text-xs ' + (siteCfg.meta_pixel_id ? 'text-emerald-400' : 'text-amber-400') + '">' + (siteCfg.meta_pixel_id ? 'Active (' + esc(siteCfg.meta_pixel_id) + ')' : 'Not Set') + '</b></div>' +
+    '<div><span class="muted block">Gold Spot Rate</span><b class="text-xs gt tabular-nums">$' + esc(siteCfg.gold_usd_per_oz || '2650') + ' / oz</b></div>' +
+    '<button class="btn btn-ghost text-xs py-1.5 px-3" data-act="view" data-id="settings">Configure &rarr;</button>' +
+    '</div>' +
+    '</div>' +
+
+    '<div class="grid md:grid-cols-2 gap-6 mt-6">' +
     '<div class="glass p-6 rounded-3xl">' +
     '<div class="flex items-center justify-between mb-3"><h3 class="serif text-2xl gt">Recent Signups</h3><button class="text-xs gt underline" data-act="view" data-id="subscribers">Manage &rarr;</button></div>' +
     latestSubsHtml +
@@ -319,7 +398,10 @@ function renderSubscribers() {
     if (subFilter === 'pro' && s.plan !== 'pro') return false;
     if (subFilter === 'free' && s.plan !== 'free') return false;
     if (subFilter === 'pending' && s.confirmed) return false;
-    if (q && s.email.toLowerCase().indexOf(q) < 0) return false;
+    if (q) {
+      var hay = [s.email, s.currency, s.language, s.utmSource, s.utmCampaign, s.countryHint].join(' ').toLowerCase();
+      if (hay.indexOf(q) < 0) return false;
+    }
     return true;
   });
 
@@ -337,10 +419,15 @@ function renderSubscribers() {
           : '<button class="btn btn-ghost text-xs" data-act="toggleplan" data-id="' + escA(s.user_id) + '">' + (s.plan==='pro'?'Set Free':'Grant Pro') + '</button> ' +
             '<button class="text-xs text-red-400 hover:underline ml-2" data-act="delsub" data-id="' + escA(s.user_id) + '">Delete</button>');
 
+    var attrTags = '<span class="pill dr" style="font-size:.65rem">' + esc(s.currency || 'USD') + ' · ' + esc(s.language || 'EN') + '</span>' +
+      (s.countryHint ? ' <span class="muted text-[11px]">' + esc(s.countryHint) + '</span>' : '') +
+      (s.utmSource ? ' <span class="pill live" style="font-size:.65rem">Ad: ' + esc(s.utmSource) + (s.utmCampaign ? '/' + esc(s.utmCampaign) : '') + '</span>' : '');
+
     return '<tr class="border-b border-rose-200/10 text-sm">' +
            '<td class="py-3 px-3 font-medium">' +
              '<div>' + esc(s.email) + (s.isAdmin ? ' <span class="pill pro" style="font-size:.65rem">Admin</span>' : '') + '</div>' +
-             '<div class="muted text-xs">' + s.piecesCount + ' vault piece(s) &middot; Last login: ' + esc(s.lastSignIn) + '</div>' +
+             '<div class="muted text-xs mt-0.5">' + s.piecesCount + ' vault piece(s) &middot; Last login: ' + esc(s.lastSignIn) + '</div>' +
+             '<div class="mt-1 flex flex-wrap items-center gap-1">' + attrTags + '</div>' +
            '</td>' +
            '<td class="py-3 px-3"><span class="pill ' + (s.plan==='pro'?'pro':'dr') + '">' + (s.plan==='pro'?'⭐ Pro ($6/mo)':'Free Tier') + '</span></td>' +
            '<td class="py-3 px-3 muted">' + esc(s.date) + '</td>' +
@@ -656,10 +743,20 @@ function saveForm(){var d=form(),a=A.filter(function(x){return x.id===editId})[0
 /* ---------- 4. SETTINGS VIEW ---------- */
 function renderSettings(){
 $('#app').innerHTML='<h1 class="text-4xl gt">System Settings</h1>' +
-'<div class="glass p-6 rounded-3xl mt-5"><h3 class="serif text-2xl">GitHub Auto-Deploy</h3><p class="muted text-xs">Saves files directly to your repo; Vercel builds the site automatically.</p>' +
+'<div class="glass p-6 rounded-3xl mt-5 border border-amber-300/25"><h3 class="serif text-2xl gt">Meta Ads Pixel &amp; Live Gold Spot Rate (Cloud Config)</h3>' +
+'<p class="muted text-xs mt-1">Updates apply across every country and device immediately via Supabase <code>site_config</code>. Leave Meta Pixel ID blank to disable pixel loading.</p>' +
+'<div class="grid sm:grid-cols-2 gap-3 mt-3">' +
+'<label class="fld"><span>Meta Pixel ID (15–16 digits)</span><input id="s_pixel" value="'+escA(siteCfg.meta_pixel_id||'')+'" placeholder="e.g. 123456789012345"></label>' +
+'<label class="fld"><span>24K Gold Spot Rate (USD / troy oz)</span><input id="s_goldoz" type="number" step="1" min="500" value="'+escA(siteCfg.gold_usd_per_oz||'2650')+'" placeholder="2650"></label>' +
+'</div>' +
+'<div class="flex flex-wrap items-center gap-3 mt-4"><button class="btn btn-gold" data-act="savesitecfg">Save Cloud Marketing &amp; Gold Config</button>' +
+(siteCfgMsg ? '<span class="text-xs '+(siteCfgErr?'text-red-400':'text-emerald-400')+'">'+esc(siteCfgMsg)+'</span>' : '') +
+'</div></div>' +
+
+'<div class="glass p-6 rounded-3xl mt-6"><h3 class="serif text-2xl">GitHub Auto-Deploy</h3><p class="muted text-xs">Saves files directly to your repo; Vercel builds the site automatically.</p>' +
 '<div class="grid sm:grid-cols-3 gap-3 mt-3"><label class="fld"><span>Owner</span><input id="s_owner" value="'+escA(S.owner)+'"></label><label class="fld"><span>Repo</span><input id="s_repo" value="'+escA(S.repo)+'"></label><label class="fld"><span>Branch</span><input id="s_branch" value="'+escA(S.branch)+'"></label></div>' +
 '<label class="fld"><span>Site Domain</span><input id="s_domain" value="'+escA(S.domain)+'"></label><label class="fld"><span>Personal Access Token</span><input id="s_token" type="password" value="'+escA(S.token)+'"></label>' +
-'<button class="btn btn-gold mt-4" data-act="savesettings">Save & Test GitHub</button><p id="sm" class="text-xs mt-2"></p></div>' +
+'<button class="btn btn-gold mt-4" data-act="savesettings">Save &amp; Test GitHub</button><p id="sm" class="text-xs mt-2"></p></div>' +
 
 '<div class="glass p-6 rounded-3xl mt-6"><h3 class="serif text-2xl">Gemini API Key</h3>' +
 '<label class="fld"><span>API Key</span><input id="s_gemkey" type="password" value="'+escA(S.gemKey)+'"></label>' +
@@ -745,6 +842,38 @@ async function act(k,id){
       subActionErr = false;
       await loadSubscribers(true);
     }
+  }
+  else if(k==='savesitecfg'){
+    if(!sb) return;
+    var px = ($('#s_pixel') ? $('#s_pixel').value.trim().replace(/[^0-9]/g, '') : '');
+    var gz = ($('#s_goldoz') ? $('#s_goldoz').value.trim() : '2650') || '2650';
+    siteCfgMsg = 'Saving to Supabase...';
+    siteCfgErr = false;
+    renderSettings();
+    try {
+      var r1 = await sb.rpc('admin_set_site_config', { cfg_key: 'meta_pixel_id', cfg_val: px });
+      if (r1.error) {
+        r1 = await sb.from('site_config').upsert({ key: 'meta_pixel_id', value: px, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+      }
+      var r2 = await sb.rpc('admin_set_site_config', { cfg_key: 'gold_usd_per_oz', cfg_val: gz });
+      if (r2.error) {
+        r2 = await sb.from('site_config').upsert({ key: 'gold_usd_per_oz', value: gz, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+      }
+      if (r1.error || r2.error) {
+        siteCfgMsg = (r1.error && r1.error.message) || (r2.error && r2.error.message) || 'Could not save site_config. Run the SQL update first.';
+        siteCfgErr = true;
+      } else {
+        siteCfg.meta_pixel_id = px;
+        siteCfg.gold_usd_per_oz = gz;
+        try { localStorage.setItem('mcgee_site_config', JSON.stringify(siteCfg)); } catch(e){}
+        siteCfgMsg = '✓ Saved live to Supabase site_config!';
+        siteCfgErr = false;
+      }
+    } catch (err) {
+      siteCfgMsg = (err && err.message) ? err.message : 'Save error.';
+      siteCfgErr = true;
+    }
+    renderSettings();
   }
   else if(k==='savesettings'){
     S.owner=$('#s_owner').value.trim(); S.repo=$('#s_repo').value.trim(); S.branch=$('#s_branch').value.trim()||'main';
