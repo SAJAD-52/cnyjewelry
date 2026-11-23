@@ -411,6 +411,82 @@ details.more .more-menu {
   z-index: 80;
 }
 
+/* Currency Switcher Dropdown */
+.cur-switcher {
+  position: relative;
+}
+.cur-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .35rem .7rem;
+  border-radius: 999px;
+  font-size: .78rem;
+  font-weight: 500;
+  color: #f3e2b3;
+  background: rgba(243, 226, 179, .12);
+  border: 1px solid rgba(243, 226, 179, .28);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .2s, border-color .2s, transform .2s;
+}
+.cur-btn:hover {
+  background: rgba(243, 226, 179, .2);
+  border-color: rgba(243, 226, 179, .5);
+}
+.cur-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + .5rem);
+  width: 15.5rem;
+  max-height: 22rem;
+  overflow-y: auto;
+  padding: .45rem;
+  border-radius: 1rem;
+  background: rgba(15, 23, 42, .97);
+  border: 1px solid rgba(243, 226, 179, .22);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, .55);
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+}
+.cur-menu[hidden] {
+  display: none !important;
+}
+html[dir="rtl"] .cur-menu {
+  right: auto;
+  left: 0;
+}
+.cur-opt {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: .45rem .65rem;
+  border-radius: .65rem;
+  border: 0;
+  background: transparent;
+  color: #e2e8f0;
+  font-size: .78rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background .15s;
+}
+.cur-opt:hover {
+  background: rgba(243, 226, 179, .12);
+}
+.cur-opt[aria-selected="true"] {
+  background: rgba(183, 110, 121, .26);
+  color: #f3e2b3;
+  font-weight: 500;
+}
+.cur-divider {
+  margin: .3rem 0;
+  border-top: 1px solid rgba(243, 226, 179, .15);
+}
+
 /* Signature Animations (Compositor-Only) */
 .draw {
   stroke-dasharray: 1;
@@ -646,6 +722,30 @@ html:not([data-theme="plum"]):not([data-theme="midnight"]) details.more .more-me
   box-shadow: 0 18px 40px rgba(90, 40, 50, .16);
 }
 
+html:not([data-theme="plum"]):not([data-theme="midnight"]) .cur-btn {
+  color: #7d3e4b;
+  background: rgba(255, 255, 255, .78);
+  border-color: rgba(183, 110, 121, .38);
+}
+html:not([data-theme="plum"]):not([data-theme="midnight"]) .cur-btn:hover {
+  background: rgba(183, 110, 121, .12);
+}
+html:not([data-theme="plum"]):not([data-theme="midnight"]) .cur-menu {
+  background: rgba(255, 252, 250, .98);
+  border-color: rgba(183, 110, 121, .28);
+  box-shadow: 0 18px 40px rgba(90, 40, 50, .18);
+}
+html:not([data-theme="plum"]):not([data-theme="midnight"]) .cur-opt {
+  color: #3b2a2e;
+}
+html:not([data-theme="plum"]):not([data-theme="midnight"]) .cur-opt:hover {
+  background: rgba(183, 110, 121, .1);
+}
+html:not([data-theme="plum"]):not([data-theme="midnight"]) .cur-opt[aria-selected="true"] {
+  background: linear-gradient(110deg, rgba(243, 226, 179, .65), rgba(232, 180, 184, .55));
+  color: #4b252c;
+}
+
 html:not([data-theme="plum"]):not([data-theme="midnight"]) details.faq {
   background: rgba(255, 255, 255, .74);
   border-color: rgba(183, 110, 121, .18);
@@ -698,6 +798,9 @@ html[data-theme="plum"] .nav {
 
 html[data-theme="plum"] details.more .more-menu {
   background: rgba(42, 20, 38, .97);
+}
+html[data-theme="plum"] .cur-menu {
+  background: rgba(42, 20, 38, .98);
 }
 
 html[data-theme="plum"] details.faq {

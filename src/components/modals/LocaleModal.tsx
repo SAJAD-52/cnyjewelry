@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp, CURRENCIES, LANGUAGES } from '../../context/AppContext';
 
 export const LocaleModal: React.FC = () => {
@@ -6,6 +6,13 @@ export const LocaleModal: React.FC = () => {
 
   const [selectedCurrency, setSelectedCurrency] = useState(currentLocale.currency);
   const [selectedLang, setSelectedLang] = useState(currentLocale.lang);
+
+  useEffect(() => {
+    if (isLocaleModalOpen) {
+      setSelectedCurrency(currentLocale.currency);
+      setSelectedLang(currentLocale.lang);
+    }
+  }, [isLocaleModalOpen, currentLocale.currency, currentLocale.lang]);
 
   if (!isLocaleModalOpen) return null;
 

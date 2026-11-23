@@ -58,6 +58,16 @@ var CURRENCIES = {
   AED: { symbol: 'AED', name: 'UAE Dirham (UAE)', rate: 3.67, defaultLang: 'AR' },
   SAR: { symbol: 'SAR', name: 'Saudi Riyal (Saudi Arabia)', rate: 3.75, defaultLang: 'AR' }
 };
+window.MCGEE_CURRENCIES = CURRENCIES;
+
+var CUR_FLAGS = {
+  USD: '🇺🇸', CAD: '🇨🇦', GBP: '🇬🇧', AUD: '🇦🇺', NZD: '🇳🇿', EUR: '🇪🇺',
+  CHF: '🇨🇭', SEK: '🇸🇪', NOK: '🇳🇴', DKK: '🇩🇰', PLN: '🇵🇱', CZK: '🇨🇿',
+  HUF: '🇭🇺', RON: '🇷🇴', BGN: '🇧🇬', ISK: '🇮🇸', TRY: '🇹🇷', UAH: '🇺🇦',
+  RSD: '🇷🇸', MAD: '🇲🇦', AED: '🇦🇪', SAR: '🇸🇦'
+};
+var QUICK_CURRENCIES = ['USD', 'CAD', 'GBP', 'AUD', 'NZD', 'EUR', 'CHF', 'SEK', 'NOK', 'DKK', 'AED', 'SAR', 'MAD'];
+window.MCGEE_CUR_FLAGS = CUR_FLAGS;
 
 var LANGUAGES = {
   EN: 'English',
@@ -441,6 +451,55 @@ function formatPrice(usdAmount) {
 }
 window.formatPrice = formatPrice;
 
+function refreshCurrencySwitchersUI() {
+  var c = CURRENCIES[currentLocale.currency] || CURRENCIES.USD;
+  var flag = CUR_FLAGS[currentLocale.currency] || '💱';
+  var btnLabel = document.getElementById('mcgee-cur-btn-label');
+  if (btnLabel) {
+    btnLabel.innerHTML = flag + ' ' + currentLocale.currency + ' <span class="hidden sm:inline opacity-80">(' + c.symbol + ')</span>';
+  }
+  var bLocDesk = document.getElementById('nav-locale-btn');
+  if (bLocDesk) {
+    bLocDesk.innerHTML = '<span>🌐 ' + (LANGUAGES[currentLocale.lang] || currentLocale.lang) + ' ▾</span>';
+  }
+  var bLocMob = document.getElementById('m-nav-locale-btn');
+  if (bLocMob) {
+    bLocMob.textContent = '🌐 ' + currentLocale.currency + ' (' + c.symbol + ') · ' + (LANGUAGES[currentLocale.lang] || currentLocale.lang);
+  }
+  document.querySelectorAll('#mcgee-cur-menu [data-cur-code]').forEach(function(opt) {
+    var active = opt.getAttribute('data-cur-code') === currentLocale.currency;
+    opt.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+}
+
+function setMcGeeCurrency(curCode, opts) {
+  var code = String(curCode || 'USD').toUpperCase();
+  if (!CURRENCIES[code]) return;
+  currentLocale.currency = code;
+  if (opts && opts.syncLang && CURRENCIES[code].defaultLang) {
+    currentLocale.lang = CURRENCIES[code].defaultLang;
+  }
+  window.currentLocale = currentLocale;
+  try { localStorage.setItem('koo_user_locale', JSON.stringify(currentLocale)); } catch(e){}
+  if (currentUser && sb) {
+    sb.from('profiles').upsert({
+      user_id: currentUser.id,
+      currency: currentLocale.currency,
+      language: currentLocale.lang,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' }).then(function(){});
+  }
+  refreshCurrencySwitchersUI();
+  applyDocumentLocale();
+  updateNavAuth();
+  try {
+    window.dispatchEvent(new CustomEvent('mcgee:locale-changed', {
+      detail: { currency: currentLocale.currency, lang: currentLocale.lang }
+    }));
+  } catch(e){}
+}
+window.setMcGeeCurrency = setMcGeeCurrency;
+
 function openLocaleModal() {
   var old = document.getElementById('mcgee-locale-dialog');
   if (old) old.remove();
@@ -600,7 +659,30 @@ function lk(p){
 }
 
 var curInfo = CURRENCIES[currentLocale.currency] || CURRENCIES.USD;
-var locBtnHtml = '<button id="nav-locale-btn" class="l whitespace-nowrap flex items-center gap-1 font-medium text-xs py-1 px-2.5 rounded-full" style="cursor:pointer;color:#b76e79;background:rgba(243,226,179,0.15);border:1px solid rgba(183,110,121,0.25)" title="Change Currency & Language"><span>📍 ' + currentLocale.currency + ' (' + curInfo.symbol + ') ▾</span></button>';
+var curFlag = CUR_FLAGS[currentLocale.currency] || '💱';
+var locBtnHtml = '<button id="nav-locale-btn" class="l whitespace-nowrap flex items-center gap-1 font-medium text-xs py-1 px-2.5 rounded-full" style="cursor:pointer;color:#b76e79;background:rgba(243,226,179,0.12);border:1px solid rgba(183,110,121,0.22)" title="Change Website Language"><span>🌐 ' + (LANGUAGES[currentLocale.lang] || currentLocale.lang) + ' ▾</span></button>';
+
+var curOptsHtml = QUICK_CURRENCIES.map(function(code) {
+  var ci = CURRENCIES[code];
+  var fl = CUR_FLAGS[code] || '💱';
+  var isSel = currentLocale.currency === code;
+  return '<button type="button" class="cur-opt" role="option" data-cur-code="' + code + '" aria-selected="' + (isSel ? 'true' : 'false') + '">' +
+    '<span class="flex items-center gap-2"><span>' + fl + '</span><span><b>' + code + '</b> <span class="opacity-70 text-[11px]">' + ci.name.split(' (')[0] + '</span></span></span>' +
+    '<span class="font-mono text-xs opacity-85">' + ci.symbol + '</span>' +
+    '</button>';
+}).join('');
+
+var currencySwitcherHtml = '<div id="mcgee-cur-switcher" class="cur-switcher shrink-0">' +
+  '<button type="button" id="mcgee-cur-btn" class="cur-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="Switch currency">' +
+  '<span id="mcgee-cur-btn-label">' + curFlag + ' ' + currentLocale.currency + ' <span class="hidden sm:inline opacity-80">(' + curInfo.symbol + ')</span></span>' +
+  '<span class="text-[10px] opacity-75">▾</span>' +
+  '</button>' +
+  '<div id="mcgee-cur-menu" class="cur-menu" role="listbox" aria-label="Select currency" hidden>' +
+  curOptsHtml +
+  '<div class="cur-divider"></div>' +
+  '<button type="button" id="mcgee-cur-more" class="cur-opt"><span class="gt font-medium">🌐 All 22 currencies &amp; languages...</span></button>' +
+  '</div>' +
+  '</div>';
 
 var deskLinks = [
   pages[1], pages[2], pages[3], pages[4]
@@ -611,7 +693,7 @@ var desk = deskLinks + '<details class="more"><summary' + (here !== 'index.html'
 
 var mobLinks = pages.map(lk).join('') + 
   '<div class="pt-3 mt-2 border-t border-rose-200/20 flex flex-col gap-2">' +
-  '<button id="m-nav-locale-btn" class="chip text-xs w-full text-center py-2">📍 ' + currentLocale.currency + ' (' + curInfo.symbol + ') · ' + (LANGUAGES[currentLocale.lang]||currentLocale.lang) + '</button>' +
+  '<button id="m-nav-locale-btn" class="chip text-xs w-full text-center py-2">🌐 ' + currentLocale.currency + ' (' + curInfo.symbol + ') · ' + (LANGUAGES[currentLocale.lang]||currentLocale.lang) + '</button>' +
   '<button id="m-th" class="btn btn-ghost text-xs w-full py-2">' + t('nav.theme', 'Theme') + '</button>' +
   '</div>';
 
@@ -620,6 +702,7 @@ if(nav) nav.innerHTML = '<header class="nav"><div class="mx-auto max-w-7xl px-3 
   brand('lg1') +
   '<nav class="hidden xl:flex gap-1 items-center" aria-label="Main">' + desk + '</nav>' +
   '<div class="flex items-center gap-1.5 sm:gap-2 shrink-0" id="nav-actions">' +
+  currencySwitcherHtml +
   '<button id="th" class="btn btn-ghost hidden sm:inline-flex text-xs py-1.5 px-3" aria-label="Change color theme"></button>' +
   '<span id="auth-slot" class="flex items-center gap-1.5 shrink-0"></span>' +
   '<button id="mb" class="xl:hidden btn btn-ghost py-1.5 px-3 text-xs" aria-expanded="false" aria-controls="mm">' + t('nav.menu', 'Menu') + '</button>' +
@@ -631,6 +714,45 @@ if(nav) nav.innerHTML = '<header class="nav"><div class="mx-auto max-w-7xl px-3 
 
 var bLocDesk = document.getElementById('nav-locale-btn'); if (bLocDesk) bLocDesk.onclick = openLocaleModal;
 var bLocMob = document.getElementById('m-nav-locale-btn'); if (bLocMob) bLocMob.onclick = openLocaleModal;
+
+(function wireCurrencySwitcher(){
+  var curBtn = document.getElementById('mcgee-cur-btn');
+  var curMenu = document.getElementById('mcgee-cur-menu');
+  var curMore = document.getElementById('mcgee-cur-more');
+  if (!curBtn || !curMenu) return;
+
+  function closeMenu() {
+    curMenu.hidden = true;
+    curBtn.setAttribute('aria-expanded', 'false');
+  }
+  curBtn.onclick = function(e) {
+    e.stopPropagation();
+    var opening = curMenu.hidden;
+    curMenu.hidden = !opening;
+    curBtn.setAttribute('aria-expanded', opening ? 'true' : 'false');
+  };
+  curMenu.querySelectorAll('[data-cur-code]').forEach(function(opt) {
+    opt.onclick = function(e) {
+      e.stopPropagation();
+      var code = opt.getAttribute('data-cur-code');
+      setMcGeeCurrency(code);
+      closeMenu();
+    };
+  });
+  if (curMore) {
+    curMore.onclick = function(e) {
+      e.stopPropagation();
+      closeMenu();
+      openLocaleModal();
+    };
+  }
+  document.addEventListener('click', function(e) {
+    if (!curMenu.hidden && !e.target.closest('#mcgee-cur-switcher')) closeMenu();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !curMenu.hidden) closeMenu();
+  });
+})();
 
 var mb = document.getElementById('mb');
 if(mb) mb.onclick = function(){ var m = document.getElementById('mm'), o = m.classList.toggle('hidden'); m.classList.toggle('flex', !o); mb.setAttribute('aria-expanded', !o); };
@@ -1098,6 +1220,11 @@ function openProModal(isPageLock) {
   m.id = 'mcgee-pro-modal';
   m.style.cssText = 'position:fixed;inset:0;background:rgba(18,10,14,0.85);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1.25rem;overflow-y:auto;';
   
+  var curOptsSelect = Object.keys(CURRENCIES).map(function(k){
+    var ci = CURRENCIES[k];
+    return '<option value="' + k + '"' + (currentLocale.currency === k ? ' selected' : '') + '>' + (CUR_FLAGS[k] || '') + ' ' + k + ' (' + ci.symbol + ')</option>';
+  }).join('');
+
   m.innerHTML = '<div class="glass glow p-6 md:p-8 rounded-3xl max-w-2xl w-full relative my-auto" style="box-shadow:0 30px 60px rgba(0,0,0,0.5);border:1px solid rgba(243,226,179,0.25)">' +
                 '<button id="pro-close" style="position:absolute;top:1.2rem;right:1.2rem;width:2rem;height:2rem;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:1rem;cursor:pointer" class="muted hover:text-white" aria-label="Close">✕</button>' +
                 
@@ -1105,8 +1232,12 @@ function openProModal(isPageLock) {
                 '<span class="chip" style="font-size:0.75rem;padding:0.25rem 0.9rem;background:rgba(243,226,179,0.15);border-color:#b76e79;color:#f3e2b3">' + t('pro.badge', '✨ MCGEE JEWELRY PRO') + '</span>' +
                 '<h2 class="serif text-3xl md:text-5xl gt mt-3">' + (isPageLock ? t('pro.title_lock', 'Free Preview Used — Keep Going with Pro') : t('pro.title_unlock', 'Unlock Your Daily Jewelry Concierge')) + '</h2>' +
                 '<p class="muted text-sm md:text-base mt-2 max-w-lg mx-auto">' +
-                'Just <b class="gt">' + dailyLabel + '/day</b> (<b class="gt">' + priceLabel + '/month</b>) &mdash; less than a single tarnish polish, for unlimited cloud vault, daily look check-ins, and all ' + ALL_TOOL_SLUGS.length + ' studios.' +
+                'Just <b class="gt" id="pro-modal-daily">' + dailyLabel + '/day</b> (<b class="gt" id="pro-modal-monthly">' + priceLabel + '/month</b>) &mdash; less than a single tarnish polish, for unlimited cloud vault, daily look check-ins, and all ' + ALL_TOOL_SLUGS.length + ' studios.' +
                 '</p>' +
+                '<div class="inline-flex items-center gap-2 mt-2.5 text-xs">' +
+                '<label for="pro-cur-select" class="muted">Display currency:</label>' +
+                '<select id="pro-cur-select" class="px-2.5 py-1 rounded-full text-xs border border-rose-200/30 bg-white/10 text-inherit cursor-pointer">' + curOptsSelect + '</select>' +
+                '</div>' +
                 '</div>' +
 
                 '<div class="grid sm:grid-cols-2 gap-2.5 mt-5 max-h-[38vh] overflow-y-auto pr-1">' +
@@ -1116,7 +1247,7 @@ function openProModal(isPageLock) {
                 '<div class="mt-5 flex flex-col gap-2.5 items-center">' +
                 emailCaptureHtml +
                 '<a id="pro-checkout-link" href="' + getStripeUrl() + '" class="btn btn-gold w-full text-center py-3.5 text-base md:text-lg font-medium shadow-lg" style="letter-spacing:0.02em">' +
-                'Continue to Secure Checkout &nbsp;&rarr;&nbsp; ' + priceLabel + '/mo' +
+                'Continue to Secure Checkout &nbsp;&rarr;&nbsp; <span id="pro-modal-btn-price">' + priceLabel + '</span>/mo' +
                 '</a>' +
                 '<p class="muted text-xs mt-0.5 text-center">' + t('pro.cancel', 'Instant activation via Stripe · Local currency checkout · Cancel in 1 click') + '</p>' +
                 '</div>' +
@@ -1127,6 +1258,21 @@ function openProModal(isPageLock) {
                 '</div>';
 
   document.body.appendChild(m);
+
+  var proCurSel = document.getElementById('pro-cur-select');
+  if (proCurSel) {
+    proCurSel.onchange = function() {
+      setMcGeeCurrency(proCurSel.value);
+      var np = formatPrice(6);
+      var nd = formatPrice(0.20);
+      var md = document.getElementById('pro-modal-daily');
+      var mm = document.getElementById('pro-modal-monthly');
+      var mbp = document.getElementById('pro-modal-btn-price');
+      if (md) md.textContent = nd + '/day';
+      if (mm) mm.textContent = np + '/month';
+      if (mbp) mbp.textContent = np;
+    };
+  }
 
   var emailInput = document.getElementById('pro-checkout-email');
   var checkoutLink = document.getElementById('pro-checkout-link');

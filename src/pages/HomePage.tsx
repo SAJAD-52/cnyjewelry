@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { useApp } from '../context/AppContext';
+import { useApp, CURRENCY_FLAGS } from '../context/AppContext';
 import { AdPromoBanner } from '../components/shared/AdPromoBanner';
 
 export const HomePage: React.FC = () => {
-  const { navigate, openProModal, formatPrice, t } = useApp();
+  const { navigate, openProModal, formatPrice, currentLocale, setCurrency, t } = useApp();
 
   // Widget 1: Interactive Ring Sizer
   const [usSize, setUsSize] = useState<number>(7);
@@ -153,6 +153,21 @@ export const HomePage: React.FC = () => {
             >
               ✨ Pro ({formatPrice(0.20)}/day)
             </button>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5 mt-4" aria-label="Switch currency">
+            <span className="text-[11px] muted mr-1">Currency:</span>
+            {['USD', 'CAD', 'GBP', 'AUD', 'EUR'].map((code) => (
+              <button
+                key={code}
+                type="button"
+                onClick={() => setCurrency(code)}
+                className="chip text-[11px] py-1 px-2.5"
+                aria-pressed={currentLocale.currency === code}
+              >
+                {CURRENCY_FLAGS[code]} {code}
+              </button>
+            ))}
           </div>
 
           {/* TRUST TICKER */}

@@ -562,6 +562,7 @@ loadPlannerData();
 window.addEventListener('mcgee:auth-ready', function(){
   loadPlannerData();
 });
+window.addEventListener('mcgee:locale-changed', renderAnalytics);
 if (window.__mcgeeAuthReady) {
   loadPlannerData();
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useApp } from '../context/AppContext';
+import { useApp, CURRENCIES, CURRENCY_FLAGS } from '../context/AppContext';
 import { AdPromoBanner } from '../components/shared/AdPromoBanner';
 
 const KARAT_TABLE = [
@@ -12,16 +12,25 @@ const KARAT_TABLE = [
 ];
 
 export const GoldPage: React.FC = () => {
-  const { markFeatureUsed, currentLocale, formatPrice } = useApp();
+  const { markFeatureUsed, currentLocale, setCurrency, goldPerGramUsd, formatPrice } = useApp();
 
   useEffect(() => {
     markFeatureUsed('gold');
   }, []);
 
+  const curInfo = CURRENCIES[currentLocale.currency] || CURRENCIES.USD;
+
   const [karat, setKarat] = useState<number>(18);
   const [weight, setWeight] = useState<string>('10');
   const [unit, setUnit] = useState<'g' | 'dwt' | 'oz'>('g');
-  const [pricePerGram, setPricePerGram] = useState<string>('85');
+  const [pricePerGram, setPricePerGram] = useState<string>(() => (goldPerGramUsd * curInfo.rate).toFixed(2));
+  const [customSpotEdited, setCustomSpotEdited] = useState(false);
+
+  useEffect(() => {
+    if (!customSpotEdited) {
+      setPricePerGram((goldPerGramUsd * curInfo.rate).toFixed(2));
+    }
+  }, [currentLocale.currency, goldPerGramUsd, curInfo.rate, customSpotEdited]);
 
   const wNum = parseFloat(weight) || 0;
   const pNum = parseFloat(pricePerGram) || 0;
@@ -33,7 +42,8 @@ export const GoldPage: React.FC = () => {
 
   const pureGrams = (grams * karat) / 24;
   const pureTroyOz = pureGrams / 31.1035;
-  const meltValue = pureGrams * pNum;
+  // Convert local spot back to USD before passing to formatPrice so currency formatting stays unified
+  const meltValueUsd = (pureGrams * pNum) / (curInfo.rate || 1);
 
   return (
     <main id="main" className="mx-auto max-w-6xl px-4 sm:px-5 pb-24 pt-10">
@@ -87,27 +97,40 @@ export const GoldPage: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-3">
               <label className="fld">
-                <span>24k spot price per gram ($)</span>
+                <span>24k spot price / gram ({curInfo.symbol})</span>
                 <input
                   type="number"
                   min="0"
                   step="any"
                   value={pricePerGram}
-                  onChange={(e) => setPricePerGram(e.target.value)}
+                  onChange={(e) => {
+                    setCustomSpotEdited(true);
+                    setPricePerGram(e.target.value);
+                  }}
                   placeholder="e.g. 85.00"
                 />
               </label>
-              <div className="fld flex flex-col justify-end">
-                <span className="text-xs muted mb-1">Active Currency</span>
-                <div className="stat py-2.5 px-3 text-xs font-mono gt font-bold">
-                  {currentLocale.currency}
-                </div>
-              </div>
+              <label className="fld">
+                <span>Currency</span>
+                <select
+                  value={currentLocale.currency}
+                  onChange={(e) => {
+                    setCustomSpotEdited(false);
+                    setCurrency(e.target.value);
+                  }}
+                >
+                  {Object.keys(CURRENCIES).map((code) => (
+                    <option key={code} value={code}>
+                      {CURRENCY_FLAGS[code] || ''} {code} ({CURRENCIES[code].symbol})
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
           </div>
 
           <p className="muted text-xs mt-4">
-            Spot prices fluctuate daily. Enter today's benchmark spot price from your trusted market feed.
+            Pre-filled with our studio 24K benchmark in {currentLocale.currency} — adjust anytime to match your local buyer quote.
           </p>
         </div>
 
@@ -136,7 +159,7 @@ export const GoldPage: React.FC = () => {
               <div className="stat col-span-2 py-4">
                 <span className="muted text-xs uppercase tracking-wider">Estimated Scrap Melt Value</span>
                 <b className="serif text-3xl sm:text-4xl text-emerald-500 mt-1">
-                  {formatPrice(meltValue)}
+                  {formatPrice(meltValueUsd)}
                 </b>
               </div>
             </div>

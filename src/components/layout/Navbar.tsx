@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { useApp, ALL_TOOL_SLUGS } from '../../context/AppContext';
+import React, { useState, useEffect, useRef } from 'react';
+import { useApp, ALL_TOOL_SLUGS, CURRENCIES, CURRENCY_FLAGS, QUICK_CURRENCIES, LANGUAGES } from '../../context/AppContext';
 
 export const Navbar: React.FC = () => {
   const {
     currentRoute,
     navigate,
     currentLocale,
+    setCurrency,
     openLocaleModal,
     formatPrice,
     theme,
@@ -23,7 +24,28 @@ export const Navbar: React.FC = () => {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [moreDropdownOpen, setMoreDropdownOpen] = useState(false);
+  const [currencyDropdownOpen, setCurrencyDropdownOpen] = useState(false);
+  const curRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      if (curRef.current && !curRef.current.contains(e.target as Node)) {
+        setCurrencyDropdownOpen(false);
+      }
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setCurrencyDropdownOpen(false);
+    };
+    document.addEventListener('click', onDocClick);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('click', onDocClick);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, []);
+
+  const curInfo = CURRENCIES[currentLocale.currency] || CURRENCIES.USD;
+  const curFlag = CURRENCY_FLAGS[currentLocale.currency] || '💱';
   const priceLabel = formatPrice(6);
 
   const navLinks = [
@@ -102,18 +124,18 @@ export const Navbar: React.FC = () => {
             </button>
           ))}
 
-          {/* Currency Pill */}
+          {/* Desktop Language Pill */}
           <button
             onClick={openLocaleModal}
             className="l whitespace-nowrap flex items-center gap-1 font-medium text-xs py-1 px-2.5 rounded-full cursor-pointer"
             style={{
               color: '#b76e79',
-              background: 'rgba(243,226,179,0.15)',
-              border: '1px solid rgba(183,110,121,0.25)',
+              background: 'rgba(243,226,179,0.12)',
+              border: '1px solid rgba(183,110,121,0.22)',
             }}
-            title="Change Currency & Language"
+            title="Change Website Language"
           >
-            <span>📍 {currentLocale.currency} ▾</span>
+            <span>🌐 {LANGUAGES[currentLocale.lang] || currentLocale.lang} ▾</span>
           </button>
 
           <button
@@ -159,8 +181,69 @@ export const Navbar: React.FC = () => {
           </div>
         </nav>
 
-        {/* Right Actions: Pro Status / Free Tries, Theme, Auth, Mobile Toggle */}
+        {/* Right Actions: Currency Switcher, Pro Status, Theme, Auth, Mobile Toggle */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Dedicated Currency Switcher (Visible on Mobile & Desktop) */}
+          <div ref={curRef} className="cur-switcher shrink-0">
+            <button
+              type="button"
+              onClick={() => setCurrencyDropdownOpen(!currencyDropdownOpen)}
+              className="cur-btn"
+              aria-haspopup="listbox"
+              aria-expanded={currencyDropdownOpen}
+              aria-label="Switch currency"
+            >
+              <span>
+                {curFlag} {currentLocale.currency}{' '}
+                <span className="hidden sm:inline opacity-80">({curInfo.symbol})</span>
+              </span>
+              <span className="text-[10px] opacity-75">▾</span>
+            </button>
+
+            {currencyDropdownOpen && (
+              <div className="cur-menu" role="listbox" aria-label="Select currency">
+                {QUICK_CURRENCIES.map((code) => {
+                  const ci = CURRENCIES[code];
+                  const fl = CURRENCY_FLAGS[code] || '💱';
+                  const active = currentLocale.currency === code;
+                  return (
+                    <button
+                      key={code}
+                      type="button"
+                      role="option"
+                      aria-selected={active}
+                      onClick={() => {
+                        setCurrency(code);
+                        setCurrencyDropdownOpen(false);
+                      }}
+                      className="cur-opt"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span>{fl}</span>
+                        <span>
+                          <b>{code}</b>{' '}
+                          <span className="opacity-70 text-[11px]">{ci.name.split(' (')[0]}</span>
+                        </span>
+                      </span>
+                      <span className="font-mono text-xs opacity-85">{ci.symbol}</span>
+                    </button>
+                  );
+                })}
+                <div className="cur-divider" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrencyDropdownOpen(false);
+                    openLocaleModal();
+                  }}
+                  className="cur-opt"
+                >
+                  <span className="gt font-medium">🌐 All 22 currencies &amp; languages...</span>
+                </button>
+              </div>
+            )}
+          </div>
+
           {/* Pro / Free tries badge */}
           {isPro ? (
             <span className="bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full font-bold text-xs whitespace-nowrap">

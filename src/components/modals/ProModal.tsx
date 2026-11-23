@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useApp, ALL_TOOL_SLUGS, STRIPE_BASE } from '../../context/AppContext';
+import { useApp, ALL_TOOL_SLUGS, STRIPE_BASE, CURRENCIES, CURRENCY_FLAGS } from '../../context/AppContext';
 
 export const ProModal: React.FC = () => {
   const {
@@ -12,6 +12,7 @@ export const ProModal: React.FC = () => {
     t,
     trackEvent,
     currentLocale,
+    setCurrency,
   } = useApp();
 
   const [guestEmail, setGuestEmail] = useState('');
@@ -35,6 +36,8 @@ export const ProModal: React.FC = () => {
     { icon: '📿', t: 'Necklace Layering & Ear Match', d: 'Chain lengths, spacing & face-shape earring pairings' },
     { icon: '🧿', t: 'Beading Board & Wishlist Sync', d: 'Millimeter bracelet patterns, BOM CSV & cloud wishlist' },
   ];
+
+  const activeRate = CURRENCIES[currentLocale.currency]?.rate || 1;
 
   return (
     <div
@@ -94,6 +97,23 @@ export const ProModal: React.FC = () => {
           <p className="muted text-sm md:text-base mt-2 max-w-lg mx-auto">
             Less than <b className="gt">{dailyLabel}/day</b> ({priceLabel}/month) for all {ALL_TOOL_SLUGS.length} studios unlimited ({remainingTries} free tries remaining).
           </p>
+          <div className="inline-flex items-center gap-2 mt-2.5 text-xs">
+            <label htmlFor="spa-pro-cur-select" className="muted">
+              Display currency:
+            </label>
+            <select
+              id="spa-pro-cur-select"
+              value={currentLocale.currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              className="px-2.5 py-1 rounded-full text-xs border border-rose-200/30 bg-white/10 text-inherit cursor-pointer"
+            >
+              {Object.keys(CURRENCIES).map((code) => (
+                <option key={code} value={code} className="text-slate-900">
+                  {CURRENCY_FLAGS[code] || ''} {code} ({CURRENCIES[code].symbol})
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-2.5 mt-5 max-h-[40vh] overflow-y-auto pr-1">
@@ -131,7 +151,7 @@ export const ProModal: React.FC = () => {
             rel="noopener noreferrer"
             onClick={() =>
               trackEvent('InitiateCheckout', {
-                value: 6,
+                value: Number((6 * activeRate).toFixed(2)),
                 currency: currentLocale.currency || 'USD',
                 content_name: 'McGee Pro Membership',
               })

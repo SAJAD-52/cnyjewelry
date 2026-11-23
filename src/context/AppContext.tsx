@@ -27,6 +27,15 @@ export const CURRENCIES: Record<string, CurrencyConfig> = {
   SAR: { symbol: 'SAR', name: 'Saudi Riyal (Saudi Arabia)', rate: 3.75, defaultLang: 'AR' },
 };
 
+export const CURRENCY_FLAGS: Record<string, string> = {
+  USD: '🇺🇸', CAD: '🇨🇦', GBP: '🇬🇧', AUD: '🇦🇺', NZD: '🇳🇿', EUR: '🇪🇺',
+  CHF: '🇨🇭', SEK: '🇸🇪', NOK: '🇳🇴', DKK: '🇩🇰', PLN: '🇵🇱', CZK: '🇨🇿',
+  HUF: '🇭🇺', RON: '🇷🇴', BGN: '🇧🇬', ISK: '🇮🇸', TRY: '🇹🇷', UAH: '🇺🇦',
+  RSD: '🇷🇸', MAD: '🇲🇦', AED: '🇦🇪', SAR: '🇸🇦',
+};
+
+export const QUICK_CURRENCIES = ['USD', 'CAD', 'GBP', 'AUD', 'NZD', 'EUR', 'CHF', 'SEK', 'NOK', 'DKK', 'AED', 'SAR', 'MAD'];
+
 export const LANGUAGES: Record<string, string> = {
   EN: 'English',
   FR: 'Français',
@@ -289,6 +298,7 @@ interface AppContextType {
   navigate: (path: string) => void;
   currentLocale: { currency: string; lang: string };
   setLocale: (currency: string, lang: string) => void;
+  setCurrency: (currency: string) => void;
   t: (key: string, fallback?: string) => string;
   formatPrice: (usdAmount: number) => string;
   goldUsdPerOz: number;
@@ -412,6 +422,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         )
         .then(() => {});
     }
+  };
+
+  const setCurrency = (currency: string) => {
+    const code = currency.toUpperCase();
+    if (!CURRENCIES[code]) return;
+    setLocale(code, currentLocale.lang);
   };
 
   const t = useCallback(
@@ -835,6 +851,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         navigate,
         currentLocale,
         setLocale,
+        setCurrency,
         t,
         formatPrice,
         goldUsdPerOz,

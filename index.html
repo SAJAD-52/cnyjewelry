@@ -157,7 +157,7 @@ Interactive studios
 Live melt engine
 </div>
 <div>
-<b class="gt text-xl sm:text-2xl block serif leading-tight"><span data-daily-price>$0.20</span>/day</b>
+<b class="gt text-xl sm:text-2xl block serif leading-tight"><span data-daily-price>$0.20/day</span></b>
 All tools unlocked
 </div>
 </div>
@@ -424,7 +424,16 @@ Go Pro &mdash; <span data-pro-price>$6</span>/mo &rarr;
 One private appraisal at a jeweler costs $75&ndash;$150. With McGee Pro, catalog your entire jewelry collection with compressed cloud photos, track live 10k&ndash;24k melt value, and unlock all 14 tools for <b class="gt"><span data-pro-price>$6</span>/month</b> (<span data-daily-price>$0.20/day</span>).
 </p>
 
-<div class="grid sm:grid-cols-2 gap-4 mt-6">
+<div id="offer-currency-pills" class="flex flex-wrap items-center gap-1.5 mt-4" aria-label="Switch display currency">
+<span class="text-xs muted mr-1">Currency:</span>
+<button type="button" class="chip text-xs py-1 px-2.5" data-offer-cur="USD">🇺🇸 USD</button>
+<button type="button" class="chip text-xs py-1 px-2.5" data-offer-cur="CAD">🇨🇦 CAD</button>
+<button type="button" class="chip text-xs py-1 px-2.5" data-offer-cur="GBP">🇬🇧 GBP</button>
+<button type="button" class="chip text-xs py-1 px-2.5" data-offer-cur="AUD">🇦🇺 AUD</button>
+<button type="button" class="chip text-xs py-1 px-2.5" data-offer-cur="EUR">🇪🇺 EUR</button>
+</div>
+
+<div class="grid sm:grid-cols-2 gap-4 mt-5">
 <div class="stat">
 <p class="text-xs muted">Free Visitor</p>
 <b class="text-xl mt-0.5">$0</b>
@@ -521,9 +530,19 @@ function syncIndexPrices() {
   var dp = window.formatPrice(0.20);
   document.querySelectorAll('[data-pro-price]').forEach(function(el){ el.textContent = lp; });
   document.querySelectorAll('[data-daily-price]').forEach(function(el){ el.textContent = dp + '/day'; });
+  var curCode = (window.currentLocale && window.currentLocale.currency) || 'USD';
+  document.querySelectorAll('[data-offer-cur]').forEach(function(btn){
+    btn.setAttribute('aria-pressed', btn.getAttribute('data-offer-cur') === curCode ? 'true' : 'false');
+  });
 }
+document.querySelectorAll('[data-offer-cur]').forEach(function(btn){
+  btn.onclick = function(){
+    if (window.setMcGeeCurrency) window.setMcGeeCurrency(btn.getAttribute('data-offer-cur'));
+  };
+});
 syncIndexPrices();
 window.addEventListener('mcgee:config-ready', syncIndexPrices);
+window.addEventListener('mcgee:locale-changed', syncIndexPrices);
 
 /* ---------- Wire Pro Checkout CTAs ---------- */
 ['hero-cta-pro', 'suite-pro-btn', 'suite-bottom-cta', 'offer-cta-pro', 'sticky-cta-btn'].forEach(function(id){
@@ -667,6 +686,7 @@ window.addEventListener('mcgee:config-ready', syncIndexPrices);
   }
   updateSample(false);
   window.addEventListener('mcgee:config-ready', function(){ updateSample(false); });
+  window.addEventListener('mcgee:locale-changed', function(){ updateSample(false); });
   setInterval(function(){
     idx++;
     updateSample(true);

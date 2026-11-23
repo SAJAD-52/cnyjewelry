@@ -569,6 +569,7 @@ loadVault();
 // Re-load as soon as Supabase session or live gold config finishes initializing
 window.addEventListener('mcgee:auth-ready', loadVault);
 window.addEventListener('mcgee:config-ready', render);
+window.addEventListener('mcgee:locale-changed', render);
 if (window.__mcgeeAuthReady) {
   loadVault();
 }
