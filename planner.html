@@ -138,6 +138,27 @@ async function loadPlannerData(){
 
   if (window.currentUser && window.sb) {
     try {
+      // 0. Fetch pieces so dropdown & CPW work on any device
+      var piecesRes = await window.sb
+        .from('pieces')
+        .select('id, name, category, karat, weight_g, paid_price')
+        .eq('user_id', window.currentUser.id)
+        .order('created_at', { ascending: false });
+
+      if (!piecesRes.error && piecesRes.data) {
+        currentVault = piecesRes.data.map(function(p){
+          return {
+            id: p.id,
+            name: p.name,
+            cat: p.category || 'Other',
+            karat: p.karat || '14k',
+            weight: parseFloat(p.weight_g) || 0,
+            price: parseFloat(p.paid_price) || 0
+          };
+        });
+        try { localStorage.setItem(VAULT_KEY, JSON.stringify(currentVault)); } catch(e){}
+      }
+
       // 1. Fetch weekly plan
       var planRes = await window.sb
         .from('weekly_plan')
@@ -444,8 +465,11 @@ if(btnPrintPlan){
 
 loadPlannerData();
 
-window.addEventListener('load', function(){
-  setTimeout(loadPlannerData, 500);
+window.addEventListener('mcgee:auth-ready', function(){
+  loadPlannerData();
 });
+if (window.__mcgeeAuthReady) {
+  loadPlannerData();
+}
 })();
 </script></body></html>

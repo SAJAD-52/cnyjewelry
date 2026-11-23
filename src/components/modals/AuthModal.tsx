@@ -35,6 +35,13 @@ export const AuthModal: React.FC = () => {
       setLoading(false);
       if (res.error) {
         setStatus({ message: res.error, type: 'error' });
+      } else if (res.alreadyExists) {
+        setStatus({ message: 'An account with this email already exists. Please log in instead.', type: 'error' });
+      } else if (res.needsConfirmation) {
+        setStatus({
+          message: 'Account created! Please check your email inbox (and spam folder) and click the confirmation link before logging in.',
+          type: 'success',
+        });
       } else {
         setStatus({ message: 'Account created successfully!', type: 'success' });
         setTimeout(() => closeAuthModal(), 1000);

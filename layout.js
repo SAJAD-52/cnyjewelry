@@ -317,8 +317,8 @@ var KOO = window.KOO = {
     if (!currentUser || !sb) return;
     try {
       var res = await sb.from('wishlist').select('id, item').eq('user_id', currentUser.id);
-      if (!res.error && res.data && res.data.length > 0) {
-        var cloudItems = res.data.map(function(r){ return r.item; });
+      if (!res.error && Array.isArray(res.data)) {
+        var cloudItems = res.data.map(function(r){ return r.item; }).filter(Boolean);
         localStorage.setItem(K, JSON.stringify(cloudItems));
         this.sync();
       }
@@ -597,10 +597,12 @@ async function handleStripeSuccess() {
   }
 }
 
-/* ---------- MANUAL LOCAL-TO-CLOUD SYNC HELPER (Triggered only from Profile if desired) ---------- */
+/* ---------- LOCAL-TO-CLOUD MIGRATION HELPER (Runs once per user on login) ---------- */
+var __syncInFlight = false;
 async function syncLocalToCloud(user) {
-  if (!user || !sb) return;
+  if (!user || !sb || __syncInFlight) return;
   var migrationKey = 'koo_migrated_' + user.id;
+  if (localStorage.getItem(migrationKey) === 'true') return;
 
   var vaultData = [];
   var planData = {};
@@ -611,9 +613,24 @@ async function syncLocalToCloud(user) {
   try { wearData = JSON.parse(localStorage.getItem('koo_wear_history')) || []; } catch(e){}
   try { wishData = JSON.parse(localStorage.getItem('koo_wishlist')) || []; } catch(e){}
 
+  var guestPieces = vaultData.filter(function(p){ return p && !p.id; });
+  var guestWears = wearData.filter(function(w){ return w && !w.id; });
+  var planDays = Object.keys(planData || {});
+
+  if (!guestPieces.length && !planDays.length && !guestWears.length && !wishData.length) {
+    try { localStorage.setItem(migrationKey, 'true'); } catch(e){}
+    return;
+  }
+
+  __syncInFlight = true;
+  var migratedAny = false;
+
   try {
-    if (vaultData.length > 0) {
-      var piecesToInsert = vaultData.map(function(p){
+    if (guestPieces.length > 0) {
+      var existingPiecesRes = await sb.from('pieces').select('id').eq('user_id', user.id);
+      var existingPieceCount = (!existingPiecesRes.error && existingPiecesRes.data) ? existingPiecesRes.data.length : 0;
+      var pieceQuota = window.__isPro ? guestPieces.length : Math.max(0, 2 - existingPieceCount);
+      var piecesToInsert = guestPieces.slice(0, pieceQuota).map(function(p){
         return {
           user_id: user.id,
           name: p.name || 'Fine Jewelry',
@@ -624,25 +641,33 @@ async function syncLocalToCloud(user) {
           notes: p.notes || ''
         };
       });
-      if (!window.__isPro && piecesToInsert.length > 2) {
-        piecesToInsert = piecesToInsert.slice(0, 2);
+      if (piecesToInsert.length > 0) {
+        var insP = await sb.from('pieces').insert(piecesToInsert);
+        if (!insP.error) migratedAny = true;
       }
-      await sb.from('pieces').insert(piecesToInsert);
     }
 
-    var days = Object.keys(planData);
-    for (var i = 0; i < days.length; i++) {
-      var day = days[i];
-      if (!window.__isPro && ['Monday', 'Tuesday'].indexOf(day) < 0) continue;
-      await sb.from('weekly_plan').upsert({
-        user_id: user.id,
-        day: day,
-        piece_ids: [planData[day]]
-      }, { onConflict: 'user_id,day' });
+    if (planDays.length > 0) {
+      var existingPlanRes = await sb.from('weekly_plan').select('day').eq('user_id', user.id);
+      var existingDays = (!existingPlanRes.error && existingPlanRes.data) ? existingPlanRes.data.map(function(r){ return r.day; }) : [];
+      for (var i = 0; i < planDays.length; i++) {
+        var day = planDays[i];
+        if (!window.__isPro && ['Monday', 'Tuesday'].indexOf(day) < 0) continue;
+        if (existingDays.indexOf(day) >= 0) continue;
+        var upRes = await sb.from('weekly_plan').upsert({
+          user_id: user.id,
+          day: day,
+          piece_ids: [planData[day]]
+        }, { onConflict: 'user_id,day' });
+        if (!upRes.error) migratedAny = true;
+      }
     }
 
-    if (wearData.length > 0) {
-      var wearsToInsert = wearData.map(function(w){
+    if (guestWears.length > 0) {
+      var existingWearRes = await sb.from('wear_log').select('id').eq('user_id', user.id);
+      var existingWearCount = (!existingWearRes.error && existingWearRes.data) ? existingWearRes.data.length : 0;
+      var wearQuota = window.__isPro ? guestWears.length : Math.max(0, 3 - existingWearCount);
+      var wearsToInsert = guestWears.slice(0, wearQuota).map(function(w){
         return {
           user_id: user.id,
           piece_name: w.piece,
@@ -650,25 +675,37 @@ async function syncLocalToCloud(user) {
           worn_on: w.date || new Date().toISOString().slice(0,10)
         };
       });
-      if (!window.__isPro && wearsToInsert.length > 3) {
-        wearsToInsert = wearsToInsert.slice(0, 3);
+      if (wearsToInsert.length > 0) {
+        var insW = await sb.from('wear_log').insert(wearsToInsert);
+        if (!insW.error) migratedAny = true;
       }
-      await sb.from('wear_log').insert(wearsToInsert);
     }
 
     if (wishData.length > 0) {
-      var wishToInsert = wishData.map(function(it){
-        return { user_id: user.id, item: it };
-      });
-      await sb.from('wishlist').insert(wishToInsert);
+      var existingWishRes = await sb.from('wishlist').select('item').eq('user_id', user.id);
+      var existingIds = {};
+      if (!existingWishRes.error && existingWishRes.data) {
+        existingWishRes.data.forEach(function(r){
+          if (r.item && r.item.id) existingIds[r.item.id] = true;
+        });
+      }
+      var wishToInsert = wishData
+        .filter(function(it){ return it && it.id && !existingIds[it.id]; })
+        .map(function(it){ return { user_id: user.id, item: it }; });
+      if (wishToInsert.length > 0) {
+        var insWish = await sb.from('wishlist').insert(wishToInsert);
+        if (!insWish.error) migratedAny = true;
+      }
     }
 
-    localStorage.setItem(migrationKey, 'true');
-    showToast('✨ Data successfully synced to your cloud account!');
-    setTimeout(function(){ location.reload(); }, 900);
+    try { localStorage.setItem(migrationKey, 'true'); } catch(e){}
+    if (migratedAny) {
+      showToast('✨ Local items synced to your cloud account!');
+    }
   } catch(err) {
-    console.error('Migration error:', err);
-    showToast('Some items could not be synced: ' + err.message, true);
+    console.warn('Migration notice:', err);
+  } finally {
+    __syncInFlight = false;
   }
 }
 
@@ -972,16 +1009,23 @@ function handleFormSubmit(e) {
   if (authMode === 'signup') {
     sb.auth.signUp({
       email: email,
-      password: password
+      password: password,
+      options: { emailRedirectTo: window.location.origin }
     }).then(function(res){
       btn.disabled = false;
       if (res.error) {
         st.textContent = res.error.message;
         st.style.color = '#ef4444';
-      } else {
-        st.textContent = 'Account created successfully!';
+      } else if (res.data && res.data.session) {
+        st.textContent = 'Account created! Signing you in...';
         st.style.color = '#10b981';
         setTimeout(function(){ location.reload(); }, 800);
+      } else if (res.data && res.data.user && Array.isArray(res.data.user.identities) && res.data.user.identities.length === 0) {
+        st.textContent = 'An account with this email already exists. Please log in instead.';
+        st.style.color = '#f59e0b';
+      } else {
+        st.innerHTML = 'Account created! Please check your email inbox (and spam folder) and click the confirmation link before logging in.';
+        st.style.color = '#10b981';
       }
     }).catch(function(err){
       btn.disabled = false;
@@ -992,12 +1036,37 @@ function handleFormSubmit(e) {
     sb.auth.signInWithPassword({ email: email, password: password }).then(function(res){
       btn.disabled = false;
       if (res.error) {
-        st.textContent = res.error.message;
-        st.style.color = '#ef4444';
+        var msg = res.error.message || 'Login failed.';
+        if (/not confirmed/i.test(msg)) {
+          st.innerHTML = 'Please confirm your email address first (check inbox/spam). <button type="button" id="btn-resend-confirm" class="underline gt font-semibold ml-1">Resend email</button>';
+          st.style.color = '#f59e0b';
+          var resendBtn = document.getElementById('btn-resend-confirm');
+          if (resendBtn) {
+            resendBtn.onclick = function(){
+              resendBtn.disabled = true;
+              sb.auth.resend({
+                type: 'signup',
+                email: email,
+                options: { emailRedirectTo: window.location.origin }
+              }).then(function(r){
+                if (r.error) {
+                  st.textContent = r.error.message;
+                  st.style.color = '#ef4444';
+                } else {
+                  st.textContent = 'Confirmation email resent! Check your inbox and spam folder.';
+                  st.style.color = '#10b981';
+                }
+              });
+            };
+          }
+        } else {
+          st.textContent = msg;
+          st.style.color = '#ef4444';
+        }
       } else {
         st.textContent = 'Logged in successfully!';
         st.style.color = '#10b981';
-        setTimeout(function(){ location.reload(); }, 800);
+        setTimeout(function(){ location.reload(); }, 600);
       }
     }).catch(function(err){
       btn.disabled = false;
@@ -1008,22 +1077,60 @@ function handleFormSubmit(e) {
 }
 
 function loginWithGoogle() {
-  if (!sb) { alert('Connecting to login service...'); return; }
+  var st = document.getElementById('auth-status');
+  if (!sb) {
+    if (st) { st.textContent = 'Connecting to login service...'; st.style.color = '#f59e0b'; }
+    else showToast('Connecting to login service...', true);
+    return;
+  }
+  var inIframe = false;
+  try { inIframe = window.self !== window.top; } catch(e) { inIframe = true; }
+  if (inIframe) {
+    var msg = 'Google sign-in requires opening this page in a full browser tab. You can also sign up with Email & Password here.';
+    if (st) { st.textContent = msg; st.style.color = '#f59e0b'; }
+    else showToast(msg, true);
+    return;
+  }
   sb.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo: window.location.origin }
+  }).then(function(res){
+    if (res && res.error) {
+      if (st) { st.textContent = res.error.message; st.style.color = '#ef4444'; }
+      else showToast('Google login error: ' + res.error.message, true);
+    }
   }).catch(function(err){
-    alert('Google login error: ' + err.message);
+    if (st) { st.textContent = err.message; st.style.color = '#ef4444'; }
+    else showToast('Google login error: ' + err.message, true);
   });
 }
 
-function logoutUser() {
-  if (sb) sb.auth.signOut();
+async function logoutUser() {
+  try {
+    if (sb) await sb.auth.signOut();
+  } catch(e){}
   currentUser = null;
+  window.currentUser = null;
   window.__isPro = false;
   window.__isAdmin = false;
+  try {
+    localStorage.removeItem('koo_jewelry_vault');
+    localStorage.removeItem('koo_weekly_plan');
+    localStorage.removeItem('koo_wear_history');
+    localStorage.removeItem('koo_wishlist');
+    localStorage.removeItem('koo_pro_active');
+  } catch(e){}
   updateNavAuth();
   location.reload();
+}
+
+function notifyAuthReady() {
+  window.__mcgeeAuthReady = true;
+  try {
+    window.dispatchEvent(new CustomEvent('mcgee:auth-ready', {
+      detail: { user: currentUser, isPro: !!window.__isPro }
+    }));
+  } catch(e){}
 }
 
 window.initMcGeeAuth = async function() {
@@ -1037,6 +1144,7 @@ window.initMcGeeAuth = async function() {
       currentUser = res.data.session.user;
       window.currentUser = currentUser;
       await refreshProStatus();
+      await syncLocalToCloud(currentUser);
       await KOO.loadFromCloud();
     }
   } catch(e) {
@@ -1046,16 +1154,19 @@ window.initMcGeeAuth = async function() {
   updateNavAuth();
   handleStripeSuccess();
   checkDirectPagePaywall();
+  notifyAuthReady();
 
   sb.auth.onAuthStateChange(async function(evt, session){
     currentUser = session ? session.user : null;
     window.currentUser = currentUser;
     await refreshProStatus();
     if (currentUser) {
+      await syncLocalToCloud(currentUser);
       await KOO.loadFromCloud();
     }
     updateNavAuth();
     handleStripeSuccess();
+    notifyAuthReady();
   });
 };
 

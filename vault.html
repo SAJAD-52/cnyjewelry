@@ -492,9 +492,12 @@ if (btnPrint) {
 // Initial load
 loadVault();
 
-// Listen to Supabase session change
-window.addEventListener('load', function(){
-  setTimeout(loadVault, 500);
+// Re-load as soon as Supabase session finishes initializing or changes
+window.addEventListener('mcgee:auth-ready', function(){
+  loadVault();
 });
+if (window.__mcgeeAuthReady) {
+  loadVault();
+}
 })();
 </script></body></html>

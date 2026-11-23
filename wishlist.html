@@ -52,13 +52,14 @@ function render(){
   }
 }
 render();
-window.addEventListener('load', function(){
-  setTimeout(function(){
-    if (window.KOO && window.KOO.loadFromCloud) {
-      window.KOO.loadFromCloud().then(render);
-    } else {
-      render();
-    }
-  }, 400);
+window.addEventListener('mcgee:auth-ready', function(){
+  if (window.KOO && window.KOO.loadFromCloud) {
+    window.KOO.loadFromCloud().then(render);
+  } else {
+    render();
+  }
 });
+if (window.__mcgeeAuthReady && window.KOO && window.KOO.loadFromCloud) {
+  window.KOO.loadFromCloud().then(render);
+}
 </script></body></html>

@@ -84,7 +84,7 @@ interface AppContextType {
   currentUser: UserProfile | null;
   isPro: boolean;
   login: (e: string, p: string) => Promise<{ error?: string }>;
-  signup: (e: string, p: string) => Promise<{ error?: string }>;
+  signup: (e: string, p: string) => Promise<{ error?: string; needsConfirmation?: boolean; alreadyExists?: boolean }>;
   loginGoogle: () => void;
   logout: () => void;
   usedFeatures: string[];
@@ -289,7 +289,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const url = new URL(window.location.href);
       url.searchParams.delete('payment');
       window.history.replaceState({}, document.title, url.pathname);
-      alert('🎉 Payment confirmed! Your account is now upgraded to McGee Jewelry Pro.');
+      setBannerMessage('🎉 Payment confirmed! Your account is now upgraded to McGee Jewelry Pro.');
     }
 
     return () => {
@@ -316,15 +316,27 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
-  const signup = async (email: string, password: string): Promise<{ error?: string }> => {
+  const signup = async (
+    email: string,
+    password: string
+  ): Promise<{ error?: string; needsConfirmation?: boolean; alreadyExists?: boolean }> => {
     try {
       const isProEmail = PRO_EMAILS.includes(email.toLowerCase().trim());
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { is_pro: isProEmail } },
+        options: {
+          data: { is_pro: isProEmail },
+          emailRedirectTo: window.location.origin,
+        },
       });
       if (error) return { error: error.message };
+      if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+        return { alreadyExists: true };
+      }
+      if (!data?.session) {
+        return { needsConfirmation: true };
+      }
       if (data?.user) {
         const u = data.user;
         setCurrentUser({
